@@ -9,6 +9,8 @@ pkg_check_modules(GTK4 REQUIRED gtk4)
 
 # ----------------------- || -------------
 
+set(CMAKE_C_FLAGS_DEBUG "-g")
+
 include_directories(${GTK4_INCLUDE_DIRS}) 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
