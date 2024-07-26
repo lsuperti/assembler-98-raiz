@@ -1,8 +1,11 @@
-# Passos para rodar : 
+# Passos para build : 
+
+- https://www.gtk.org/docs/installations
 
 Em sistemas UNIX : 
 
-Passos para build : Dependencias GTK3, cmake, make 
+- Dependencias GTK3, cmake, make 
+
 - mkdir build
 - cd build
 - cmake ..
@@ -11,8 +14,7 @@ Passos para build : Dependencias GTK3, cmake, make
 
 No windows :
 
-https://www.gtk.org/docs/installations/windows
-Passos para build : Dependencias MSYS2, GTK3, cmake, make, Ninja
+- Dependencias MSYS2, GTK3, cmake, make, Ninja
 
 Dentro do MSYS2 -> 
 - pacman -S mingw-w64-ucrt-x86_64-toolchain base-devel
