@@ -1,3 +1,4 @@
+# Passos para rodar : 
 
 Em sistemas UNIX : 
 
@@ -21,7 +22,7 @@ Dentro do MSYS2 ->
 - cmake -G Ninja .. | ou | cmake -G "MinGW Makefiles" .. | ou | cmake .. 
 - cmake --build .
 
-Instalando GTK3 no ubuntu : 
+# Instalando GTK3 no ubuntu : 
 
 - sudo apt update
 - sudo apt install libgtk-3-dev
@@ -32,9 +33,9 @@ ou
 - sudo apt update
 - sudo apt install libgtk-3-dev
 
-Instalando Glade no ubuntu :  
+# Instalando Glade no ubuntu :  
 
-# Glade é para facilitar o desenvolvimento do GTK
-
+- glade é para facilitar o desenvolvimento do GTK
+- Video explicativo https://www.youtube.com/watch?v=p3I_GMGe2vI
 - sudo apt install glade
 
