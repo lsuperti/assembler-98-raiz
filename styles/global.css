@@ -22,3 +22,7 @@ box {
     border: 1px solid lightgreen;
 }
 
+.reset:hover {
+   background-color: red; 
+}
+

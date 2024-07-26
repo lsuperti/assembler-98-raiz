@@ -46,8 +46,8 @@
             </child>
           </object>
           <packing>
-            <property name="x">96</property>
-            <property name="y">243</property>
+            <property name="x">118</property>
+            <property name="y">235</property>
           </packing>
         </child>
         <child>
@@ -101,6 +101,23 @@
           <packing>
             <property name="x">456</property>
             <property name="y">107</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="reset">
+            <property name="label" translatable="yes">Reset</property>
+            <property name="width-request">100</property>
+            <property name="height-request">80</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <style>
+              <class name="reset"/>
+            </style>
+          </object>
+          <packing>
+            <property name="x">237</property>
+            <property name="y">328</property>
           </packing>
         </child>
       </object>

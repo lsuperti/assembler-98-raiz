@@ -10,6 +10,9 @@ void onDestroy(GtkWidget *widget, gpointer data) {
 
 int main (int argc, char *argv[]) {
 
+  memory[45] = 1;
+  memory[4095] = 7;
+
   gtk_init(&argc, &argv);
 
   GtkBuilder *builder = gtk_builder_new_from_file("../glade_files/ui.glade");
@@ -27,17 +30,19 @@ int main (int argc, char *argv[]) {
 
   // ------------------------------------------ //
  
+  // -- Load signals and callbacks
   gtk_builder_add_callback_symbols(builder, 
                                    "onDestroy", G_CALLBACK(onDestroy),
                                    NULL);
-
   g_signal_connect(gtk_builder_get_object(builder, "step")
           ,"clicked", G_CALLBACK(step), builder);
-
+  g_signal_connect(gtk_builder_get_object(builder, "reset")
+          ,"clicked", G_CALLBACK(reset), builder);
+  gtk_builder_connect_signals(builder, NULL);
+  // -- // 
+ 
   gtk_style_context_add_provider_for_screen(screen,
           GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
-
-  gtk_builder_connect_signals(builder, NULL);
 
   char cma_str[100], cmv_str[100];  
   sprintf(cma_str, "%d", CURRENT_MEMORY_ADDRESS);
