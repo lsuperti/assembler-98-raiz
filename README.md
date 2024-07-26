@@ -14,12 +14,12 @@ https://www.gtk.org/docs/installations/windows
 Passos para build : Dependencias MSYS2, GTK3, cmake, make, Ninja
 
 Dentro do MSYS2 -> 
-    - pacman -S mingw-w64-ucrt-x86_64-toolchain base-devel
-    - pacman -S mingw-w64-ucrt-x86_64-gtk3
-    - mkdir build
-    - cd build
-    - cmake -G Ninja .. | ou | cmake -G "MinGW Makefiles" .. | ou | cmake .. 
-    - cmake --build .
+- pacman -S mingw-w64-ucrt-x86_64-toolchain base-devel
+- pacman -S mingw-w64-ucrt-x86_64-gtk3
+- mkdir build
+- cd build
+- cmake -G Ninja .. | ou | cmake -G "MinGW Makefiles" .. | ou | cmake .. 
+- cmake --build .
 
 Instalando GTK3 no ubuntu : 
 
