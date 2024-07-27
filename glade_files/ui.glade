@@ -40,7 +40,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame">
+          <object class="GtkFrame" id="cur_inst">
             <property name="width-request">215</property>
             <property name="height-request">101</property>
             <property name="visible">True</property>
@@ -73,7 +73,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame">
+          <object class="GtkFrame" id="output_text">
             <property name="width-request">100</property>
             <property name="height-request">194</property>
             <property name="visible">True</property>
@@ -118,7 +118,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkFrame">
+          <object class="GtkFrame" id="registers">
             <property name="width-request">123</property>
             <property name="height-request">191</property>
             <property name="visible">True</property>
@@ -175,6 +175,51 @@
           <packing>
             <property name="x">378</property>
             <property name="y">351</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFrame" id="memory">
+            <property name="width-request">166</property>
+            <property name="height-request">316</property>
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label-xalign">0.05000000074505806</property>
+            <property name="shadow-type">none</property>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="width-request">100</property>
+                <property name="height-request">80</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="hscrollbar-policy">never</property>
+                <property name="vscrollbar-policy">always</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <object class="GtkTreeView" id="memory_tree">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection"/>
+                    </child>
+                  </object>
+                </child>
+                <style>
+                  <class name="memory_scroll"/>
+                </style>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">Memory
+</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="x">516</property>
+            <property name="y">227</property>
           </packing>
         </child>
       </object>

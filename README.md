@@ -12,6 +12,10 @@ Em sistemas UNIX :
 - make
 - ./A9R
 
+Ou rodar o script 
+
+- ./unix-build.sh
+
 No windows :
 
 - Dependencias MSYS2, GTK3, cmake, make, Ninja

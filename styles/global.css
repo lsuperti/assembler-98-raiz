@@ -30,3 +30,17 @@ box {
    background-color: red; 
 }
 
+.memory_scroll {
+    border: 1px solid lightgreen;
+}
+
+.cell {
+    color: lime;
+}
+
+#address_column, #value_column {
+    background-color: lightgreen;
+    color: black;
+    border-radius: 0px;
+}
+
