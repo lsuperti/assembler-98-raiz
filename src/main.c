@@ -10,8 +10,8 @@ void onDestroy(GtkWidget *widget, gpointer data) {
 
 int main (int argc, char *argv[]) {
 
-  memory[45] = 1;
-  memory[4095] = 7;
+  memory[45] = 2333;
+  memory[511] = 7;
 
   gtk_init(&argc, &argv);
 
@@ -44,13 +44,7 @@ int main (int argc, char *argv[]) {
   gtk_style_context_add_provider_for_screen(screen,
           GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-  char cma_str[100], cmv_str[100];  
-  sprintf(cma_str, "%d", CURRENT_MEMORY_ADDRESS);
-  sprintf(cmv_str, "%d", memory[CURRENT_MEMORY_ADDRESS]);
-  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                  "CURRENT_MEMORY_VALUE")), cmv_str);
-  gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                  "CURRENT_MEMORY_ADDRESS")), cma_str);
+  update_inst_pc(builder, memory[CURRENT_MEMORY_ADDRESS]);
 
   GtkWidget *window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
   gtk_widget_show_all(window);
