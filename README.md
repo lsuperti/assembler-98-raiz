@@ -45,3 +45,8 @@ ou
 - Video explicativo https://www.youtube.com/watch?v=p3I_GMGe2vI
 - sudo apt install glade
 
+# Instalando Glade no windows :
+
+-> Dentro do MSYS2 
+- pacman -S mingw-w64-x86_64-glade
+
