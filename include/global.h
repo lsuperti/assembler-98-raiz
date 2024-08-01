@@ -2,8 +2,6 @@
 #define GLOBAL_H
 
 #include <string.h>
-
-char* source_buffer;
-size_t source_size = 0;
+#include <stdint.h>
 
 #endif // GLOBAL_H

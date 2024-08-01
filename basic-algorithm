@@ -1,0 +1,30 @@
+
+; Memory Layout:
+; 00: First number
+; 01: Second number
+; 02: Result
+; 03: Output message "Zero"
+; 04: Output message "Positive"
+; 05: Output message "Negative"
+
+READ 00         ; Read the first number from user input into memory location 00
+READ 01         ; Read the second number from user input into memory location 01
+LOAD 00         ; Load the first number into ACC
+ADD 01          ; Add the second number to ACC
+STORE 02        ; Store the result into memory location 02
+BRZERO 13       ; If ACC is zero, branch to label ZERO
+BRPOS 15        ; If ACC is positive, branch to label POSITIVE
+BRNEG 17        ; If ACC is negative, branch to label NEGATIVE
+
+ZERO:           ; Label ZERO
+WRITE 03        ; Output message "Zero"
+STOP            ; End of program
+
+POSITIVE:       ; Label POSITIVE
+WRITE 04        ; Output message "Positive"
+STOP            ; End of program
+
+NEGATIVE:       ; Label NEGATIVE
+WRITE 05        ; Output message "Negative"
+STOP            ; End of program
+

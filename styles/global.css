@@ -26,6 +26,10 @@ box {
     border: 1px solid lightgreen;
 }
 
+spinbutton {
+    padding: 10px;
+}
+
 .reset:hover {
    background-color: red; 
 }

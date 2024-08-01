@@ -34,8 +34,67 @@ void setup_tree_view(GtkWidget *treeview, GtkCellRenderer *renderer,
 }
 
 int main (int argc, char *argv[]) {
+ 
+  // Algoritmo simples que checa se 
+  // a soma de dois números lidos é 
+  // ZERO, POSITIVO OU NEGATIVO
+  // o arquivo basic-algorithm
+  // mostra os mnemônicos.
 
-  memory[45] = 2333;
+  // Injetado direto na memoria 
+  // por agora
+  // depois criando o montador 
+  // é so dar um append na memoria.
+
+  memory[256] = 12;
+  memory[257] = data_reg;
+  memory[258] = 12; 
+  memory[259] = data_reg + 1;
+  memory[260] = 3;
+  memory[261] = data_reg;
+  memory[262] = 2;
+  memory[263] = data_reg + 1;
+  memory[264] = 7;
+  memory[265] = data_reg + 2;
+  memory[266] = 4;
+  memory[267] = data_reg + 13;
+  memory[268] = 1;
+  memory[269] = data_reg + 14;
+  memory[270] = 5;
+  memory[271] = data_reg + 15;
+  memory[272] = 11;
+  
+  memory[321] = 8;
+  memory[322] = data_reg + 3; 
+  memory[323] = 11;
+
+  memory[421] = 8;
+  memory[422] = data_reg + 16;
+  memory[423] = 11;
+
+  memory[521] = 8;
+  memory[522] = data_reg + 35;
+  memory[523] = 11;
+
+  memory[data_reg + 13] = 321;
+  memory[data_reg + 14] = 421;
+  memory[data_reg + 15] = 521;
+
+  memory[data_reg + 35] = 0x656e;
+  memory[data_reg + 36] = 0x6167;
+  memory[data_reg + 37] = 0x6974;
+  memory[data_reg + 38] = 0x6576;
+  memory[data_reg + 39] = 0x0;
+
+  memory[data_reg + 3] = 0x657a;
+  memory[data_reg + 4] = 0x6f72; // "zero" em ASCII
+  memory[data_reg + 5] = 0x0;
+
+  memory[data_reg + 16] = 0x6f70; // "positivo" em ASCII
+  memory[data_reg + 17] = 0x6973;
+  memory[data_reg + 18] = 0x6974;
+  memory[data_reg + 19] = 0x6f76;
+  memory[data_reg + 20] = 0x0;      // Null terminator 
 
   gtk_init(&argc, &argv);
 
@@ -63,7 +122,7 @@ int main (int argc, char *argv[]) {
   store = gtk_list_store_new(2, G_TYPE_UINT, G_TYPE_INT);
 
   // Fill the list store with the memory values
-  for (int i = 0; i < 512; i++) {
+  for (int i = 0; i < MEMORY_SIZE; i++) {
         gtk_list_store_append(store, &iter);
         gtk_list_store_set(store, &iter, 0, i, 1, memory[i], -1);
   } 
@@ -88,7 +147,7 @@ int main (int argc, char *argv[]) {
   gtk_style_context_add_provider_for_screen(screen,
           GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
-  update_inst_pc(builder, memory[CURRENT_MEMORY_ADDRESS]);
+  update_inst_pc(builder, memory[program_counter]);
 
   GtkWidget *window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
   gtk_widget_show_all(window);

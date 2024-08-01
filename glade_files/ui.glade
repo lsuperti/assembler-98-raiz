@@ -3,7 +3,12 @@
 <interface>
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkWindow" id="window">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Assembler 98 Raiz</property>
+    <property name="default-width">800</property>
+    <property name="default-height">800</property>
     <child>
       <object class="GtkFixed">
         <property name="visible">True</property>
@@ -18,8 +23,8 @@
             <property name="receives-default">True</property>
           </object>
           <packing>
-            <property name="x">40</property>
-            <property name="y">460</property>
+            <property name="x">45</property>
+            <property name="y">396</property>
           </packing>
         </child>
         <child>
@@ -35,14 +40,14 @@
             </style>
           </object>
           <packing>
-            <property name="x">157</property>
-            <property name="y">460</property>
+            <property name="x">153</property>
+            <property name="y">397</property>
           </packing>
         </child>
         <child>
           <object class="GtkFrame" id="cur_inst">
             <property name="width-request">215</property>
-            <property name="height-request">101</property>
+            <property name="height-request">103</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label-xalign">0</property>
@@ -68,14 +73,14 @@
             </child>
           </object>
           <packing>
-            <property name="x">42</property>
-            <property name="y">351</property>
+            <property name="x">41</property>
+            <property name="y">262</property>
           </packing>
         </child>
         <child>
           <object class="GtkFrame" id="output_text">
-            <property name="width-request">100</property>
-            <property name="height-request">194</property>
+            <property name="width-request">527</property>
+            <property name="height-request">213</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label-xalign">0</property>
@@ -92,9 +97,11 @@
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkTextView">
+                      <object class="GtkTextView" id="console">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
+                        <property name="editable">False</property>
+                        <property name="cursor-visible">False</property>
                       </object>
                     </child>
                     <style>
@@ -108,19 +115,20 @@
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Text</property>
+                <property name="label" translatable="yes">Console
+</property>
               </object>
             </child>
           </object>
           <packing>
-            <property name="x">270</property>
-            <property name="y">347</property>
+            <property name="x">40</property>
+            <property name="y">532</property>
           </packing>
         </child>
         <child>
           <object class="GtkFrame" id="registers">
             <property name="width-request">123</property>
-            <property name="height-request">191</property>
+            <property name="height-request">530</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label-xalign">0</property>
@@ -147,17 +155,73 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="CURRENT_MEMORY_ADDRESS">
+                  <object class="GtkLabel" id="program_counter">
                     <property name="width-request">100</property>
                     <property name="height-request">80</property>
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">PC : XXXX</property>
+                    <property name="label" translatable="yes">PC : 256</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="stack_pointer">
+                    <property name="width-request">100</property>
+                    <property name="height-request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">SP : 255</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="instruction_register">
+                    <property name="width-request">100</property>
+                    <property name="height-request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">RI : XXXX</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="data_register">
+                    <property name="width-request">100</property>
+                    <property name="height-request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">DR : 767</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">4</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="operation_register">
+                    <property name="width-request">100</property>
+                    <property name="height-request">80</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">MOP : 0</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">5</property>
                   </packing>
                 </child>
               </object>
@@ -168,13 +232,14 @@
                 <property name="can-focus">False</property>
                 <property name="margin-top">5</property>
                 <property name="margin-bottom">5</property>
-                <property name="label" translatable="yes">Registers</property>
+                <property name="label" translatable="yes">Registers
+</property>
               </object>
             </child>
           </object>
           <packing>
-            <property name="x">378</property>
-            <property name="y">351</property>
+            <property name="x">579</property>
+            <property name="y">214</property>
           </packing>
         </child>
         <child>
@@ -218,8 +283,8 @@
             </child>
           </object>
           <packing>
-            <property name="x">516</property>
-            <property name="y">227</property>
+            <property name="x">388</property>
+            <property name="y">164</property>
           </packing>
         </child>
       </object>
