@@ -42,6 +42,7 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
     char brpos[100] = "BRPOS  ";
     char brneg[100] = "BRNEG  ";
     char write[100] = "WRITE  ";
+    char mult[100] = "MULT ";
     char unknown[100] = "????  ";
 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
@@ -103,6 +104,11 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
                            strcat(write, operand1));
+        break;
+        case 14:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(mult, operand1));
         break;
         // UNKNOWN
         default: 
@@ -359,6 +365,16 @@ void execute_current_instruction(void* data) {
                     append_text_to_text_view( textview, buffer );
                 }
             break;
+            // MULT
+            case 14:
+                if ( program_counter + 1 < MEMORY_SIZE ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator *= memory[operand];
+                        program_counter += 2;
+                    }
+                }
+            break;
             // UNKNOWN 
             default:
                 snprintf(buffer,
@@ -379,6 +395,8 @@ void execute_current_instruction(void* data) {
     snprintf(acm_str, 100, "%d", accumulator); 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(data, 
                     "accumulator")), strcat(prefix,  acm_str) );
+
+            
 }
 
 void update_memory_tree(void* user_data) {

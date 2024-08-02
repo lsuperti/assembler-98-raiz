@@ -74,11 +74,14 @@ int main (int argc, char *argv[]) {
 
   memory[521] = 8;
   memory[522] = data_reg + 35;
-  memory[523] = 11;
+  memory[523] = 14;
+  memory[524] = data_reg + 70;
+  memory[525] = 11;
 
   memory[data_reg + 13] = 321;
   memory[data_reg + 14] = 421;
   memory[data_reg + 15] = 521;
+  memory[data_reg + 70] = 40;
 
   memory[data_reg + 35] = 0x656e;
   memory[data_reg + 36] = 0x6167;
@@ -92,7 +95,7 @@ int main (int argc, char *argv[]) {
 
   memory[data_reg + 16] = 0x6f70; // "positivo" em ASCII
   memory[data_reg + 17] = 0x6973;
-  memory[data_reg + 18] = 0x6974;
+  memory[data_reg + 18] = 0x0;
   memory[data_reg + 19] = 0x6f76;
   memory[data_reg + 20] = 0x0;      // Null terminator 
 
