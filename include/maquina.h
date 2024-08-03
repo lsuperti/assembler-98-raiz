@@ -43,6 +43,8 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
     char brneg[100] = "BRNEG  ";
     char write[100] = "WRITE  ";
     char mult[100] = "MULT ";
+    char div[100] = "DIV ";
+    char br[100] = "BR ";
     char unknown[100] = "????  ";
 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
@@ -105,10 +107,23 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
                            "CURRENT_MEMORY_VALUE")),
                            strcat(write, operand1));
         break;
+        // MULT
         case 14:
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
                             strcat(mult, operand1));
+        break;
+        // DIV
+        case 10:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(div, operand1));
+        break;
+        // BR
+        case 00:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(br, operand1));
         break;
         // UNKNOWN
         default: 
@@ -372,6 +387,25 @@ void execute_current_instruction(void* data) {
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         accumulator *= memory[operand];
                         program_counter += 2;
+                    }
+                }
+            break;
+            // DIV
+            case 10:
+                if( program_counter + 1 < MEMORY_SIZE ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator /= memory[operand];
+                        program_counter += 2;
+                    }
+                }
+            break;
+            // BR
+            case 00:
+                if ( program_counter + 1 < MEMORY_SIZE ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0) {
+                        program_counter = memory[operand];
                     }
                 }
             break;

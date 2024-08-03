@@ -76,12 +76,18 @@ int main (int argc, char *argv[]) {
   memory[522] = data_reg + 35;
   memory[523] = 14;
   memory[524] = data_reg + 70;
-  memory[525] = 11;
+  memory[525] = 10;
+  memory[526] = data_reg + 100;
+  memory[227] = 00;
+  memory[528] = data_reg + 45;
+  memory[529] = 11;
 
   memory[data_reg + 13] = 321;
   memory[data_reg + 14] = 421;
   memory[data_reg + 15] = 521;
   memory[data_reg + 70] = 40;
+  memory[data_reg + 100] = 50;
+  memory[data_reg + 45] = 75;
 
   memory[data_reg + 35] = 0x656e;
   memory[data_reg + 36] = 0x6167;
