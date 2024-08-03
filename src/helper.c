@@ -36,3 +36,22 @@ int16_t show_number_input_dialog(GtkWidget *widget, gpointer window) {
     return input_number;
 }
 
+ void get_scroll_position(GtkScrolledWindow *scrolled_window,
+         gdouble *vscroll, gdouble *hscroll) {
+
+    GtkAdjustment *vadjustment = gtk_scrolled_window_get_vadjustment(scrolled_window);
+    GtkAdjustment *hadjustment = gtk_scrolled_window_get_hadjustment(scrolled_window);
+
+    *vscroll = gtk_adjustment_get_value(vadjustment);
+    *hscroll = gtk_adjustment_get_value(hadjustment);
+
+}
+
+void set_scroll_position(GtkScrolledWindow *scrolled_window, gdouble vscroll, gdouble hscroll) {
+    GtkAdjustment *vadjustment = gtk_scrolled_window_get_vadjustment(scrolled_window);
+    GtkAdjustment *hadjustment = gtk_scrolled_window_get_hadjustment(scrolled_window);
+
+    gtk_adjustment_set_value(vadjustment, vscroll);
+    gtk_adjustment_set_value(hadjustment, hscroll);
+}
+

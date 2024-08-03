@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 
 typedef struct {
+    GtkTreeView *treeview;
     GtkListStore *store;
     GtkBuilder *builder;
 } user_data;

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "maquina.h"
 #include "types.h"
+#include "screens.h"
 
 void onDestroy(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
@@ -78,18 +79,32 @@ int main (int argc, char *argv[]) {
   memory[524] = data_reg + 70;
   memory[525] = 10;
   memory[526] = data_reg + 100;
-  memory[227] = 00;
-  memory[528] = data_reg + 45;
-  memory[529] = 11;
+  memory[527] = 20;
+  memory[528] = data_reg + 2;
+  memory[529] = 00;
+  memory[530] = data_reg + 45;
+  memory[531] = 11;
+
+  memory[600] = 15;
+  memory[601] = data_reg + 200;
+  memory[602] = 11; 
+
+  memory[455] = 12;
+  memory[456] = data_reg + 221;
+  memory[457] = 3;
+  memory[458] = data_reg + 221;
+  memory[459] = 16;
+
+  memory[data_reg + 200] = 455;
 
   memory[data_reg + 13] = 321;
   memory[data_reg + 14] = 421;
   memory[data_reg + 15] = 521;
   memory[data_reg + 70] = 40;
   memory[data_reg + 100] = 50;
-  memory[data_reg + 45] = 75;
+  memory[data_reg + 45] = 600;
 
-  memory[data_reg + 35] = 0x656e;
+  memory[data_reg + 35] = 0x656e; // "negative" em ASCII
   memory[data_reg + 36] = 0x6167;
   memory[data_reg + 37] = 0x6974;
   memory[data_reg + 38] = 0x6576;
@@ -101,7 +116,7 @@ int main (int argc, char *argv[]) {
 
   memory[data_reg + 16] = 0x6f70; // "positivo" em ASCII
   memory[data_reg + 17] = 0x6973;
-  memory[data_reg + 18] = 0x0;
+  memory[data_reg + 18] = 0x6974;
   memory[data_reg + 19] = 0x6f76;
   memory[data_reg + 20] = 0x0;      // Null terminator 
 
@@ -144,7 +159,8 @@ int main (int argc, char *argv[]) {
                                    "onDestroy", G_CALLBACK(onDestroy),
                                   NULL);
 
-  user_data data = { .store = store, .builder = builder };
+  user_data data = { .store = store, .builder = builder,
+                     .treeview = GTK_TREE_VIEW(memory_tree) };
 
   g_signal_connect(gtk_builder_get_object(builder, "step")
           ,"clicked", G_CALLBACK(step), &data);
@@ -156,11 +172,44 @@ int main (int argc, char *argv[]) {
   gtk_style_context_add_provider_for_screen(screen,
           GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
+  ri = memory[program_counter];
   update_inst_pc(builder, memory[program_counter]);
 
-  GtkWidget *window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
-  gtk_widget_show_all(window);
-  g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+  GtkWidget *container_window = GTK_WIDGET(gtk_builder_get_object(builder,
+              "CONTAINER_WINDOW"));
+
+  GtkStack *stack = GTK_STACK(gtk_stack_new());
+  gtk_stack_set_transition_type(stack,
+          GTK_STACK_TRANSITION_TYPE_CROSSFADE);
+  gtk_stack_set_transition_duration(stack, 100);
+  gtk_container_add(GTK_CONTAINER(container_window), GTK_WIDGET(stack));
+
+  GtkWidget *start_window_fixed =
+      GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_START"));
+  GtkWidget *window_fixed_mop0 =
+      GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP0"));
+  GtkWidget *window_fixed_mop1 =
+      GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP1"));
+  GtkWidget *window_fixed_mop2 =
+      GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP2"));
+
+  gtk_stack_add_titled(stack, start_window_fixed, "WINDOW_FIXED_START", "Main window"); 
+  gtk_stack_add_titled(stack, window_fixed_mop0, "WINDOW_FIXED_MOP0", "Terminal");
+  gtk_stack_add_titled(stack, window_fixed_mop1, "WINDOW_FIXED_MOP1", "GUI");
+  gtk_stack_add_titled(stack, window_fixed_mop2, "WINDOW_FIXED_MOP2", "Debugger");
+
+  // On click change to console screen
+  GtkWidget *console_button = GTK_WIDGET(gtk_builder_get_object(builder, "Console"));
+  g_signal_connect(console_button, "clicked", G_CALLBACK(change_to_console), stack); 
+
+  GtkWidget *gui_button = GTK_WIDGET(gtk_builder_get_object(builder, "GUI"));
+  g_signal_connect(gui_button, "clicked", G_CALLBACK(change_to_gui), stack); 
+
+  GtkWidget *debugger_button = GTK_WIDGET(gtk_builder_get_object(builder, "Debugger"));
+  g_signal_connect(debugger_button, "clicked", G_CALLBACK(change_to_debugger), stack); 
+
+  g_signal_connect(container_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+  gtk_widget_show_all(container_window);
   gtk_main();
 
   return EXIT_SUCCESS;
