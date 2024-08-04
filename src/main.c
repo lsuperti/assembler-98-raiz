@@ -83,7 +83,9 @@ int main (int argc, char *argv[]) {
   memory[528] = data_reg + 2;
   memory[529] = 00;
   memory[530] = data_reg + 45;
-  memory[531] = 11;
+  memory[531] = 6;
+  memory[532] = data_reg + 49;
+  memory[533] = 11;
 
   memory[600] = 15;
   memory[601] = data_reg + 200;
@@ -103,6 +105,7 @@ int main (int argc, char *argv[]) {
   memory[data_reg + 70] = 40;
   memory[data_reg + 100] = 50;
   memory[data_reg + 45] = 600;
+  memory[data_reg + 49] = 60;
 
   memory[data_reg + 35] = 0x656e; // "negative" em ASCII
   memory[data_reg + 36] = 0x6167;

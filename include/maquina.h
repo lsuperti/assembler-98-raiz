@@ -34,11 +34,12 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
     char brpos[100] = "BRPOS  ";
     char brneg[100] = "BRNEG  ";
     char write[100] = "WRITE  ";
-    char mult[100] = "MULT ";
-    char div[100] = "DIV ";
-    char br[100] = "BR ";
-    char put[100] = "PUT ";
-    char call[100] = "CALL ";
+    char mult[100] = "MULT  ";
+    char div[100] = "DIV  ";
+    char br[100] = "BR  ";
+    char put[100] = "PUT  ";
+    char call[100] = "CALL  ";
+    char sub[100] = "SUB  ";
     char unknown[100] = "????  ";
 
     ri = inst;
@@ -144,6 +145,11 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
                             "CURRENT_MEMORY_VALUE")),
                             "RET");
         break;
+        // SUB
+        case 6: 
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(sub, operand1));
         // UNKNOWN
         default: 
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
@@ -462,6 +468,13 @@ void execute_current_instruction(void* data) {
                     }
                 }
             break;
+            // SUB
+                if ( program_counter + 1 < MEMORY_SIZE ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator -= memory[operand];
+                    }
+                }
             // UNKNOWN 
             default:
                 snprintf(buffer,
