@@ -81,10 +81,10 @@ int main (int argc, char *argv[]) {
   memory[526] = data_reg + 100;
   memory[527] = 20;
   memory[528] = data_reg + 2;
-  memory[529] = 00;
-  memory[530] = data_reg + 45;
-  memory[531] = 6;
-  memory[532] = data_reg + 49;
+  memory[529] = 6;
+  memory[530] = data_reg + 49;
+  memory[531] = 00;
+  memory[532] = data_reg + 45;
   memory[533] = 11;
 
   memory[600] = 15;

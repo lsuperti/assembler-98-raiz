@@ -475,6 +475,7 @@ void execute_current_instruction(void* data) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         accumulator -= memory[operand];
+                        program_counter += 2;
                     }
                 }
             break;
