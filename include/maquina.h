@@ -408,7 +408,17 @@ void execute_current_instruction(void* data) {
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         accumulator *= memory[operand];
                         program_counter += 2;
+                    } else {
+                        snprintf( buffer, sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "\noperand of instruction MULT at: %d\n", operand );
+                        append_text_to_text_view( textview, buffer );
                     }
+                } else {
+                    snprintf( buffer, sizeof(buffer),
+                    "\nNo operand found for instruction mult at: memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
                 }
             break;
             // DIV
@@ -418,7 +428,17 @@ void execute_current_instruction(void* data) {
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         accumulator /= memory[operand];
                         program_counter += 2;
+                    } else {
+                        sprintf( buffer, sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "operand of instruction DIVIDE at: %d\n", oprand );
+                        append_text_to_text_view( textview, buffer );
                     }
+                } else {
+                    snprintf( buffer, sizeof(buffer),
+                    "\n No operand found for instruction divide at: memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
                 }
             break;
             // BR
@@ -427,7 +447,17 @@ void execute_current_instruction(void* data) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
                         program_counter = memory[operand];
+                    } else {
+                        snprintf( buffer, sizeof(buffer), 
+                        "\nInvalid memory address for first "
+                        "operand of instruction BR at: %d\n", operand );
+                        append_text_to_text_view( textview, buffer);
                     }
+                } else {
+                    snprintf( buffer, sizeof(buffer),
+                    "\nNo operand found for instruction br at memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
                 }
             break;
             // PUT
@@ -475,7 +505,17 @@ void execute_current_instruction(void* data) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         accumulator -= memory[operand];
+                    } esle {
+                        snprintf( buffer, sizeof(buffer), 
+                        "\nInvalid mamory address for firts "
+                        "operand of instruction SUB at: %d\n", operand );
+                        append_text_to_text_view( textview, buffer );
                     }
+                } esle {
+                    snprintf( buffer, sizeof(buffer),
+                    "\nNo operand found for instruction sub at: memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
                 }
             break;
             // UNKNOWN 
