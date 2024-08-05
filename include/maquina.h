@@ -9,7 +9,7 @@
 #include "architecture.h"
 #include <limits.h>
 
-void update_inst_pc( GtkBuilder *builder, int inst) {
+void update_inst_pc( GtkBuilder *builder, int inst ) {
 
     char pc[100], inst_str[100], operand1[100];  
     char ri_str[100], sp_str[100];
@@ -40,6 +40,7 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
     char put[100] = "PUT  ";
     char call[100] = "CALL  ";
     char sub[100] = "SUB  ";
+    char copy[100] = "COPY  ";
     char unknown[100] = "????  ";
 
     ri = inst;
@@ -151,6 +152,18 @@ void update_inst_pc( GtkBuilder *builder, int inst) {
                             "CURRENT_MEMORY_VALUE")),
                             strcat(sub, operand1));
         break;
+        // COPY
+        case 13:
+            char operand2[100];
+            if ( program_counter + 2 < MEMORY_SIZE ) {
+                snprintf(operand2, 100, "%d", memory[program_counter + 2]);
+            } else {
+                strcpy(operand2, "XXXX");
+            }
+            strcat(copy, operand1); strcat(copy, ", "); strcat(copy, operand2);
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURENT_MEMORY_VALUE")), copy);
+        break;
         // UNKNOWN
         default: 
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
@@ -177,7 +190,7 @@ void execute_current_instruction(void* data) {
         int inst = memory[program_counter];      
         switch(inst) {
             // LOAD
-            case 3:            
+            case 3:          
                 if ( program_counter + 1 < MEMORY_SIZE ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -417,7 +430,7 @@ void execute_current_instruction(void* data) {
                 } else {
                     snprintf( buffer, sizeof(buffer),
                     "\nNo operand found for instruction mult at: memory[ %d ]\n",
-                    program_counter + 1);
+                    program_counter + 1 );
                     append_text_to_text_view( textview, buffer );
                 }
             break;
@@ -429,15 +442,15 @@ void execute_current_instruction(void* data) {
                         accumulator /= memory[operand];
                         program_counter += 2;
                     } else {
-                        sprintf( buffer, sizeof(buffer),
+                        snprintf( buffer, sizeof(buffer),
                         "\nInvalid memory address for first "
-                        "operand of instruction DIVIDE at: %d\n", oprand );
+                        "operand of instruction DIVIDE at: %d\n", operand );
                         append_text_to_text_view( textview, buffer );
                     }
                 } else {
                     snprintf( buffer, sizeof(buffer),
                     "\n No operand found for instruction divide at: memory[ %d ]\n",
-                    program_counter + 1);
+                    program_counter + 1 );
                     append_text_to_text_view( textview, buffer );
                 }
             break;
@@ -456,7 +469,7 @@ void execute_current_instruction(void* data) {
                 } else {
                     snprintf( buffer, sizeof(buffer),
                     "\nNo operand found for instruction br at memory[ %d ]\n",
-                    program_counter + 1);
+                    program_counter + 1 );
                     append_text_to_text_view( textview, buffer );
                 }
             break;
@@ -505,16 +518,38 @@ void execute_current_instruction(void* data) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         accumulator -= memory[operand];
-                    } esle {
+                    } else {
                         snprintf( buffer, sizeof(buffer), 
-                        "\nInvalid mamory address for firts "
+                        "\nInvalid memory address for firts "
                         "operand of instruction SUB at: %d\n", operand );
                         append_text_to_text_view( textview, buffer );
                     }
-                } esle {
+                } else {
                     snprintf( buffer, sizeof(buffer),
                     "\nNo operand found for instruction sub at: memory[ %d ]\n",
-                    program_counter + 1);
+                    program_counter + 1 );
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // COPY
+            case 13:
+                if ( program_counter + 2 > MEMORY_SIZE ) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if ( op1 < MEMORY_SIZE && op1 >= 0 && 
+                         op2 < MEMORY_SIZE && op2 >= 0 ) {
+                        memory[op1] = memory[op2];
+                        program_counter + 3;
+                    } else {
+                        snprintf( buffer, sizeof(buffer),
+                        "\nInvalid memory address for at least one of the operands "
+                        "of instruction COPY at: %d or %d\n", op1, op2);
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf( buffer, sizeof(buffer),
+                    "\nNo operand found for instruction copy at: memory[ %d ] or memory[ %d ]\n",
+                    program_counter + 1, program_counter + 2 );
                     append_text_to_text_view( textview, buffer );
                 }
             break;
