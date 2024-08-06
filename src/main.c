@@ -35,7 +35,7 @@ void setup_tree_view(GtkWidget *treeview, GtkCellRenderer *renderer,
 }
 
 int main (int argc, char *argv[]) {
- 
+  
     // Algoritmo simples que checa se
     // a soma de dois números lidos é
     // ZERO, POSITIVO OU NEGATIVO
