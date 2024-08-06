@@ -21,23 +21,23 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
         strcpy(operand1, "XXXX");
     }
 
-    char prefix[] = "PC : ";
-    char ri_prefix[] = "RI : ";
-    char sp_prefix[] = "SP : ";
-    char store[] = "STORE  ";
-    char load[] = "LOAD  ";
-    char read[] = "READ  ";
-    char add[] = "ADD  ";
-    char brzero[] = "BRZERO  ";
-    char brpos[] = "BRPOS  ";
-    char brneg[] = "BRNEG  ";
-    char write[] = "WRITE  ";
-    char mult[] = "MULT ";
-    char div[] = "DIV ";
-    char br[] = "BR ";
-    char put[] = "PUT ";
-    char call[] = "CALL ";
-    char unknown[] = "????  ";
+    char prefix[100] = "PC : ";
+    char ri_prefix[100] = "RI : ";
+    char sp_prefix[100] = "SP : ";
+    char store[100] = "STORE  ";
+    char load[100] = "LOAD  ";
+    char read[100] = "READ  ";
+    char add[100] = "ADD  ";
+    char brzero[100] = "BRZERO  ";
+    char brpos[100] = "BRPOS  ";
+    char brneg[100] = "BRNEG  ";
+    char write[100] = "WRITE  ";
+    char mult[100] = "MULT ";
+    char div[100] = "DIV ";
+    char br[100] = "BR ";
+    char put[100] = "PUT ";
+    char call[100] = "CALL ";
+    char unknown[100] = "????  ";
 
     ri = inst;
     snprintf(ri_str, 100, "%d", ri);
