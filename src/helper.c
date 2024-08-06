@@ -57,3 +57,30 @@ void set_scroll_position(GtkScrolledWindow *scrolled_window, gdouble vscroll, gd
     gtk_adjustment_set_value(hadjustment, hscroll);
 }
 
+void setup_tree_view(GtkWidget *treeview, GtkCellRenderer *renderer,
+        GtkTreeViewColumn *address_column) {
+    
+    GtkTreeViewColumn *value_column;
+
+    renderer = gtk_cell_renderer_text_new();
+    address_column = gtk_tree_view_column_new_with_attributes(
+            "Address", renderer, "text", 0, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), address_column);
+
+    GtkWidget *address_column_button =
+       gtk_tree_view_column_get_button(address_column);
+    gtk_widget_set_name( address_column_button, "address_column");
+
+    value_column = gtk_tree_view_column_new_with_attributes(
+            "Value", renderer, "text", 1, NULL);
+
+    GtkWidget *value_column_button =
+       gtk_tree_view_column_get_button(value_column);
+    gtk_widget_set_name( value_column_button, "value_column");
+
+    gtk_tree_view_append_column(GTK_TREE_VIEW(treeview), value_column);
+}
+
+void onDestroy(GtkWidget *widget, gpointer data) {
+    gtk_main_quit();
+}

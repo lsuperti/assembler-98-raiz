@@ -21,8 +21,14 @@ enum instructions_t {
     BR = 00,
     CALL = 15,
     PUT = 20,
-    RET = 16
+    RET = 16,
+    PC  = 100,
+    RI  = 101,
+    SP  = 102,
+    UNKNOWN = 103
 };
+
+extern const char * const enum_str[]; 
 
 void update_inst_pc( GtkBuilder *builder, int inst);
 void reset(GtkWidget *widget, gpointer builder);

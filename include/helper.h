@@ -15,5 +15,8 @@ void get_scroll_position(GtkScrolledWindow *scrolled_window,
         gdouble *vscroll, gdouble *hscroll); 
 void set_scroll_position(GtkScrolledWindow *scrolled_window,
         gdouble vscroll, gdouble hscroll); 
+void setup_tree_view(GtkWidget *treeview, GtkCellRenderer *renderer,
+        GtkTreeViewColumn *address_column); 
+void onDestroy(GtkWidget *widget, gpointer data); 
 
 #endif // HELPER_H

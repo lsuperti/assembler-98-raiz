@@ -1,3 +1,4 @@
+
 #include "maquina.h"
 #include <string.h>
 #include <limits.h>
@@ -7,148 +8,230 @@
 #include "stack.h"
 #include "architecture.h"
 
+const char * const enum_str[] = {
+
+    [LOAD] = "LOAD  ",
+    [STORE] = "STORE  ",
+    [READ]  = "READ  ",
+    [STOP]  = "STOP",
+    [ADD]  = "ADD  ",
+    [BRZERO]  = "BRZERO  ",
+    [BRPOS]  = "BRPOS  ",
+    [BRNEG]  = "BRNEG  ",
+    [WRITE]  = "WRITE  ",
+    [MULT]  = "MULT  ",
+    [DIV]  = "DIV  ",
+    [BR]  = "BR  ",
+    [CALL]  = "CALL  ",
+    [PUT]  = "PUT  ",
+    [RET]  = "RET  ",
+    [UNKNOWN] = "????",
+
+};
+
 void update_inst_pc(GtkBuilder *builder, int inst) {
 
-    char pc[100], inst_str[100], operand1[100];  
-    char ri_str[100], sp_str[100];
+    char pc_str[10], inst_str[10], operand1[10];  
+    char ri_str[10], sp_str[10];
     
-    snprintf(pc, 100, "%d", program_counter);
-    snprintf(inst_str, 100, "%d", inst);
+    snprintf(pc_str, 10, "%d", program_counter);
+    snprintf(inst_str, 10, "%d", inst);
 
     if ( program_counter < MEMORY_SIZE - 1 ) {
-        snprintf(operand1, 100, "%d", memory[program_counter + 1]);
+        snprintf(operand1, 10, "%d", memory[program_counter + 1]);
     } else {
         strcpy(operand1, "XXXX");
     }
 
-    char prefix[100] = "PC : ";
-    char ri_prefix[100] = "RI : ";
-    char sp_prefix[100] = "SP : ";
-    char store[100] = "STORE  ";
-    char load[100] = "LOAD  ";
-    char read[100] = "READ  ";
-    char add[100] = "ADD  ";
-    char brzero[100] = "BRZERO  ";
-    char brpos[100] = "BRPOS  ";
-    char brneg[100] = "BRNEG  ";
-    char write[100] = "WRITE  ";
-    char mult[100] = "MULT ";
-    char div[100] = "DIV ";
-    char br[100] = "BR ";
-    char put[100] = "PUT ";
-    char call[100] = "CALL ";
-    char unknown[100] = "????  ";
-
     ri = inst;
-    snprintf(ri_str, 100, "%d", ri);
-    snprintf(sp_str, 100, "%d", stack_pointer);
+    snprintf(ri_str, 10, "%d", ri);
+    snprintf(sp_str, 10, "%d", stack_pointer);
+
+    char *write_sp =
+        ( char * ) malloc ( strlen("SP : ") + strlen(sp_str) );
+    
+    strcpy( write_sp, "SP : " );
+    strcat( write_sp, sp_str  );
+
+    char *write_ri =
+        ( char * ) malloc ( strlen("RI : ") + strlen(ri_str) );
+
+    strcpy( write_ri, "RI : " );
+    strcat( write_ri, ri_str  );
+
+    char *write_pc =
+        ( char * ) malloc ( strlen("PC : ") + strlen(pc_str) );
+
+    strcpy( write_pc , "PC : " );
+    strcat( write_pc , pc_str );
 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                      "program_counter")), strcat(prefix, pc) );
+                      "program_counter")), write_pc );
 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                      "instruction_register")), strcat(ri_prefix, ri_str) );
+                      "instruction_register")), write_ri );
 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                      "stack_pointer")), strcat(sp_prefix, sp_str) );
+                      "stack_pointer")), write_sp );
 
+    char *write_buff =
+        ( char * ) malloc( strlen(enum_str[inst]) + strlen(operand1) + 1 );
+        
     switch (inst) {
         // LOAD
-        case LOAD: 
+        case LOAD:
+
+            strcpy( write_buff, enum_str[LOAD] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(load, operand1));
+                           write_buff );
         break;
         // STORE
         case STORE:
+
+            strcpy( write_buff, enum_str[STORE] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(store, operand1));
+                           write_buff );
         break;
         // READ
         case READ:
+
+            strcpy( write_buff, enum_str[READ] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(read, operand1));
+                           write_buff );
         break;
         // STOP
         case STOP:
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")), "STOP");
+                           "CURRENT_MEMORY_VALUE")), enum_str[STOP] );
         break;
         // ADD
         case ADD:
+
+            strcpy( write_buff, enum_str[ADD] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(add, operand1));
+                           write_buff );
         break;
         // BRZERO
         case BRZERO:
+
+            strcpy( write_buff, enum_str[BRZERO] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(brzero, operand1));
+                           write_buff );
         break;
         // BRPOS
         case BRPOS:
+
+            strcpy( write_buff, enum_str[BRPOS] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(brpos, operand1));
+                           write_buff );
         break;
         // BRNEG
         case BRNEG:
+
+            strcpy( write_buff, enum_str[BRNEG] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(brneg, operand1));
+                           write_buff );
         break;
         // WRITE
         case WRITE:
+
+            strcpy( write_buff, enum_str[WRITE] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           strcat(write, operand1));
+                           write_buff );
         break;
         // MULT
         case MULT:
+
+            strcpy( write_buff, enum_str[MULT] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
-                            strcat(mult, operand1));
+                            write_buff );
         break;
         // DIV
         case DIV:
+
+            strcpy( write_buff, enum_str[DIV] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
-                            strcat(div, operand1));
+                            write_buff );
         break;
         // BR
         case BR:
+
+            strcpy( write_buff, enum_str[BR] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
-                            strcat(br, operand1));
+                            write_buff );
         break;
         // CALL 
         case CALL:
+
+            strcpy( write_buff, enum_str[CALL] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
-                            strcat(call, operand1));
+                            write_buff );
         break;
         // PUT
         case PUT:
+
+            strcpy( write_buff, enum_str[PUT] ); 
+            strcat( write_buff, operand1 ); 
+
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
-                            strcat(put, operand1));
+                            write_buff );
         break;
         // RET
         case RET: 
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                             "CURRENT_MEMORY_VALUE")),
-                            "RET");
+                            enum_str[RET] );
         break;
         // UNKNOWN
         default: 
             gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
-                           unknown);
+                           enum_str[UNKNOWN] );
         break;
     }
+
+    free(write_buff);
+    free(write_ri);
+    free(write_sp);
+    free(write_pc);
+
 }
 
 void reset(GtkWidget *widget, gpointer builder) {
@@ -488,7 +571,6 @@ void update_memory_tree(void* data) {
     GtkTreeView *treeview = GTK_TREE_VIEW(d->treeview);
     GtkTreeIter iter;
 
-    // Keep cursor the same after clearing.
     GtkTreePath *path = NULL;
     GtkTreeViewColumn *col = NULL;
     gtk_tree_view_get_cursor(treeview, &path, &col);
@@ -506,10 +588,12 @@ void update_memory_tree(void* data) {
         gtk_list_store_set(store, &iter, 0, i, 1, memory[i], -1);
     }
 
-    gtk_tree_view_set_cursor(treeview, path, col, FALSE);
-    
+    if ( path != NULL ) {
+        gtk_tree_view_set_cursor(treeview, path, col, FALSE);
+        gtk_tree_path_free(path);
+    }
+
     set_scroll_position(sw, vscroll, hscroll);
-    gtk_tree_path_free(path);
 }
 
 void step(GtkWidget *widget, gpointer data) {
