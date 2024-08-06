@@ -1,5 +1,7 @@
 
+#include <stdint.h>
 #include "helper.h"
+#include "types.h"
 
 void append_text_to_text_view(GtkTextView *text_view, const char *text){
     GtkTextBuffer *buffer;
@@ -9,7 +11,7 @@ void append_text_to_text_view(GtkTextView *text_view, const char *text){
     gtk_text_buffer_insert(buffer, &end, text, -1);
 }
 
-int16_t show_number_input_dialog(GtkWidget *widget, gpointer window) {
+word_t show_number_input_dialog(GtkWidget *widget, gpointer window) {
     GtkWidget *dialog, *content_area, *spin_button;
     GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
 
@@ -26,11 +28,11 @@ int16_t show_number_input_dialog(GtkWidget *widget, gpointer window) {
 
     gtk_widget_show_all(dialog);
     
-    int16_t response; 
+    word_t response; 
     do { response = gtk_dialog_run(GTK_DIALOG(dialog)); }
     while ( response != GTK_RESPONSE_OK );
     
-    int16_t input_number =
+    word_t input_number =
         gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(spin_button));
     gtk_widget_destroy(dialog);
     return input_number;

@@ -1,0 +1,520 @@
+#include "maquina.h"
+#include <string.h>
+#include <limits.h>
+#include <assert.h>
+#include "types.h"
+#include "helper.h"
+#include "stack.h"
+#include "architecture.h"
+
+void update_inst_pc(GtkBuilder *builder, int inst) {
+
+    char pc[100], inst_str[100], operand1[100];  
+    char ri_str[100], sp_str[100];
+    
+    snprintf(pc, 100, "%d", program_counter);
+    snprintf(inst_str, 100, "%d", inst);
+
+    if ( program_counter < MEMORY_SIZE - 1 ) {
+        snprintf(operand1, 100, "%d", memory[program_counter + 1]);
+    } else {
+        strcpy(operand1, "XXXX");
+    }
+
+    char prefix[] = "PC : ";
+    char ri_prefix[] = "RI : ";
+    char sp_prefix[] = "SP : ";
+    char store[] = "STORE  ";
+    char load[] = "LOAD  ";
+    char read[] = "READ  ";
+    char add[] = "ADD  ";
+    char brzero[] = "BRZERO  ";
+    char brpos[] = "BRPOS  ";
+    char brneg[] = "BRNEG  ";
+    char write[] = "WRITE  ";
+    char mult[] = "MULT ";
+    char div[] = "DIV ";
+    char br[] = "BR ";
+    char put[] = "PUT ";
+    char call[] = "CALL ";
+    char unknown[] = "????  ";
+
+    ri = inst;
+    snprintf(ri_str, 100, "%d", ri);
+    snprintf(sp_str, 100, "%d", stack_pointer);
+
+    gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                      "program_counter")), strcat(prefix, pc) );
+
+    gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                      "instruction_register")), strcat(ri_prefix, ri_str) );
+
+    gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                      "stack_pointer")), strcat(sp_prefix, sp_str) );
+
+    switch (inst) {
+        // LOAD
+        case LOAD: 
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(load, operand1));
+        break;
+        // STORE
+        case STORE:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(store, operand1));
+        break;
+        // READ
+        case READ:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(read, operand1));
+        break;
+        // STOP
+        case STOP:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")), "STOP");
+        break;
+        // ADD
+        case ADD:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(add, operand1));
+        break;
+        // BRZERO
+        case BRZERO:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(brzero, operand1));
+        break;
+        // BRPOS
+        case BRPOS:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(brpos, operand1));
+        break;
+        // BRNEG
+        case BRNEG:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(brneg, operand1));
+        break;
+        // WRITE
+        case WRITE:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           strcat(write, operand1));
+        break;
+        // MULT
+        case MULT:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(mult, operand1));
+        break;
+        // DIV
+        case DIV:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(div, operand1));
+        break;
+        // BR
+        case BR:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(br, operand1));
+        break;
+        // CALL 
+        case CALL:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(call, operand1));
+        break;
+        // PUT
+        case PUT:
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            strcat(put, operand1));
+        break;
+        // RET
+        case RET: 
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                            "CURRENT_MEMORY_VALUE")),
+                            "RET");
+        break;
+        // UNKNOWN
+        default: 
+            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                           "CURRENT_MEMORY_VALUE")),
+                           unknown);
+        break;
+    }
+}
+
+void reset(GtkWidget *widget, gpointer builder) {
+    program_counter = 256;
+    update_inst_pc(builder, memory[program_counter]);
+}
+
+void execute_current_instruction(void* data) {
+    
+    GtkBuilder *builder = data;
+    GtkTextView *textview =  
+                GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console"));
+
+    char buffer[512];
+
+    if ( program_counter < MEMORY_SIZE ) {
+        int inst = memory[program_counter];      
+        switch(inst) {
+            // LOAD
+            case LOAD:            
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator = memory[ operand ];
+                        program_counter += 2;
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "Invalid memory address for first"
+                        "operand of instruction load at : %d \n",
+                        operand);
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "No operand found for instruction load at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // STORE
+            case STORE:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory [ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ){
+                        memory[ operand ] = accumulator;
+                        program_counter += 2;
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "Invalid memory address for first"
+                        "operand of instruction store at : %d \n",
+                        operand);
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else { 
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nNo operand found for instruction store at : memory [ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // READ
+            case READ: 
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory [ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        GtkWidget *container_window =
+                        GTK_WIDGET(gtk_builder_get_object(builder, "CONTAINER_WINDOW"));
+                        // This is blocking vvvv
+                        word_t number = show_number_input_dialog(NULL,
+                                container_window);   
+                        memory[ operand ] = number; 
+                        program_counter += 2;
+                    }
+                }
+            break;
+            // STOP
+            case STOP:
+                append_text_to_text_view( textview,
+                        "\nProgram terminated with exit status success.\n");
+            break;
+            // ADD
+            case ADD:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        if (abs( accumulator + memory[ operand ] ) > 
+                            WORD_MAX ) {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "\nInteger overflow occurred when performing "
+                            "instruction ADD with memory location %d, " 
+                            "PC : %d, SP : %d \n",
+                            operand, program_counter, stack_pointer);
+                            append_text_to_text_view(textview, buffer);
+                        }
+                        accumulator += memory[ operand ];
+                        program_counter += 2;
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "operand of instruction ADD at : %d\n",
+                         operand );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nNo operand found for instruction add at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // BRZERO
+            case BRZERO:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        if ( !accumulator ) {
+                            program_counter = memory[ operand ]; 
+                        } else { 
+                            program_counter += 2;
+                        }
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "operand of instruction BRZERO at : %d\n",
+                        operand );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nNo operand found for instruction BRZERO at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // BRPOS
+            case BRPOS:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        if ( accumulator > 0 ) {
+                            program_counter = memory[ operand ]; 
+                        } else { 
+                            program_counter += 2;
+                        }
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "operand of instruction BRPOS at : %d\n",
+                        operand );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nNo operand found for instruction BRPOS at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // BRNEG
+            case BRNEG:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        if ( accumulator < 0 ) {
+                            program_counter = memory[ operand ]; 
+                        } else { 
+                            program_counter += 2;
+                        }
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "operand of instruction BRNEG at : %d\n",
+                        operand );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nNo operand found for instruction BRNEG at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // WRITE
+            case WRITE:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    word_t operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                     
+                        // Coloca a string na posição de memoria do
+                        // operando de WRITE no stdout ou console
+                        // com sistema little endian ( little endianness )
+                        // ou seja o primeiro character é os 8 bits menos
+                        // significativos o segundo os 8 mais significativos.
+                        
+                        char lu[3];
+                        word_t words = 1;
+                        word_t iterator = memory[ operand ];
+                        while (iterator && operand + words < MEMORY_SIZE ) {
+                            static_assert(sizeof(char) == 1, "The char is not 1 byte.");
+                            word_t lower = WORD_LOWER_BYTE(iterator);
+                            word_t upper = WORD_UPPER_BYTE(iterator);
+                            char lower_c = ( char ) ( lower );
+                            char upper_c = ( char ) ( upper );
+                            lu[0] = lower_c;
+                            lu[1] = upper_c;
+                            lu[2] = '\0';
+                            append_text_to_text_view( textview, lu);
+                            iterator = memory[ operand + words ];
+                            words++;
+                        }
+
+                        program_counter += 2;
+
+                    } else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nInvalid memory address for first "
+                        "operand of instruction WRITE at : %d\n",
+                        operand );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nNo operand found for instruction WRITE at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            // MULT
+            case MULT:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator *= memory[operand];
+                        program_counter += 2;
+                    }
+                }
+            break;
+            // DIV
+            case DIV:
+                if( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator /= memory[operand];
+                        program_counter += 2;
+                    }
+                }
+            break;
+            // BR
+            case BR:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0) {
+                        program_counter = memory[operand];
+                    }
+                }
+            break;
+            // PUT
+            case PUT:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0) {
+                        char number[256];
+                        snprintf(number, 256, "%d", memory[ operand ]);
+                        append_text_to_text_view(textview, number); 
+                        program_counter+=2;
+                    }
+                }
+            break;
+            // CALL
+            case CALL:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0) {
+                        bool status = push(program_counter + 2);
+                        if (!status) {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "\nStack overflow occurred  PC : %d "
+                            "SP : %d \n",
+                            program_counter, stack_pointer );
+                            append_text_to_text_view( textview, buffer );
+                        }
+                        program_counter = memory[ operand ]; 
+                    }
+                }
+            break;
+            // RET
+            case RET:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0) {
+                        program_counter = pop();
+                    }
+                }
+            break;
+            // UNKNOWN 
+            default:
+                snprintf(buffer,
+                sizeof(buffer),
+                "\nNot an instruction at memory address : %d \n",
+                program_counter);
+                append_text_to_text_view( textview, buffer );
+            break;
+        }
+    } else  {
+        textview =
+        GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console"));
+        append_text_to_text_view( textview, "\nMemory limit reached. \n" );
+    }
+    char prefix[] = "ACCUM : ";
+    char acm_str[100];
+    snprintf(acm_str, 100, "%d", accumulator); 
+    gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(data, 
+                    "accumulator")), strcat(prefix,  acm_str) );
+
+}
+
+void update_memory_tree(void* data) {
+
+    user_data_t *d = data;
+    GtkListStore *store = GTK_LIST_STORE(d->store);
+    GtkTreeView *treeview = GTK_TREE_VIEW(d->treeview);
+    GtkTreeIter iter;
+
+    // Keep cursor the same after clearing.
+    GtkTreePath *path = NULL;
+    GtkTreeViewColumn *col = NULL;
+    gtk_tree_view_get_cursor(treeview, &path, &col);
+
+    GtkScrolledWindow *sw = GTK_SCROLLED_WINDOW(gtk_builder_get_object(d->builder,
+                            "memory_scroll" ));
+
+    gdouble vscroll, hscroll; 
+    get_scroll_position(sw, &vscroll, &hscroll);
+
+    gtk_list_store_clear(store);
+
+    for (int i = 0; i < MEMORY_SIZE; i++) {
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0, i, 1, memory[i], -1);
+    }
+
+    gtk_tree_view_set_cursor(treeview, path, col, FALSE);
+    
+    set_scroll_position(sw, vscroll, hscroll);
+    gtk_tree_path_free(path);
+}
+
+void step(GtkWidget *widget, gpointer data) {
+    user_data_t *user_data_t = data;  
+    execute_current_instruction(user_data_t->builder);
+    update_inst_pc(user_data_t->builder, memory[program_counter]); 
+    update_memory_tree(user_data_t);
+}

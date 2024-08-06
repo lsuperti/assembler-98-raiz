@@ -3,11 +3,14 @@
 
 #include <gtk/gtk.h>
 
-typedef struct {
+typedef struct _user_data_t {
     GtkTreeView *treeview;
     GtkListStore *store;
     GtkBuilder *builder;
-} user_data;
+} user_data_t;
+
+typedef int16_t word_t;
+#define WORD_MAX INT16_MAX
 
 #endif // TYPES_H
 
