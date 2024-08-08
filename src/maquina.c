@@ -602,3 +602,24 @@ void step(GtkWidget *widget, gpointer data) {
     update_inst_pc(user_data_t->builder, memory[program_counter]); 
     update_memory_tree(user_data_t);
 }
+
+void run(GtkWidget *widget, gpointer data) {
+
+    user_data_t *ud = data;
+    GtkTextView *textview = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder,
+                "console"));
+
+    int inst;
+    do {
+        if ( program_counter < MEMORY_SIZE ) {
+            inst = memory[ program_counter ];
+            step( (void *)0, ud);
+        } else { 
+           append_text_to_text_view(textview,
+                   "SEGFAULT: PC outside of memory range"); 
+           break;
+        }
+    }while ( inst != STOP && ( mop != MOP_NOT_DEFINED ) );
+
+}
+
