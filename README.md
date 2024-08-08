@@ -1,3 +1,22 @@
+
+# Assembler 98 Raiz 
+
+Esse projeto foi feito com o intuito de simular uma CPU hipotética, com
+o objetivo de implementar um assembler para tal arquitetura.
+
+![image](https://github.com/user-attachments/assets/063418ef-6b40-4dca-baf6-f5d7dd81c2df)
+
+# Time
+
+  - Igor Basilio
+  - Lucas Superti
+  - Rodrigo Raupp
+  - Rodrigo Santos
+  - Gabriel Oliveira
+  - Fernanda Petiz
+  - Alan Santos
+  - Lucas Bayer
+  
 # Passos para build : 
 
 - https://www.gtk.org/docs/installations
