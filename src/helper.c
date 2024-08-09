@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include "helper.h"
+#include "architecture.h"
 #include "types.h"
 
 void append_text_to_text_view(GtkTextView *text_view, const char *text){
@@ -84,3 +85,16 @@ void setup_tree_view(GtkWidget *treeview, GtkCellRenderer *renderer,
 void onDestroy(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
 }
+
+int is_copy(int inst) {
+    if (    inst == COPY_DD 
+         || inst == COPY_DI
+         || inst == COPY_DIm
+         || inst == COPY_ID  
+         || inst == COPY_II 
+         || inst == COPY_IIm ) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
