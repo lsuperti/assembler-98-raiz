@@ -10,21 +10,42 @@
 
 const char * const enum_str[] = {
 
-    [LOAD] = "LOAD  ",
-    [STORE] = "STORE  ",
-    [READ]  = "READ  ",
+    [LOAD_DIRECT] = "LOAD  &",
+    [LOAD_INDIRECT] = "LOAD  #",
+    [LOAD_IMMEDIATE] = "LOAD  ",
+    [STORE_DIRECT] = "STORE  &",
+    [STORE_INDIRECT] = "STORE  #",
+    [READ_DIRECT]  = "READ  &",
+    [READ_INDIRECT]  = "READ  #",
     [STOP]  = "STOP",
-    [ADD]  = "ADD  ",
-    [BRZERO]  = "BRZERO  ",
-    [BRPOS]  = "BRPOS  ",
-    [BRNEG]  = "BRNEG  ",
-    [WRITE]  = "WRITE  ",
-    [MULT]  = "MULT  ",
-    [DIV]  = "DIV  ",
-    [BR]  = "BR  ",
-    [CALL]  = "CALL  ",
-    [PUT]  = "PUT  ",
-    [RET]  = "RET  ",
+    [ADD_DIRECT]  = "ADD  &",
+    [ADD_INDIRECT]  = "ADD  #",
+    [ADD_IMMEDIATE]  = "ADD  ",
+    [BRZERO_DIRECT]  = "BRZERO  &",
+    [BRZERO_INDIRECT]  = "BRZERO  #",
+    [BRPOS_DIRECT]  = "BRPOS  &",
+    [BRPOS_INDIRECT]  = "BRPOS  #",
+    [BRNEG_DIRECT]  = "BRNEG  &",
+    [BRNEG_INDIRECT]  = "BRNEG  #",
+    [WRITE_DIRECT]  = "WRITE  &",
+    [WRITE_INDIRECT]  = "WRITE  #",
+    [MULT_DIRECT]  = "MULT  &",
+    [MULT_INDIRECT]  = "MULT  #",
+    [MULT_IMMEDIATE]  = "MULT  ",
+    [DIV_DIRECT]  = "DIV  &",
+    [DIV_INDIRECT]  = "DIV  #",
+    [DIV_IMMEDIATE]  = "DIV  ",
+    [SUB_DIRECT] = "SUB  &",
+    [SUB_INDIRECT] = "SUB  #",
+    [SUB_IMMEDIATE] = "SUB  ",
+    [BR_DIRECT]  = "BR  &",
+    [BR_INDIRECT]  = "BR  #",
+    [BR_IMMEDIATE]  = "BR  ",
+    [CALL_DIRECT]  = "CALL  &",
+    [CALL_INDIRECT] = "CALL  #",
+    [PUT_DIRECT]  = "PUT  &",
+    [PUT_INDIRECT]  = "PUT  #",
+    [RET]  = "RET",
     [UNKNOWN] = "????",
 
 };
@@ -76,155 +97,39 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
 
     char *write_buff =
         ( char * ) malloc( strlen(enum_str[inst]) + strlen(operand1) + 1 );
-        
-    switch (inst) {
-        // LOAD
-        case LOAD:
+   
+    if (   inst != RET 
+        && inst != STOP  
+        && inst != UNKNOWN ) {
 
-            strcpy( write_buff, enum_str[LOAD] ); 
-            strcat( write_buff, operand1 ); 
+        strcpy ( write_buff, enum_str[inst] );
+        strcat ( write_buff, operand1 );
 
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+        gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                            "CURRENT_MEMORY_VALUE")),
                            write_buff );
-        break;
-        // STORE
-        case STORE:
 
-            strcpy( write_buff, enum_str[STORE] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // READ
-        case READ:
-
-            strcpy( write_buff, enum_str[READ] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // STOP
-        case STOP:
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")), enum_str[STOP] );
-        break;
-        // ADD
-        case ADD:
-
-            strcpy( write_buff, enum_str[ADD] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // BRZERO
-        case BRZERO:
-
-            strcpy( write_buff, enum_str[BRZERO] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // BRPOS
-        case BRPOS:
-
-            strcpy( write_buff, enum_str[BRPOS] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // BRNEG
-        case BRNEG:
-
-            strcpy( write_buff, enum_str[BRNEG] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // WRITE
-        case WRITE:
-
-            strcpy( write_buff, enum_str[WRITE] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           write_buff );
-        break;
-        // MULT
-        case MULT:
-
-            strcpy( write_buff, enum_str[MULT] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                            "CURRENT_MEMORY_VALUE")),
-                            write_buff );
-        break;
-        // DIV
-        case DIV:
-
-            strcpy( write_buff, enum_str[DIV] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                            "CURRENT_MEMORY_VALUE")),
-                            write_buff );
-        break;
-        // BR
-        case BR:
-
-            strcpy( write_buff, enum_str[BR] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                            "CURRENT_MEMORY_VALUE")),
-                            write_buff );
-        break;
-        // CALL 
-        case CALL:
-
-            strcpy( write_buff, enum_str[CALL] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                            "CURRENT_MEMORY_VALUE")),
-                            write_buff );
-        break;
-        // PUT
-        case PUT:
-
-            strcpy( write_buff, enum_str[PUT] ); 
-            strcat( write_buff, operand1 ); 
-
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                            "CURRENT_MEMORY_VALUE")),
-                            write_buff );
-        break;
-        // RET
-        case RET: 
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                            "CURRENT_MEMORY_VALUE")),
-                            enum_str[RET] );
-        break;
-        // UNKNOWN
-        default: 
-            gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
-                           "CURRENT_MEMORY_VALUE")),
-                           enum_str[UNKNOWN] );
-        break;
+    }else { 
+        switch (inst) {
+            // STOP
+            case STOP:
+                gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                               "CURRENT_MEMORY_VALUE")),
+                               enum_str[STOP] );
+            break;
+            // RET
+            case RET: 
+                gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                                "CURRENT_MEMORY_VALUE")),
+                                enum_str[RET] );
+            break;
+            // UNKNOWN
+            default: 
+                gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                               "CURRENT_MEMORY_VALUE")),
+                               enum_str[UNKNOWN] );
+            break;
+        } 
     }
 
     free(write_buff);
@@ -251,7 +156,7 @@ void execute_current_instruction(void* data) {
         int inst = memory[program_counter];      
         switch(inst) {
             // LOAD
-            case LOAD:            
+            case LOAD_DIRECT:            
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -274,7 +179,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // STORE
-            case STORE:
+            case STORE_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory [ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ){
@@ -297,7 +202,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // READ
-            case READ: 
+            case READ_DIRECT: 
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory [ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -317,7 +222,7 @@ void execute_current_instruction(void* data) {
                         "\nProgram terminated with exit status success.\n");
             break;
             // ADD
-            case ADD:
+            case ADD_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -350,7 +255,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // BRZERO
-            case BRZERO:
+            case BRZERO_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -376,7 +281,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // BRPOS
-            case BRPOS:
+            case BRPOS_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -402,7 +307,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // BRNEG
-            case BRNEG:
+            case BRNEG_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -428,7 +333,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // WRITE
-            case WRITE:
+            case WRITE_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     word_t operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -475,7 +380,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // MULT
-            case MULT:
+            case MULT_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -485,7 +390,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // DIV
-            case DIV:
+            case DIV_DIRECT:
                 if( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
@@ -495,7 +400,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // BR
-            case BR:
+            case BR_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
@@ -504,7 +409,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // PUT
-            case PUT:
+            case PUT_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
@@ -516,7 +421,7 @@ void execute_current_instruction(void* data) {
                 }
             break;
             // CALL
-            case CALL:
+            case CALL_DIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
@@ -539,6 +444,15 @@ void execute_current_instruction(void* data) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
                         program_counter = pop();
+                    }
+                }
+            break;
+            case SUB_DIRECT:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[program_counter + 1];
+                    if ( operand < MEMORY_SIZE && operand >= 0) {
+                        accumulator -= memory[ operand ];
+                        program_counter += 2;
                     }
                 }
             break;
