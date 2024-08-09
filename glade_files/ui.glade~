@@ -14,11 +14,9 @@
     <property name="visible">True</property>
     <property name="can-focus">False</property>
   </object>
-  <object class="GtkFixed" id="WINDOW_FIXED_MOP1">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
-  </object>
   <object class="GtkFixed" id="WINDOW_FIXED_MOP2">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <child>
@@ -31,8 +29,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">45</property>
-        <property name="y">396</property>
+        <property name="x">150</property>
+        <property name="y">398</property>
       </packing>
     </child>
     <child>
@@ -48,13 +46,13 @@
         </style>
       </object>
       <packing>
-        <property name="x">153</property>
-        <property name="y">397</property>
+        <property name="x">260</property>
+        <property name="y">398</property>
       </packing>
     </child>
     <child>
       <object class="GtkFrame" id="cur_inst">
-        <property name="width-request">215</property>
+        <property name="width-request">319</property>
         <property name="height-request">103</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
@@ -246,7 +244,7 @@
         </child>
       </object>
       <packing>
-        <property name="x">579</property>
+        <property name="x">656</property>
         <property name="y">214</property>
       </packing>
     </child>
@@ -271,6 +269,9 @@
               <object class="GtkTreeView" id="memory_tree">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
               </object>
             </child>
             <style>
@@ -288,12 +289,45 @@
         </child>
       </object>
       <packing>
-        <property name="x">388</property>
+        <property name="x">469</property>
         <property name="y">164</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="run">
+        <property name="label" translatable="yes">Run</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+      <packing>
+        <property name="x">41</property>
+        <property name="y">397</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="back">
+        <property name="label" translatable="yes">Back</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+        <style>
+          <class name="reset"/>
+        </style>
+      </object>
+      <packing>
+        <property name="x">11</property>
+        <property name="y">14</property>
       </packing>
     </child>
   </object>
   <object class="GtkFixed" id="WINDOW_FIXED_START">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <child>
@@ -306,22 +340,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">181</property>
-        <property name="y">368</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkButton" id="Debugger">
-        <property name="label" translatable="yes">Debugger</property>
-        <property name="width-request">100</property>
-        <property name="height-request">80</property>
-        <property name="visible">True</property>
-        <property name="can-focus">True</property>
-        <property name="receives-default">True</property>
-      </object>
-      <packing>
-        <property name="x">599</property>
-        <property name="y">370</property>
+        <property name="x">207</property>
+        <property name="y">358</property>
       </packing>
     </child>
     <child>
@@ -334,8 +354,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">398</property>
-        <property name="y">371</property>
+        <property name="x">490</property>
+        <property name="y">358</property>
       </packing>
     </child>
   </object>
