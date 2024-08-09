@@ -7,6 +7,7 @@
 #include "types.h"
 #include "stack.h"
 
+extern bool running;
 extern const char * const enum_str[]; 
 
 void update_inst_pc( GtkBuilder *builder, int inst);

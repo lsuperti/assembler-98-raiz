@@ -8,6 +8,8 @@
 #include "stack.h"
 #include "architecture.h"
 
+bool running = false;
+
 const char * const enum_str[] = {
 
     [LOAD_DIRECT] = "LOAD  &",
@@ -228,38 +230,59 @@ void execute_current_instruction(void* data) {
         switch(inst) {
             // LOAD
             case LOAD_INDIRECT:
-            case LOAD_IMMEDIATE:
-            case LOAD_DIRECT:            
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
-                        int m_op = memory[ operand ];
-                        if ( m_op < MEMORY_SIZE && m_op >= 0 ){
-                            switch(inst) {
-                                case LOAD_DIRECT:
-                                    accumulator = memory[ operand ];
-                                break;
-                                case LOAD_INDIRECT:
-                                    accumulator = memory[ m_op ];
-                                break;
-                                case LOAD_IMMEDIATE:
-                                    accumulator = operand;
-                                break;
-                            }
-                            program_counter += 2;
-                        } else {
+                        int m_op = memory [ operand ];
+                        if ( m_op < MEMORY_SIZE && m_op >= 0 ) {
+                           accumulator = memory [ m_op ]; 
+                           program_counter += 2;
+                        }else {
                             snprintf(buffer,
                             sizeof(buffer),
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view( textview, buffer );
                         }
-                    } else {
+                    }else {
                         snprintf(buffer,
                         sizeof(buffer),
                         "Invalid memory address %d",
-                        operand );
+                        operand);
                         append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "No operand found for instruction load at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            case LOAD_IMMEDIATE:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory [ program_counter + 1 ];
+                    accumulator = operand;
+                    program_counter += 2;
+                }else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "No operand found for instruction load at : memory[ %d ]\n",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            case LOAD_DIRECT:            
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        accumulator = memory [ operand ];
+                        program_counter += 2;
+                    }else {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "Invalid memory address %d",
+                            operand);
+                            append_text_to_text_view( textview, buffer );
                     }
                 } else {
                     snprintf(buffer,
@@ -271,20 +294,33 @@ void execute_current_instruction(void* data) {
             break;
             // STORE
             case STORE_DIRECT:
+                if ( program_counter < MEMORY_SIZE - 1 ){
+                    int operand = memory [ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        memory[ operand ] = accumulator;
+                        program_counter += 2;
+                    }else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "Invalid memory address %d",
+                        program_counter + 1);
+                        append_text_to_text_view( textview, buffer );
+                    }
+                }else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
             case STORE_INDIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory [ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ){
                         int m_op = memory[ operand ];
                         if ( m_op < MEMORY_SIZE && m_op >= 0 ){
-                            switch(inst) {
-                                case STORE_DIRECT:
-                                    memory[ operand ] = accumulator;
-                                break;
-                                case STORE_INDIRECT:
-                                    memory[ m_op ] = accumulator;
-                                break;
-                            }
+                            memory [ m_op ] = accumulator; 
                             program_counter += 2;
                         } else {
                             snprintf(buffer,
@@ -293,7 +329,6 @@ void execute_current_instruction(void* data) {
                             m_op);
                             append_text_to_text_view( textview, buffer );
                         }
-                        program_counter += 2;
                     } else {
                         snprintf(buffer,
                         sizeof(buffer),
@@ -312,27 +347,50 @@ void execute_current_instruction(void* data) {
             break;
             // READ
             case READ_DIRECT: 
+                if ( program_counter < MEMORY_SIZE - 1 ){
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+
+                        GtkWidget *container_window =
+                        GTK_WIDGET(gtk_builder_get_object(builder,
+                                    "CONTAINER_WINDOW"));
+
+                        word_t number = show_number_input_dialog(NULL,
+                                container_window);   
+                        memory[ operand ] = number;
+                        program_counter += 2;
+                    }else {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "Invalid memory address %d",
+                            operand);
+                            append_text_to_text_view( textview, buffer );
+                    }
+                }else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
             case READ_INDIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory [ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
-                        GtkWidget *container_window =
-                        GTK_WIDGET(gtk_builder_get_object(builder, "CONTAINER_WINDOW"));
-                        // This is blocking vvvv
-                        word_t number = show_number_input_dialog(NULL,
-                                container_window);   
-
                         int m_op = memory[ operand ];
                         if ( m_op < MEMORY_SIZE && m_op >= 0 ){
-                            switch(inst) {
-                                case READ_DIRECT:
-                                    memory[ operand ] = number;
-                                break;
-                                case READ_INDIRECT:
-                                    memory[ m_op ] = number;
-                                break;
-                            }
+
+                            GtkWidget *container_window =
+                            GTK_WIDGET(gtk_builder_get_object(builder,
+                                        "CONTAINER_WINDOW"));
+
+                            word_t number = show_number_input_dialog(NULL,
+                                    container_window);   
+
+                            memory[ m_op ] = number;
                             program_counter += 2;
+
                         } else {
                             snprintf(buffer,
                             sizeof(buffer),
@@ -362,63 +420,85 @@ void execute_current_instruction(void* data) {
             break;
             // ADD
             case ADD_DIRECT:
-            case ADD_INDIRECT:
+               if ( program_counter < MEMORY_SIZE - 1 ){
+                    int operand = memory [ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        if (abs( accumulator + memory[ operand ] ) > 
+                            WORD_MAX ) {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "\nInteger overflow occurred when performing "
+                            "instruction ADD with memory location %d, " 
+                            "PC : %d, SP : %d \n",
+                            memory[ operand ], program_counter, stack_pointer);
+                            append_text_to_text_view(textview, buffer);
+                        }
+                        accumulator += memory [ operand ];
+                        program_counter += 2;
+                    }else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "Invalid memory address %d",
+                        operand);
+                        append_text_to_text_view( textview, buffer );
+                    }
+               }else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+               }
+            break;
             case ADD_IMMEDIATE:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory [ program_counter + 1 ];
+                    if (abs( accumulator + operand ) > 
+                        WORD_MAX ) {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nInteger overflow occurred when performing "
+                        "instruction ADD with memory location %d, " 
+                        "PC : %d, SP : %d \n",
+                        operand, program_counter, stack_pointer);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                    accumulator += operand;
+                    program_counter += 2;
+                }else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                }
+            break;
+            case ADD_INDIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[ program_counter + 1 ];
                     if ( operand < MEMORY_SIZE && operand >= 0 ) {
                         int m_op = memory[ operand ];
                         if ( m_op < MEMORY_SIZE && m_op >= 0 ){
-                            switch(inst) {
-                                case ADD_DIRECT:
-                                    if (abs( accumulator + memory[ operand ] ) > 
-                                        WORD_MAX ) {
-                                        snprintf(buffer,
-                                        sizeof(buffer),
-                                        "\nInteger overflow occurred when performing "
-                                        "instruction ADD with memory location %d, " 
-                                        "PC : %d, SP : %d \n",
-                                        operand, program_counter, stack_pointer);
-                                        append_text_to_text_view(textview, buffer);
-                                    }
-                                    accumulator += memory[ operand ];
-                                break;
-                                case ADD_INDIRECT:
-                                    if (abs( accumulator + memory[ m_op ] ) > 
-                                        WORD_MAX ) {
-                                        snprintf(buffer,
-                                        sizeof(buffer),
-                                        "\nInteger overflow occurred when performing "
-                                        "instruction ADD with memory location %d, " 
-                                        "PC : %d, SP : %d \n",
-                                        operand, program_counter, stack_pointer);
-                                        append_text_to_text_view(textview, buffer);
-                                    }
-                                    accumulator += memory[ m_op ];
-                                break;
-                                case ADD_IMMEDIATE:
-                                    if (abs( accumulator + operand ) > 
-                                        WORD_MAX ) {
-                                        snprintf(buffer,
-                                        sizeof(buffer),
-                                        "\nInteger overflow occurred when performing "
-                                        "instruction ADD with memory location %d, " 
-                                        "PC : %d, SP : %d \n",
-                                        operand, program_counter, stack_pointer);
-                                        append_text_to_text_view(textview, buffer);
-                                    }
-                                    accumulator += operand;
-                                break;
+                            if (abs( accumulator + memory[ m_op ] ) > 
+                                WORD_MAX ) {
+                                snprintf(buffer,
+                                sizeof(buffer),
+                                "\nInteger overflow occurred when performing "
+                                "instruction ADD with memory location %d, " 
+                                "PC : %d, SP : %d \n",
+                                memory[ m_op ], program_counter, stack_pointer);
+                                append_text_to_text_view(textview, buffer);
                             }
+                            accumulator += memory[ m_op ];
                             program_counter += 2;
-                        } else {
+                        } else if ( inst == ADD_INDIRECT ){
                             snprintf(buffer,
                             sizeof(buffer),
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view( textview, buffer );
                         }
-                    } else {
+                    } else if ( inst == ADD_DIRECT ) {
                         snprintf(buffer,
                         sizeof(buffer),
                         "\nInvalid memory address for first "
@@ -437,25 +517,53 @@ void execute_current_instruction(void* data) {
             
             // BRPOS
             case BRPOS_DIRECT:
-            case BRPOS_INDIRECT:
+            if ( accumulator > 0 ) {
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1 ];
+                    if ( operand < MEMORY_SIZE && operand >= 0 ) {
+                        program_counter = memory [ operand ];  
+                    }else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "Invalid memory address %d",
+                        operand );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                }else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+                } 
+            } else {
+                program_counter += 2;
+            }
+            break;
             case BRPOS_IMMEDIATE:
+            if ( accumulator > 0 ) {
+               if ( program_counter < MEMORY_SIZE - 1 ){
+                    int operand = memory [ program_counter + 1 ];
+                    program_counter = operand;
+               } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    program_counter + 1);
+                    append_text_to_text_view( textview, buffer );
+               }
+            } else {
+                program_counter += 2;
+            }
+            break;
+            case BRPOS_INDIRECT:
                 if (accumulator > 0) {
                     if (program_counter < MEMORY_SIZE - 1) {
                         int operand = memory[program_counter + 1];
                         if (operand < MEMORY_SIZE && operand >= 0) {
                             int m_op = memory[operand];
                             if (m_op < MEMORY_SIZE && m_op >= 0) {
-                                switch (inst) {
-                                    case BRPOS_DIRECT:
-                                        program_counter = memory[operand];
-                                    break;
-                                    case BRPOS_INDIRECT:
-                                        program_counter = memory[m_op];
-                                    break;
-                                    case BRPOS_IMMEDIATE:
-                                        program_counter = operand;
-                                    break;
-                                }
+                                program_counter = memory[m_op];
                             } else {
                                 snprintf(buffer,
                                 sizeof(buffer),
@@ -484,96 +592,128 @@ void execute_current_instruction(void* data) {
 
             // BRZERO
             case BRZERO_DIRECT:
-            case BRZERO_INDIRECT:
+            if (accumulator == 0) {
+                if (program_counter < MEMORY_SIZE - 1) {
+                    int operand = memory[program_counter + 1];
+                    if (operand < MEMORY_SIZE && operand >= 0) {
+                        program_counter = memory[operand];
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", operand);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                program_counter += 2;
+            }
+            break;
             case BRZERO_IMMEDIATE:
-                if (accumulator == 0) {
-                    if (program_counter < MEMORY_SIZE - 1) {
-                        int operand = memory[program_counter + 1];
-                        if (operand < MEMORY_SIZE && operand >= 0) {
-                            int m_op = memory[operand];
-                            if (m_op < MEMORY_SIZE && m_op >= 0) {
-                                switch (inst) {
-                                    case BRZERO_DIRECT:
-                                        program_counter = memory[operand];
-                                    break;
-                                    case BRZERO_INDIRECT:
-                                        program_counter = memory[m_op];
-                                    break;
-                                    case BRZERO_IMMEDIATE:
-                                        program_counter = operand;
-                                    break;
-                                }
-                            } else {
-                                snprintf(buffer,
-                                sizeof(buffer),
-                                "Invalid memory address %d",
-                                m_op);
-                                append_text_to_text_view(textview, buffer);
-                            }
+            if (accumulator == 0) {
+                if (program_counter < MEMORY_SIZE - 1) {
+                    int operand = memory[program_counter + 1];
+                    program_counter = operand;
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                program_counter += 2;
+            }
+            break;
+            case BRZERO_INDIRECT:
+            if (accumulator == 0) {
+                if (program_counter < MEMORY_SIZE - 1) {
+                    int operand = memory[program_counter + 1];
+                    if (operand < MEMORY_SIZE && operand >= 0) {
+                        int m_op = memory[operand];
+                        if (m_op < MEMORY_SIZE && m_op >= 0) {
+                            program_counter = memory[m_op];
                         } else {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "Invalid memory address %d",
-                            operand);
+                            snprintf(buffer, sizeof(buffer),
+                            "Invalid memory address %d", m_op);
                             append_text_to_text_view(textview, buffer);
                         }
                     } else {
-                        snprintf(buffer,
-                        sizeof(buffer),
-                        "No operand found for instruction BRZERO at : memory[%d]\n",
-                        program_counter + 1);
-                           append_text_to_text_view(textview, buffer);
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", operand);
+                        append_text_to_text_view(textview, buffer);
                     }
                 } else {
-                    program_counter += 2;
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
                 }
+            } else {
+                program_counter += 2;
+            }
             break;
 
             // BRNEG
             case BRNEG_DIRECT:
-            case BRNEG_INDIRECT:
-            case BRNEG_IMMEDIATE:
-                if (accumulator < 0) {
-                    if (program_counter < MEMORY_SIZE - 1) {
-                        int operand = memory[program_counter + 1];
-                        if (operand < MEMORY_SIZE && operand >= 0) {
-                            int m_op = memory[operand];
-                            if (m_op < MEMORY_SIZE && m_op >= 0) {
-                                switch (inst) {
-                                    case BRNEG_DIRECT:
-                                        program_counter = memory[operand];
-                                    break;
-                                    case BRNEG_INDIRECT:
-                                        program_counter = memory[m_op];
-                                    break;
-                                    case BRNEG_IMMEDIATE:
-                                        program_counter = operand;
-                                    break;
-                                }
-                            } else {
-                                snprintf(buffer,
-                                sizeof(buffer),
-                                "Invalid memory address %d",
-                                m_op);
-                                append_text_to_text_view(textview, buffer);
-                            }
-                        } else {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "Invalid memory address %d",
-                            operand);
-                            append_text_to_text_view(textview, buffer);
-                        }
+            if (accumulator < 0) {
+                if (program_counter < MEMORY_SIZE - 1) {
+                    int operand = memory[program_counter + 1];
+                    if (operand < MEMORY_SIZE && operand >= 0) {
+                        program_counter = memory[operand];
                     } else {
-                        snprintf(buffer,
-                        sizeof(buffer),
-                        "No operand found for instruction BRNEG at : memory[%d]\n",
-                        program_counter + 1);
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", operand);
                         append_text_to_text_view(textview, buffer);
                     }
                 } else {
-                    program_counter += 2;
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
                 }
+            } else {
+                program_counter += 2;
+            }
+            break;
+            case BRNEG_IMMEDIATE:
+            if (accumulator < 0) {
+                if (program_counter < MEMORY_SIZE - 1) {
+                    int operand = memory[program_counter + 1];
+                    program_counter = operand;
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                program_counter += 2;
+            }
+            break;
+            case BRNEG_INDIRECT:
+            if (accumulator < 0) {
+                if (program_counter < MEMORY_SIZE - 1) {
+                    int operand = memory[program_counter + 1];
+                    if (operand < MEMORY_SIZE && operand >= 0) {
+                        int m_op = memory[operand];
+                        if (m_op < MEMORY_SIZE && m_op >= 0) {
+                            program_counter = memory[m_op];
+                        } else {
+                            snprintf(buffer, sizeof(buffer),
+                            "Invalid memory address %d", m_op);
+                            append_text_to_text_view(textview, buffer);
+                        }
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", operand);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                program_counter += 2;
+            }
             break;
 
             // WRITE
@@ -625,155 +765,260 @@ void execute_current_instruction(void* data) {
             break;
             // MULT
             case MULT_DIRECT:
-            case MULT_INDIRECT:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    if (abs(accumulator * memory[operand]) > WORD_MAX) {
+                        snprintf(buffer, sizeof(buffer),
+                        "Integer overflow occurred when multiplying"
+                        "accumulator with memory[%d]", operand);
+                        append_text_to_text_view(textview, buffer);
+                    } 
+                    accumulator *= memory[operand];
+                    program_counter += 2;
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
             case MULT_IMMEDIATE:
-                if (program_counter < MEMORY_SIZE - 1) {
-                    int operand = memory[program_counter + 1];
-                    if (operand < MEMORY_SIZE && operand >= 0) {
-                        int m_op = memory[operand];
-                        if (m_op < MEMORY_SIZE && m_op >= 0) {
-                            switch (inst) {
-                                case MULT_DIRECT:
-                                    accumulator *= memory[operand];
-                                break;
-                                case MULT_INDIRECT:
-                                    accumulator *= memory[m_op];
-                                break;
-                                case MULT_IMMEDIATE:
-                                    accumulator *= operand;
-                                break;
-                            }
-                            program_counter += 2;
-                        } else {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "Invalid memory address %d",
-                            m_op);
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (abs(accumulator * operand) > WORD_MAX) {
+                    snprintf(buffer, sizeof(buffer),
+                    "Integer overflow occurred when multiplying"
+                    "accumulator with %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+                accumulator *= operand;
+                program_counter += 2;
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            case MULT_INDIRECT:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    int m_op = memory[operand];
+                    if (m_op < MEMORY_SIZE && m_op >= 0) {
+                        if (abs(accumulator * memory[m_op]) > WORD_MAX) {
+                            snprintf(buffer, sizeof(buffer), "Integer overflow"
+                            "occurred when multiplying accumulator"
+                            "with memory[%d]", m_op);
                             append_text_to_text_view(textview, buffer);
+                        } else {
+                            accumulator *= memory[m_op];
+                            program_counter += 2;
                         }
                     } else {
-                        snprintf(buffer,
-                        sizeof(buffer),
-                        "Invalid memory address %d",
-                        operand);
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
                     }
                 } else {
-                    snprintf(buffer,
-                    sizeof(buffer),
-                    "No operand found for instruction MULT at : memory[%d]\n",
-                    program_counter + 1);
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
                 }
-            break;
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;           
             // DIV
             case DIV_DIRECT:
-            case DIV_INDIRECT:
-            case DIV_IMMEDIATE:
-                if (program_counter < MEMORY_SIZE - 1) {
-                    int operand = memory[program_counter + 1];
-                    if (operand < MEMORY_SIZE && operand >= 0) {
-                        int m_op = memory[operand];
-                        if (m_op < MEMORY_SIZE && m_op >= 0) {
-                            switch (inst) {
-                                case DIV_DIRECT:
-                                    accumulator /= memory[operand];
-                                break;
-                                case DIV_INDIRECT:
-                                    accumulator /= memory[m_op];
-                                break;
-                                case DIV_IMMEDIATE:
-                                    accumulator /= operand;
-                                break;
-                            }
-                            program_counter += 2;
-                        } else {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "Invalid memory address %d",
-                            m_op);
-                            append_text_to_text_view(textview, buffer);
-                        }
-                    } else {
-                        snprintf(buffer,
-                        sizeof(buffer),
-                        "Invalid memory address %d",
-                        operand);
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    if (memory[operand] == 0) {
+                        snprintf(buffer, sizeof(buffer),
+                        "Division by zero error at memory[%d]", operand);
+                        append_text_to_text_view(textview, buffer);
+                        reset( (void*) 0, builder );
+                        running = false;
+                    } 
+                    if (abs(accumulator / memory[operand]) > WORD_MAX) {
+                        snprintf(buffer, sizeof(buffer),
+                        "Integer overflow occurred when dividing"
+                        "accumulator by memory[%d]", operand);
                         append_text_to_text_view(textview, buffer);
                     }
+                    accumulator /= memory[operand];
+                    program_counter += 2;
                 } else {
-                    snprintf(buffer,
-                    sizeof(buffer),
-                    "No operand found for instruction DIV at : memory[%d]\n",
-                    program_counter + 1);
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
                 }
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
             break;
-
-            // BR
-            case BR_DIRECT:
-            case BR_INDIRECT:
-            case BR_IMMEDIATE:
-                if (program_counter < MEMORY_SIZE - 1) {
-                    int operand = memory[program_counter + 1];
-                    if (operand < MEMORY_SIZE && operand >= 0) {
-                        int m_op = memory[operand];
-                        if (m_op < MEMORY_SIZE && m_op >= 0) {
-                            switch (inst) {
-                                case BR_DIRECT:
-                                    program_counter = memory[operand];
-                                break;
-                                case BR_INDIRECT:
-                                    program_counter = memory[m_op];
-                                break;
-                                case BR_IMMEDIATE:
-                                    program_counter = operand;
-                                break;
-                            }
-                        } else {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "Invalid memory address %d",
-                            m_op);
+            case DIV_INDIRECT:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    int m_op = memory[operand];
+                    if (m_op < MEMORY_SIZE && m_op >= 0) {
+                        if (memory[m_op] == 0) {
+                            snprintf(buffer, sizeof(buffer),
+                            "Division by zero error at memory[%d]", m_op);
+                            append_text_to_text_view(textview, buffer);
+                            reset( (void *)0, builder);
+                            running = false;
+                        } 
+                        if (abs(accumulator / memory[m_op]) > WORD_MAX) {
+                            snprintf(buffer, sizeof(buffer),
+                            "Integer overflow occurred when dividing"
+                            "accumulator by memory[%d]", m_op);
                             append_text_to_text_view(textview, buffer);
                         }
+                        accumulator /= memory[m_op];
+                        program_counter += 2;
                     } else {
-                        snprintf(buffer,
-                        sizeof(buffer),
-                        "Invalid memory address %d",
-                        operand);
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
                     }
                 } else {
-                    snprintf(buffer,
-                    sizeof(buffer),
-                    "No operand found for instruction BR at : memory[%d]\n",
-                    program_counter + 1);
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
                 }
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            case DIV_IMMEDIATE:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand == 0) {
+                    snprintf(buffer, sizeof(buffer),
+                    "Division by zero error at memory[%d]", operand);
+                    append_text_to_text_view(textview, buffer);
+                    reset( (void*)0, builder );
+                    running = false;
+                } 
+                if (abs(accumulator / operand) > WORD_MAX) {
+                    snprintf(buffer, sizeof(buffer), 
+                    "Integer overflow occurred when dividing"
+                    "accumulator by %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                } 
+                accumulator /= operand;
+                program_counter += 2;
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            // BR
+           case BR_DIRECT:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    program_counter = memory[operand];
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            case BR_INDIRECT:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    int m_op = memory[operand];
+                    if (m_op < MEMORY_SIZE && m_op >= 0) {
+                        program_counter = memory[m_op];
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", m_op);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            case BR_IMMEDIATE:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                program_counter = operand;
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
             break;
 
             // PUT
             case PUT_DIRECT:
-            case PUT_INDIRECT:
+            if ( program_counter < MEMORY_SIZE - 1 ) {
+                int operand = memory [ program_counter + 1 ];
+                if ( operand < MEMORY_SIZE && operand >= 0 ){
+                    char number[256];
+                    snprintf(number, 256, "%d", memory[ operand ]);
+                    append_text_to_text_view(textview, number); 
+                    program_counter+=2;
+                }else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+            }else { 
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
             case PUT_IMMEDIATE:
+                if ( program_counter < MEMORY_SIZE - 1 ) {
+                    int operand = memory[ program_counter + 1];
+                    char number[256];
+                    snprintf(number, 256, "%d", operand );
+                    append_text_to_text_view(textview, number); 
+                    program_counter+=2;
+                }else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", program_counter + 1);
+                    append_text_to_text_view(textview, buffer);
+                }
+            break;
+            case PUT_INDIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
                         int m_op = memory[ operand ];
                         if ( m_op < MEMORY_SIZE && m_op >= 0 ) {
                             char number[256];
-                            switch(inst){
-                                case PUT_DIRECT:
-                                    snprintf(number, 256, "%d", memory[ operand ]);
-                                break;
-                                case PUT_INDIRECT:
-                                    snprintf(number, 256, "%d", memory[ m_op ]);
-                                break;
-                                case PUT_IMMEDIATE:
-                                    snprintf(number, 256, "%d", operand );
-                                break;
-                            }
+                            snprintf(number, 256, "%d", memory[ m_op ]);
                             append_text_to_text_view(textview, number); 
                             program_counter+=2;
                         }else {
@@ -801,33 +1046,71 @@ void execute_current_instruction(void* data) {
 
             // CALL
             case CALL_DIRECT:
-            case CALL_INDIRECT:
+            if ( program_counter < MEMORY_SIZE - 1 ){
+                int operand = memory [ program_counter + 1 ];
+                if ( operand < MEMORY_SIZE && operand >= 0 ){
+                    bool status = push(program_counter + 2);
+                    if (!status) {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "\nStack overflow occurred  PC : %d "
+                        "SP : %d \n",
+                        program_counter, stack_pointer );
+                        append_text_to_text_view( textview, buffer );
+                    }
+                    program_counter = memory[ operand ]; 
+                } else {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "Invalid memory address %d",
+                    operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+            }else {
+                snprintf(buffer,
+                sizeof(buffer),
+                "Invalid memory address %d",
+                program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
             case CALL_IMMEDIATE:
+            if ( program_counter < MEMORY_SIZE - 1 ){
+                int operand = memory [ program_counter + 1 ];
+                bool status = push(program_counter + 2);
+                if (!status) {
+                    snprintf(buffer,
+                    sizeof(buffer),
+                    "\nStack overflow occurred  PC : %d "
+                    "SP : %d \n",
+                    program_counter, stack_pointer );
+                    append_text_to_text_view( textview, buffer );
+                }
+                program_counter = operand; 
+            }else {
+                snprintf(buffer,
+                sizeof(buffer),
+                "Invalid memory address %d",
+                program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            case CALL_INDIRECT:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
                     int operand = memory[program_counter + 1];
                     if ( operand < MEMORY_SIZE && operand >= 0) {
-                        bool status = push(program_counter + 2);
-                        if (!status) {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "\nStack overflow occurred  PC : %d "
-                            "SP : %d \n",
-                            program_counter, stack_pointer );
-                            append_text_to_text_view( textview, buffer );
-                        }
                         int m_op = memory[operand];
                         if (m_op < MEMORY_SIZE && m_op >= 0) {
-                            switch (inst) {
-                                case CALL_DIRECT:
-                                    program_counter = memory[ operand ]; 
-                                break;
-                                case CALL_INDIRECT:
-                                    program_counter = memory[ m_op ]; 
-                                break;
-                                case CALL_IMMEDIATE:
-                                    program_counter = operand; 
-                                break;
+                            bool status = push(program_counter + 2);
+                            if (!status) {
+                                snprintf(buffer,
+                                sizeof(buffer),
+                                "\nStack overflow occurred  PC : %d "
+                                "SP : %d \n",
+                                program_counter, stack_pointer );
+                                append_text_to_text_view( textview, buffer );
                             }
+                            program_counter = memory[ m_op ]; 
                         }else {
                             snprintf(buffer,
                             sizeof(buffer),
@@ -835,12 +1118,13 @@ void execute_current_instruction(void* data) {
                             m_op);
                             append_text_to_text_view(textview, buffer);
                         }
+                    }else {
+                        snprintf(buffer,
+                        sizeof(buffer),
+                        "Invalid memory address %d",
+                        operand);
+                        append_text_to_text_view(textview, buffer);
                     }
-                    snprintf(buffer,
-                    sizeof(buffer),
-                    "Invalid memory address %d",
-                    operand);
-                    append_text_to_text_view(textview, buffer);
                 }else {
                     snprintf(buffer,
                     sizeof(buffer),
@@ -849,61 +1133,167 @@ void execute_current_instruction(void* data) {
                     append_text_to_text_view(textview, buffer);
                 }
             break;
-
             // COPY
-            case COPY_DI:
-            case COPY_DIm:
             case COPY_DD:
-            case COPY_ID:
-            case COPY_II:
-            case COPY_IIm:
-                if ( program_counter < MEMORY_SIZE - 2 ) {
-
+            if (program_counter < MEMORY_SIZE - 2) {
                     int op1 = memory[program_counter + 1];
                     int op2 = memory[program_counter + 2];
-                    int m_op1 = memory [ op1 ];
-                    int m_op2 = memory [ op2 ];
-
-                    if ( (op1 < MEMORY_SIZE && op1 >= 0)  
-                          && (op2 < MEMORY_SIZE && op2 >= 0)
-                          && ( m_op1 < MEMORY_SIZE && m_op1 >= 0 )
-                          && ( m_op2 < MEMORY_SIZE && m_op2 >= 0 ) ) {
-
-                        switch (inst) {
-                            case COPY_DI:
-                                memory[op1] = memory[ memory[op2] ];
-                            break;
-                            case COPY_DD:
-                                memory[op1] = memory[op2];
-                            break;
-                            case COPY_DIm:
-                                memory[op1] = op2;
-                            break;
-                            case COPY_II: 
-                                memory[ memory[op1] ] = memory[ memory[op2] ];
-                            break;
-                            case COPY_ID: 
-                                memory[ memory[op1] ] = memory[op2];
-                            break;
-                            case COPY_IIm: 
-                                memory[ memory[op1] ] = op2;
-                            break;
-                        }
-
+                    if (op1 < MEMORY_SIZE && op1 >= 0 &&
+                        op2 < MEMORY_SIZE && op2 >= 0) {
+                        memory[op1] = memory[op2];
                         program_counter += 3;
-
                     } else {
-                        snprintf( buffer, sizeof(buffer),
-                        "\nInvalid memory address for at least one of the operands "
-                        "of instruction COPY at: %d or %d\n", op1, op2);
-                        append_text_to_text_view( textview, buffer );
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address for COPY_DD at: %d or %d", op1, op2);
+                        append_text_to_text_view(textview, buffer);
                     }
                 } else {
-                    snprintf( buffer, sizeof(buffer),
-                    "\nNo operand found for instruction copy at"
-                    ": memory[ %d ] or memory[ %d ]\n",
-                    program_counter + 1, program_counter + 2 );
-                    append_text_to_text_view( textview, buffer );
+                    snprintf(buffer, sizeof(buffer),
+                    "No operand found for instruction COPY_DD"
+                    "at: memory[%d] or memory[%d]",
+                        program_counter + 1, program_counter + 2);
+                    append_text_to_text_view(textview, buffer);
+                }
+            break;
+            case COPY_DI:
+            if (program_counter < MEMORY_SIZE - 2) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if (op1 < MEMORY_SIZE && op1 >= 0 &&
+                        op2 < MEMORY_SIZE && op2 >= 0) {
+                        int m_op2 = memory[ op2 ];
+                        if ( m_op2 < MEMORY_SIZE && m_op2 >= 0 ){
+                            memory[op1] = memory[ m_op2 ];
+                            program_counter += 3;
+                        }else {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "Invalid memory address %d",
+                            m_op2);
+                            append_text_to_text_view(textview, buffer);
+                        }
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address for COPY_DI at: %d or %d", op1, op2);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "No operand found for instruction"
+                    "COPY_DI at: memory[%d] or memory[%d]",
+                    program_counter + 1, program_counter + 2);
+                    append_text_to_text_view(textview, buffer);
+                }
+            break;
+            case COPY_DIm:
+            if (program_counter < MEMORY_SIZE - 2) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if (op1 < MEMORY_SIZE && op1 >= 0 ) {
+                        memory[op1] = op2;
+                        program_counter += 3;
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address for COPY_DIm at: %d or %d", op1, op2);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "No operand found for instruction"
+                    "COPY_DIm at: memory[%d] or memory[%d]",
+                    program_counter + 1, program_counter + 2);
+                    append_text_to_text_view(textview, buffer);
+                }
+            break;
+            case COPY_ID:
+            if (program_counter < MEMORY_SIZE - 2) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if (op1 < MEMORY_SIZE && op1 >= 0 &&
+                        op2 < MEMORY_SIZE && op2 >= 0) {
+                        int m_op1 = memory[ op1 ];
+                        if ( m_op1 < MEMORY_SIZE && m_op1 >= 0 ){
+                            memory[m_op1] = memory[op2];
+                            program_counter += 3;
+                        }else {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "Invalid memory address %d",
+                            m_op1);
+                            append_text_to_text_view(textview, buffer);
+                        }
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address for COPY_ID at: %d or %d", op1, op2);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "No operand found for instruction"
+                    "COPY_ID at: memory[%d] or memory[%d]",
+                    program_counter + 1, program_counter + 2);
+                    append_text_to_text_view(textview, buffer);
+                }
+            break;
+            case COPY_II:
+            if (program_counter < MEMORY_SIZE - 2) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if (op1 < MEMORY_SIZE && op1 >= 0 &&
+                        op2 < MEMORY_SIZE && op2 >= 0) {
+                        int m_op1 = memory [ op1 ];
+                        int m_op2 = memory [ op2 ];
+                        if ( m_op1 < MEMORY_SIZE && m_op1 >= 0 &&
+                             m_op2 < MEMORY_SIZE && m_op2 >= 0 ) {
+                            memory[m_op1] = memory[m_op2];
+                            program_counter += 3;
+                        } else {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "Invalid memory address %d -- %d",
+                            m_op1, m_op2);
+                            append_text_to_text_view(textview, buffer);
+                        }
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address for COPY_II at: %d or %d", op1, op2);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "No operand found for instruction"
+                    "COPY_II at: memory[%d] or memory[%d]",
+                    program_counter + 1, program_counter + 2);
+                    append_text_to_text_view(textview, buffer);
+                }
+            break;
+            case COPY_IIm:
+            if (program_counter < MEMORY_SIZE - 2) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if (op1 < MEMORY_SIZE && op1 >= 0 ) {
+                        int m_op1 = memory [ op1 ];
+                        if ( m_op1 < MEMORY_SIZE && m_op1 >= 0 ) {
+                            memory[m_op1] = op2;
+                            program_counter += 3;
+                        }else {
+                            snprintf(buffer,
+                            sizeof(buffer),
+                            "Invalid memory address %d",
+                            m_op1 );
+                            append_text_to_text_view(textview, buffer);
+                        }
+                    } else {
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address for COPY_IIm at: %d or %d", op1, op2);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "No operand found for instruction"
+                    "COPY_IIm at: memory[%d] or memory[%d]",
+                    program_counter + 1, program_counter + 2);
+                    append_text_to_text_view(textview, buffer);
                 }
             break;
             // RET
@@ -917,48 +1307,75 @@ void execute_current_instruction(void* data) {
             break;
             // SUB
             case SUB_DIRECT:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    if (abs(accumulator - memory[operand]) > WORD_MAX) {
+                        snprintf(buffer, sizeof(buffer),
+                        "Integer overflow occurred when subtracting"
+                        "memory[%d] from accumulator", operand);
+                        append_text_to_text_view(textview, buffer);
+                    }
+                    accumulator -= memory[operand];
+                    program_counter += 2;
+                } else {
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
+                    append_text_to_text_view(textview, buffer);
+                }
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
             case SUB_INDIRECT:
-            case SUB_IMMEDIATE:
-                if (program_counter < MEMORY_SIZE - 1) {
-                    int operand = memory[program_counter + 1];
-                    if (operand < MEMORY_SIZE && operand >= 0) {
-                        int m_op = memory[operand];
-                        if (m_op < MEMORY_SIZE && m_op >= 0) {
-                            switch (inst) {
-                                case SUB_DIRECT:
-                                    accumulator -= memory[operand];
-                                break;
-                                case SUB_INDIRECT:
-                                    accumulator -= memory[m_op];
-                                break;
-                                case SUB_IMMEDIATE:
-                                    accumulator -= operand;
-                                break;
-                            }
-                            program_counter += 2;
-                        } else {
-                            snprintf(buffer,
-                            sizeof(buffer),
-                            "Invalid memory address %d",
-                            m_op);
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (operand < MEMORY_SIZE && operand >= 0) {
+                    int m_op = memory[operand];
+                    if (m_op < MEMORY_SIZE && m_op >= 0) {
+                        if (abs(accumulator - memory[m_op]) > WORD_MAX) {
+                            snprintf(buffer, sizeof(buffer),
+                            "Integer overflow occurred when subtracting"
+                            "memory[%d] from accumulator", m_op);
                             append_text_to_text_view(textview, buffer);
                         }
+                        accumulator -= memory[m_op];
+                        program_counter += 2;
                     } else {
-                        snprintf(buffer,
-                        sizeof(buffer),
-                        "Invalid memory address %d",
-                        operand);
+                        snprintf(buffer, sizeof(buffer),
+                        "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
                     }
                 } else {
-                    snprintf(buffer,
-                    sizeof(buffer),
-                    "No operand found for instruction SUB at : memory[%d]\n",
-                    program_counter + 1);
+                    snprintf(buffer, sizeof(buffer),
+                    "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
                 }
-            break;            
-
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;
+            case SUB_IMMEDIATE:
+            if (program_counter < MEMORY_SIZE - 1) {
+                int operand = memory[program_counter + 1];
+                if (abs(accumulator - operand) > WORD_MAX) {
+                    snprintf(buffer, sizeof(buffer),
+                    "Integer overflow occurred when subtracting"
+                    "%d from accumulator", operand);
+                    append_text_to_text_view(textview, buffer);
+                } 
+                accumulator -= operand;
+                program_counter += 2;
+            } else {
+                snprintf(buffer, sizeof(buffer),
+                "Invalid memory address %d", program_counter + 1);
+                append_text_to_text_view(textview, buffer);
+            }
+            break;           
             // UNKNOWN 
             default:
                 snprintf(buffer,
@@ -1023,6 +1440,7 @@ void step(GtkWidget *widget, gpointer data) {
 
 void run(GtkWidget *widget, gpointer data) {
 
+    running = true;
     user_data_t *ud = data;
     GtkTextView *textview = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder,
                 "console"));
@@ -1037,7 +1455,7 @@ void run(GtkWidget *widget, gpointer data) {
                    "SEGFAULT: PC outside of memory range"); 
            break;
         }
-    }while ( inst != STOP && ( mop != MOP_NOT_DEFINED ) );
+    }while ( inst != STOP && ( mop != MOP_NOT_DEFINED ) && running );
 
 }
 
