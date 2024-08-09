@@ -10,6 +10,7 @@ enum instructions_t {
     LOAD_DIRECT = 3,
     LOAD_INDIRECT = 50,
     LOAD_IMMEDIATE = 51,
+    COPY = 13,
     ADD_DIRECT = 2,
     ADD_INDIRECT = 52,
     ADD_IMMEDIATE = 53,

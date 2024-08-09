@@ -50,9 +50,13 @@ void manual_program() {
     memory[526] = data_reg + 100;
     memory[527] = 20;
     memory[528] = data_reg + 2;
-    memory[529] = 00;
-    memory[530] = data_reg + 45;
-    memory[531] = 11;
+
+    memory[529] = 13;
+    memory[530] = data_reg + 52;
+    memory[531] = data_reg + 56;
+    memory[532] = 00;
+    memory[533] = data_reg + 45;
+    memory[534] = 11;
 
     memory[600] = 15;
     memory[601] = data_reg + 200;
@@ -65,6 +69,8 @@ void manual_program() {
     memory[459] = 16;
 
     memory[data_reg + 200] = 455;
+    memory[data_reg + 52] = 50;
+    memory[data_reg + 56] = 150;
 
     memory[data_reg + 13] = 321;
     memory[data_reg + 14] = 421;

@@ -17,6 +17,7 @@ const char * const enum_str[] = {
     [STORE_INDIRECT] = "STORE  #",
     [READ_DIRECT]  = "READ  &",
     [READ_INDIRECT]  = "READ  #",
+    [COPY] = "COPY  ",
     [STOP]  = "STOP",
     [ADD_DIRECT]  = "ADD  &",
     [ADD_INDIRECT]  = "ADD  #",
@@ -53,7 +54,7 @@ const char * const enum_str[] = {
 void update_inst_pc(GtkBuilder *builder, int inst) {
 
     char pc_str[10], inst_str[10], operand1[10];  
-    char ri_str[10], sp_str[10];
+    char ri_str[10], sp_str[10], operand2[10];
     
     snprintf(pc_str, 10, "%d", program_counter);
     snprintf(inst_str, 10, "%d", inst);
@@ -62,6 +63,12 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
         snprintf(operand1, 10, "%d", memory[program_counter + 1]);
     } else {
         strcpy(operand1, "XXXX");
+    }
+
+    if ( program_counter < MEMORY_SIZE - 2 ) {
+        snprintf(operand2, 10, "%d", memory[program_counter + 2]);
+    } else {
+        strcpy(operand2, "XXXX");
     }
 
     ri = inst;
@@ -94,13 +101,17 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                       "stack_pointer")), write_sp );
+    char *write_buff;
+    if ( enum_str[inst] != NULL ){
+        write_buff =
+            ( char * ) malloc( strlen(enum_str[inst]) +
+                    strlen(operand1) + strlen(operand2) + 2 );
+    } 
 
-    char *write_buff =
-        ( char * ) malloc( strlen(enum_str[inst]) + strlen(operand1) + 1 );
-   
     if (   inst != RET 
         && inst != STOP  
-        && inst != UNKNOWN ) {
+        && inst != UNKNOWN
+        && inst != COPY ) {
 
         strcpy ( write_buff, enum_str[inst] );
         strcat ( write_buff, operand1 );
@@ -123,6 +134,17 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
                                 "CURRENT_MEMORY_VALUE")),
                                 enum_str[RET] );
             break;
+            // COPY
+            case COPY:
+
+                strcpy ( write_buff, enum_str[inst] );
+                strcat ( write_buff, operand1 );
+                strcat ( write_buff, " " );
+                strcat ( write_buff, operand2 );
+                gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
+                                "CURRENT_MEMORY_VALUE")), write_buff);
+
+            break;
             // UNKNOWN
             default: 
                 gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
@@ -132,7 +154,10 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
         } 
     }
 
-    free(write_buff);
+    if ( enum_str[inst] != NULL ) {
+        free(write_buff);
+    }
+
     free(write_ri);
     free(write_sp);
     free(write_pc);
@@ -436,6 +461,29 @@ void execute_current_instruction(void* data) {
                         }
                         program_counter = memory[ operand ]; 
                     }
+                }
+            break;
+            // COPY
+            case COPY:
+                if ( program_counter < MEMORY_SIZE - 2 ) {
+                    int op1 = memory[program_counter + 1];
+                    int op2 = memory[program_counter + 2];
+                    if ( (op1 < MEMORY_SIZE && op1 >= 0)  
+                         && (op2 < MEMORY_SIZE && op2 >= 0) ) {
+                        memory[op1] = memory[op2];
+                        program_counter += 3;
+                    } else {
+                        snprintf( buffer, sizeof(buffer),
+                        "\nInvalid memory address for at least one of the operands "
+                        "of instruction COPY at: %d or %d\n", op1, op2);
+                        append_text_to_text_view( textview, buffer );
+                    }
+                } else {
+                    snprintf( buffer, sizeof(buffer),
+                    "\nNo operand found for instruction copy at"
+                    ": memory[ %d ] or memory[ %d ]\n",
+                    program_counter + 1, program_counter + 2 );
+                    append_text_to_text_view( textview, buffer );
                 }
             break;
             // RET
