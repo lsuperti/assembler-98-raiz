@@ -222,6 +222,8 @@ void execute_current_instruction(void* data) {
     GtkBuilder *builder = data;
     GtkTextView *textview =  
                 GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console"));
+    GtkTextView *textview2 =  
+                GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console1"));
 
     char buffer[512];
 
@@ -243,6 +245,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                         }
                     }else {
                         snprintf(buffer,
@@ -250,6 +253,7 @@ void execute_current_instruction(void* data) {
                         "Invalid memory address %d",
                         operand);
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                 } else {
                     snprintf(buffer,
@@ -257,6 +261,7 @@ void execute_current_instruction(void* data) {
                     "No operand found for instruction load at : memory[ %d ]\n",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             case LOAD_IMMEDIATE:
                 if ( program_counter < MEMORY_SIZE - 1 ) {
@@ -269,6 +274,7 @@ void execute_current_instruction(void* data) {
                     "No operand found for instruction load at : memory[ %d ]\n",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             case LOAD_DIRECT:            
@@ -283,6 +289,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             operand);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                     }
                 } else {
                     snprintf(buffer,
@@ -290,6 +297,7 @@ void execute_current_instruction(void* data) {
                     "No operand found for instruction load at : memory[ %d ]\n",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             // STORE
@@ -305,6 +313,7 @@ void execute_current_instruction(void* data) {
                         "Invalid memory address %d",
                         program_counter + 1);
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                 }else {
                     snprintf(buffer,
@@ -312,6 +321,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             case STORE_INDIRECT:
@@ -328,6 +338,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                         }
                     } else {
                         snprintf(buffer,
@@ -336,6 +347,7 @@ void execute_current_instruction(void* data) {
                         "operand of instruction store at : %d \n",
                         operand);
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                 } else { 
                     snprintf(buffer,
@@ -343,6 +355,7 @@ void execute_current_instruction(void* data) {
                     "\nNo operand found for instruction store at : memory [ %d ]\n",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             // READ
@@ -365,6 +378,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             operand);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                     }
                 }else {
                     snprintf(buffer,
@@ -372,6 +386,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             case READ_INDIRECT:
@@ -397,6 +412,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                         }
                     }else {
                             snprintf(buffer,
@@ -404,6 +420,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             operand);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                     }
                 }else {
                     snprintf(buffer,
@@ -411,11 +428,14 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             // STOP
             case STOP:
                 append_text_to_text_view( textview,
+                        "\nProgram terminated with exit status success.\n");
+                append_text_to_text_view( textview2,
                         "\nProgram terminated with exit status success.\n");
             break;
             // ADD
@@ -432,6 +452,7 @@ void execute_current_instruction(void* data) {
                             "PC : %d, SP : %d \n",
                             memory[ operand ], program_counter, stack_pointer);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                         accumulator += memory [ operand ];
                         program_counter += 2;
@@ -441,6 +462,7 @@ void execute_current_instruction(void* data) {
                         "Invalid memory address %d",
                         operand);
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                }else {
                     snprintf(buffer,
@@ -448,6 +470,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                }
             break;
             case ADD_IMMEDIATE:
@@ -462,6 +485,7 @@ void execute_current_instruction(void* data) {
                         "PC : %d, SP : %d \n",
                         operand, program_counter, stack_pointer);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                     accumulator += operand;
                     program_counter += 2;
@@ -471,6 +495,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             case ADD_INDIRECT:
@@ -488,6 +513,7 @@ void execute_current_instruction(void* data) {
                                 "PC : %d, SP : %d \n",
                                 memory[ m_op ], program_counter, stack_pointer);
                                 append_text_to_text_view(textview, buffer);
+                                append_text_to_text_view(textview2, buffer);
                             }
                             accumulator += memory[ m_op ];
                             program_counter += 2;
@@ -497,6 +523,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view( textview, buffer );
+                            append_text_to_text_view( textview2, buffer );
                         }
                     } else if ( inst == ADD_DIRECT ) {
                         snprintf(buffer,
@@ -505,6 +532,7 @@ void execute_current_instruction(void* data) {
                         "operand of instruction ADD at : %d\n",
                          operand );
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                 } else {
                     snprintf(buffer,
@@ -512,6 +540,7 @@ void execute_current_instruction(void* data) {
                     "\nNo operand found for instruction add at : memory[ %d ]\n",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             
@@ -528,6 +557,7 @@ void execute_current_instruction(void* data) {
                         "Invalid memory address %d",
                         operand );
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                 }else {
                     snprintf(buffer,
@@ -535,6 +565,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 } 
             } else {
                 program_counter += 2;
@@ -551,6 +582,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                }
             } else {
                 program_counter += 2;
@@ -570,6 +602,7 @@ void execute_current_instruction(void* data) {
                                 "Invalid memory address %d",
                                 m_op);
                                 append_text_to_text_view(textview, buffer);
+                                append_text_to_text_view(textview2, buffer);
                             }
                         } else {
                             snprintf(buffer,
@@ -577,6 +610,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             operand);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer,
@@ -584,6 +618,7 @@ void execute_current_instruction(void* data) {
                         "No operand found for instruction BRPOS at : memory[%d]\n",
                         program_counter + 1);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     program_counter += 2;
@@ -601,11 +636,13 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 program_counter += 2;
@@ -620,6 +657,7 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 program_counter += 2;
@@ -637,16 +675,19 @@ void execute_current_instruction(void* data) {
                             snprintf(buffer, sizeof(buffer),
                             "Invalid memory address %d", m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 program_counter += 2;
@@ -664,11 +705,13 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 program_counter += 2;
@@ -683,6 +726,7 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 program_counter += 2;
@@ -700,16 +744,19 @@ void execute_current_instruction(void* data) {
                             snprintf(buffer, sizeof(buffer),
                             "Invalid memory address %d", m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 program_counter += 2;
@@ -741,6 +788,7 @@ void execute_current_instruction(void* data) {
                             lu[1] = upper_c;
                             lu[2] = '\0';
                             append_text_to_text_view( textview, lu);
+                            append_text_to_text_view( textview2, lu);
                             iterator = memory[ operand + words ];
                             words++;
                         }
@@ -754,6 +802,7 @@ void execute_current_instruction(void* data) {
                         "operand of instruction WRITE at : %d\n",
                         operand );
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                 } else {
                     snprintf(buffer,
@@ -761,6 +810,7 @@ void execute_current_instruction(void* data) {
                     "\nNo operand found for instruction WRITE at : memory[ %d ]\n",
                     program_counter + 1);
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
             break;
             // MULT
@@ -773,6 +823,7 @@ void execute_current_instruction(void* data) {
                         "Integer overflow occurred when multiplying"
                         "accumulator with memory[%d]", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     } 
                     accumulator *= memory[operand];
                     program_counter += 2;
@@ -780,11 +831,13 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case MULT_IMMEDIATE:
@@ -795,6 +848,7 @@ void execute_current_instruction(void* data) {
                     "Integer overflow occurred when multiplying"
                     "accumulator with %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
                 accumulator *= operand;
                 program_counter += 2;
@@ -802,6 +856,7 @@ void execute_current_instruction(void* data) {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case MULT_INDIRECT:
@@ -815,6 +870,7 @@ void execute_current_instruction(void* data) {
                             "occurred when multiplying accumulator"
                             "with memory[%d]", m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         } else {
                             accumulator *= memory[m_op];
                             program_counter += 2;
@@ -823,16 +879,19 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;           
             // DIV
@@ -844,6 +903,7 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Division by zero error at memory[%d]", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                         reset( (void*) 0, builder );
                         running = false;
                     } 
@@ -852,6 +912,7 @@ void execute_current_instruction(void* data) {
                         "Integer overflow occurred when dividing"
                         "accumulator by memory[%d]", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                     accumulator /= memory[operand];
                     program_counter += 2;
@@ -859,11 +920,13 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case DIV_INDIRECT:
@@ -876,6 +939,7 @@ void execute_current_instruction(void* data) {
                             snprintf(buffer, sizeof(buffer),
                             "Division by zero error at memory[%d]", m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                             reset( (void *)0, builder);
                             running = false;
                         } 
@@ -884,6 +948,7 @@ void execute_current_instruction(void* data) {
                             "Integer overflow occurred when dividing"
                             "accumulator by memory[%d]", m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                         accumulator /= memory[m_op];
                         program_counter += 2;
@@ -891,16 +956,19 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case DIV_IMMEDIATE:
@@ -910,6 +978,7 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Division by zero error at memory[%d]", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                     reset( (void*)0, builder );
                     running = false;
                 } 
@@ -918,6 +987,7 @@ void execute_current_instruction(void* data) {
                     "Integer overflow occurred when dividing"
                     "accumulator by %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 } 
                 accumulator /= operand;
                 program_counter += 2;
@@ -925,6 +995,7 @@ void execute_current_instruction(void* data) {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             // BR
@@ -937,11 +1008,13 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case BR_INDIRECT:
@@ -955,16 +1028,19 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case BR_IMMEDIATE:
@@ -975,6 +1051,7 @@ void execute_current_instruction(void* data) {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
 
@@ -986,16 +1063,19 @@ void execute_current_instruction(void* data) {
                     char number[256];
                     snprintf(number, 256, "%d", memory[ operand ]);
                     append_text_to_text_view(textview, number); 
+                    append_text_to_text_view(textview2, number); 
                     program_counter+=2;
                 }else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             }else { 
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case PUT_IMMEDIATE:
@@ -1004,11 +1084,13 @@ void execute_current_instruction(void* data) {
                     char number[256];
                     snprintf(number, 256, "%d", operand );
                     append_text_to_text_view(textview, number); 
+                    append_text_to_text_view(textview2, number); 
                     program_counter+=2;
                 }else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             case PUT_INDIRECT:
@@ -1020,6 +1102,7 @@ void execute_current_instruction(void* data) {
                             char number[256];
                             snprintf(number, 256, "%d", memory[ m_op ]);
                             append_text_to_text_view(textview, number); 
+                            append_text_to_text_view(textview2, number); 
                             program_counter+=2;
                         }else {
                             snprintf(buffer,
@@ -1027,6 +1110,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     }else {
                         snprintf(buffer,
@@ -1034,6 +1118,7 @@ void execute_current_instruction(void* data) {
                         "Invalid memory address %d",
                         operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 }else {
                     snprintf(buffer,
@@ -1041,6 +1126,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
 
@@ -1057,6 +1143,7 @@ void execute_current_instruction(void* data) {
                         "SP : %d \n",
                         program_counter, stack_pointer );
                         append_text_to_text_view( textview, buffer );
+                        append_text_to_text_view( textview2, buffer );
                     }
                     program_counter = memory[ operand ]; 
                 } else {
@@ -1065,6 +1152,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             }else {
                 snprintf(buffer,
@@ -1072,6 +1160,7 @@ void execute_current_instruction(void* data) {
                 "Invalid memory address %d",
                 program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case CALL_IMMEDIATE:
@@ -1085,6 +1174,7 @@ void execute_current_instruction(void* data) {
                     "SP : %d \n",
                     program_counter, stack_pointer );
                     append_text_to_text_view( textview, buffer );
+                    append_text_to_text_view( textview2, buffer );
                 }
                 program_counter = operand; 
             }else {
@@ -1093,6 +1183,7 @@ void execute_current_instruction(void* data) {
                 "Invalid memory address %d",
                 program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case CALL_INDIRECT:
@@ -1109,6 +1200,7 @@ void execute_current_instruction(void* data) {
                                 "SP : %d \n",
                                 program_counter, stack_pointer );
                                 append_text_to_text_view( textview, buffer );
+                                append_text_to_text_view( textview2, buffer );
                             }
                             program_counter = memory[ m_op ]; 
                         }else {
@@ -1117,6 +1209,7 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     }else {
                         snprintf(buffer,
@@ -1124,6 +1217,7 @@ void execute_current_instruction(void* data) {
                         "Invalid memory address %d",
                         operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 }else {
                     snprintf(buffer,
@@ -1131,6 +1225,7 @@ void execute_current_instruction(void* data) {
                     "Invalid memory address %d",
                     program_counter + 1);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             // COPY
@@ -1146,6 +1241,7 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address for COPY_DD at: %d or %d", op1, op2);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
@@ -1153,6 +1249,7 @@ void execute_current_instruction(void* data) {
                     "at: memory[%d] or memory[%d]",
                         program_counter + 1, program_counter + 2);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             case COPY_DI:
@@ -1171,11 +1268,13 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op2);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address for COPY_DI at: %d or %d", op1, op2);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
@@ -1183,6 +1282,7 @@ void execute_current_instruction(void* data) {
                     "COPY_DI at: memory[%d] or memory[%d]",
                     program_counter + 1, program_counter + 2);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             case COPY_DIm:
@@ -1196,6 +1296,7 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address for COPY_DIm at: %d or %d", op1, op2);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
@@ -1203,6 +1304,7 @@ void execute_current_instruction(void* data) {
                     "COPY_DIm at: memory[%d] or memory[%d]",
                     program_counter + 1, program_counter + 2);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             case COPY_ID:
@@ -1221,11 +1323,13 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op1);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address for COPY_ID at: %d or %d", op1, op2);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
@@ -1233,6 +1337,7 @@ void execute_current_instruction(void* data) {
                     "COPY_ID at: memory[%d] or memory[%d]",
                     program_counter + 1, program_counter + 2);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             case COPY_II:
@@ -1253,11 +1358,13 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d -- %d",
                             m_op1, m_op2);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address for COPY_II at: %d or %d", op1, op2);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
@@ -1265,6 +1372,7 @@ void execute_current_instruction(void* data) {
                     "COPY_II at: memory[%d] or memory[%d]",
                     program_counter + 1, program_counter + 2);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             case COPY_IIm:
@@ -1282,11 +1390,13 @@ void execute_current_instruction(void* data) {
                             "Invalid memory address %d",
                             m_op1 );
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                     } else {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address for COPY_IIm at: %d or %d", op1, op2);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
@@ -1294,6 +1404,7 @@ void execute_current_instruction(void* data) {
                     "COPY_IIm at: memory[%d] or memory[%d]",
                     program_counter + 1, program_counter + 2);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             break;
             // RET
@@ -1315,6 +1426,7 @@ void execute_current_instruction(void* data) {
                         "Integer overflow occurred when subtracting"
                         "memory[%d] from accumulator", operand);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                     accumulator -= memory[operand];
                     program_counter += 2;
@@ -1322,11 +1434,13 @@ void execute_current_instruction(void* data) {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case SUB_INDIRECT:
@@ -1340,6 +1454,7 @@ void execute_current_instruction(void* data) {
                             "Integer overflow occurred when subtracting"
                             "memory[%d] from accumulator", m_op);
                             append_text_to_text_view(textview, buffer);
+                            append_text_to_text_view(textview2, buffer);
                         }
                         accumulator -= memory[m_op];
                         program_counter += 2;
@@ -1347,16 +1462,19 @@ void execute_current_instruction(void* data) {
                         snprintf(buffer, sizeof(buffer),
                         "Invalid memory address %d", m_op);
                         append_text_to_text_view(textview, buffer);
+                        append_text_to_text_view(textview2, buffer);
                     }
                 } else {
                     snprintf(buffer, sizeof(buffer),
                     "Invalid memory address %d", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 }
             } else {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;
             case SUB_IMMEDIATE:
@@ -1367,6 +1485,7 @@ void execute_current_instruction(void* data) {
                     "Integer overflow occurred when subtracting"
                     "%d from accumulator", operand);
                     append_text_to_text_view(textview, buffer);
+                    append_text_to_text_view(textview2, buffer);
                 } 
                 accumulator -= operand;
                 program_counter += 2;
@@ -1374,6 +1493,7 @@ void execute_current_instruction(void* data) {
                 snprintf(buffer, sizeof(buffer),
                 "Invalid memory address %d", program_counter + 1);
                 append_text_to_text_view(textview, buffer);
+                append_text_to_text_view(textview2, buffer);
             }
             break;           
             // UNKNOWN 
@@ -1383,12 +1503,14 @@ void execute_current_instruction(void* data) {
                 "\nNot an instruction at memory address : %d \n",
                 program_counter);
                 append_text_to_text_view( textview, buffer );
+                append_text_to_text_view( textview2, buffer );
             break;
         }
     } else  {
         textview =
         GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console"));
         append_text_to_text_view( textview, "\nMemory limit reached. \n" );
+        append_text_to_text_view( textview2, "\nMemory limit reached. \n" );
     }
 
     char prefix[] = "ACCUM : ";
@@ -1444,7 +1566,8 @@ void run(GtkWidget *widget, gpointer data) {
     user_data_t *ud = data;
     GtkTextView *textview = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder,
                 "console"));
-
+    GtkTextView *textview2 = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder,
+                "console1"));
     int inst;
     do {
         if ( program_counter < MEMORY_SIZE ) {
@@ -1452,6 +1575,8 @@ void run(GtkWidget *widget, gpointer data) {
             step( (void *)0, ud);
         } else { 
            append_text_to_text_view(textview,
+                   "SEGFAULT: PC outside of memory range"); 
+           append_text_to_text_view(textview2,
                    "SEGFAULT: PC outside of memory range"); 
            break;
         }

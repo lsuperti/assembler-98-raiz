@@ -3,6 +3,8 @@
 <interface>
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkWindow" id="CONTAINER_WINDOW">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
     <property name="can-focus">False</property>
     <property name="default-width">800</property>
     <property name="default-height">800</property>
@@ -10,9 +12,93 @@
       <placeholder/>
     </child>
   </object>
-  <object class="GtkFixed" id="WINDOW_FIXED_MOP0">
+  <object class="GtkFixed" id="WINDOW_ASSEMBLER_MACHINE">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
     <property name="visible">True</property>
     <property name="can-focus">False</property>
+  </object>
+  <object class="GtkFixed" id="WINDOW_FIXED_MOP0">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFrame" id="output_text1">
+        <property name="width-request">630</property>
+        <property name="height-request">599</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="label-xalign">0</property>
+        <property name="shadow-type">none</property>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="width-request">100</property>
+            <property name="height-request">175</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkViewport">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkTextView" id="console1">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="editable">False</property>
+                    <property name="cursor-visible">False</property>
+                  </object>
+                </child>
+                <style>
+                  <class name="buffer"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="label">
+          <object class="GtkLabel">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="label" translatable="yes">Console
+</property>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="x">22</property>
+        <property name="y">36</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="run1">
+        <property name="label" translatable="yes">Run</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+      <packing>
+        <property name="x">28</property>
+        <property name="y">676</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="back1">
+        <property name="label" translatable="yes">Back</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+      <packing>
+        <property name="x">548</property>
+        <property name="y">682</property>
+      </packing>
+    </child>
   </object>
   <object class="GtkFixed" id="WINDOW_FIXED_MOP2">
     <property name="width-request">800</property>
@@ -315,12 +401,9 @@
         <property name="visible">True</property>
         <property name="can-focus">True</property>
         <property name="receives-default">True</property>
-        <style>
-          <class name="reset"/>
-        </style>
       </object>
       <packing>
-        <property name="x">11</property>
+        <property name="x">687</property>
         <property name="y">14</property>
       </packing>
     </child>

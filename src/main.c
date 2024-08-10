@@ -56,6 +56,8 @@ int main (int argc, char *argv[]) {
 
     g_signal_connect(gtk_builder_get_object(builder, "run")
             ,"clicked", G_CALLBACK(run), &data);
+    g_signal_connect(gtk_builder_get_object(builder, "run1")
+            ,"clicked", G_CALLBACK(run), &data);
     g_signal_connect(gtk_builder_get_object(builder, "step")
             ,"clicked", G_CALLBACK(step), &data);
     g_signal_connect(gtk_builder_get_object(builder, "reset")
@@ -100,6 +102,8 @@ int main (int argc, char *argv[]) {
 
     GtkWidget *back_button = GTK_WIDGET(gtk_builder_get_object(builder, "back"));
     g_signal_connect(back_button, "clicked", G_CALLBACK(change_to_main), stack);
+    GtkWidget *back1_button = GTK_WIDGET(gtk_builder_get_object(builder, "back1"));
+    g_signal_connect(back1_button, "clicked", G_CALLBACK(change_to_main), stack);
 
     g_signal_connect(container_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_widget_show_all(container_window);
