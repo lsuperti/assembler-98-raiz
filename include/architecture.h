@@ -57,7 +57,8 @@ enum instructions_t {
     PC  = 100,
     RI  = 101,
     SP  = 102,
-    UNKNOWN = 103
+    UNKNOWN = 103,
+    NUMBER_OF_INSTRUCTIONS
 };
 
 // 16kB of memory.

@@ -9,6 +9,7 @@
 #include "architecture.h"
 
 bool running = false;
+#define ENUM_STR_SIZE (sizeof(enum_str) / sizeof(enum_str[0]))
 
 const char * const enum_str[] = {
 
@@ -110,7 +111,9 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(builder,
                       "stack_pointer")), write_sp );
     char *write_buff;
-    if ( enum_str[inst] != NULL ){
+    
+    if ( inst >= 0 && inst < NUMBER_OF_INSTRUCTIONS){
+        assert( enum_str[inst] != NULL );
         write_buff =
             ( char * ) malloc( strlen(enum_str[inst]) +
                     strlen(operand1) + strlen(operand2) + 4 );
@@ -124,8 +127,10 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
         &&inst != COPY_DIm
         &&inst != COPY_ID 
         &&inst != COPY_II 
-        &&inst != COPY_IIm ) {
+        &&inst != COPY_IIm
+        && ( inst >= 0 && inst < NUMBER_OF_INSTRUCTIONS) ) {
 
+        assert( enum_str[inst] != NULL );
         strcpy ( write_buff, enum_str[inst] );
         strcat ( write_buff, operand1 );
 
@@ -134,7 +139,7 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
                            write_buff );
 
     }else { 
-
+ 
         switch (inst) {
             // STOP
             case STOP:
@@ -202,7 +207,8 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
 
     }
 
-    if ( enum_str[inst] != NULL ) {
+    if ( inst >= 0 && inst < NUMBER_OF_INSTRUCTIONS){
+        assert( enum_str[inst] != NULL );
         free(write_buff);
     }
 

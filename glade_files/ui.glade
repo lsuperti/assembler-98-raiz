@@ -99,6 +99,23 @@
         <property name="y">54</property>
       </packing>
     </child>
+    <child>
+      <object class="GtkButton" id="reset1">
+        <property name="label" translatable="yes">Reset</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+        <style>
+          <class name="reset"/>
+        </style>
+      </object>
+      <packing>
+        <property name="x">684</property>
+        <property name="y">606</property>
+      </packing>
+    </child>
   </object>
   <object class="GtkFixed" id="WINDOW_FIXED_MOP2">
     <property name="width-request">800</property>

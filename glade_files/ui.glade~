@@ -26,7 +26,7 @@
     <child>
       <object class="GtkFrame" id="output_text1">
         <property name="width-request">630</property>
-        <property name="height-request">599</property>
+        <property name="height-request">766</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label-xalign">0</property>
@@ -67,8 +67,8 @@
         </child>
       </object>
       <packing>
-        <property name="x">22</property>
-        <property name="y">36</property>
+        <property name="x">24</property>
+        <property name="y">13</property>
       </packing>
     </child>
     <child>
@@ -81,8 +81,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">28</property>
-        <property name="y">676</property>
+        <property name="x">683</property>
+        <property name="y">697</property>
       </packing>
     </child>
     <child>
@@ -95,8 +95,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">548</property>
-        <property name="y">682</property>
+        <property name="x">684</property>
+        <property name="y">54</property>
       </packing>
     </child>
   </object>

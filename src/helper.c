@@ -3,6 +3,7 @@
 #include "helper.h"
 #include "architecture.h"
 #include "types.h"
+#include <ctype.h>
 
 void append_text_to_text_view(GtkTextView *text_view, const char *text){
     GtkTextBuffer *buffer;
@@ -98,3 +99,12 @@ int is_copy(int inst) {
     return FALSE;
 }
 
+int is_empty_line(const char *line) {
+    while (*line != '\0') {
+        if (!isspace((unsigned char)*line)) {
+            return 0; 
+        }
+        line++;
+    }
+    return 1;  
+}

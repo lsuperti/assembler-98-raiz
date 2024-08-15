@@ -62,6 +62,8 @@ int main (int argc, char *argv[]) {
             ,"clicked", G_CALLBACK(step), &data);
     g_signal_connect(gtk_builder_get_object(builder, "reset")
             ,"clicked", G_CALLBACK(reset), builder);
+    g_signal_connect(gtk_builder_get_object(builder, "reset1")
+            ,"clicked", G_CALLBACK(reset), builder);
     gtk_builder_connect_signals(builder, NULL);
     // -- // 
     
