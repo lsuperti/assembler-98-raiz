@@ -4,4 +4,6 @@
 #include <string.h>
 #include <stdint.h>
 
+extern char *current_program; 
+
 #endif // GLOBAL_H

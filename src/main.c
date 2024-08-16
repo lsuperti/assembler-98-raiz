@@ -1,4 +1,5 @@
 
+#define NDEBUG
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,7 +11,7 @@
 
 int main (int argc, char *argv[]) {
 
-    manual_program();
+    load_program();
 
     gtk_init(&argc, &argv);
 
