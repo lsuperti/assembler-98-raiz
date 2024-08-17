@@ -1,5 +1,4 @@
 
-#define NDEBUG
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,6 +7,7 @@
 #include "types.h"
 #include "screens.h"
 #include "program.h"
+#define NDEBUG
 
 int main (int argc, char *argv[]) {
 

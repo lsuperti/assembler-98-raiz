@@ -4,6 +4,7 @@
 #include "global.h"
 #include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <inttypes.h>
 #include <assert.h>
 #include <gtk/gtk.h>
@@ -41,7 +42,6 @@ void load_program() {
         int data_reg_idx = DATA_SEGMENT_START;
         word_t inst_, data_, rodata_;
 
-        char *magic = "7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00\n";
         fgets(line, sizeof(line), f); 
         if (strcmp(line, magic)) {
             g_print("File is not executable\n");
