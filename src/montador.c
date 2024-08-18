@@ -7,8 +7,7 @@ section_t* getSection( FILE *file, const char *section_title )
 {
     assert( file != NULL && section_title != NULL );
     assert( strcmp( section_title, ".text") == 0 || 
-            strcmp( section_title, ".data") == 0 ||
-            strcmp( section_title, ".rodata") == 0 );
+            strcmp( section_title, ".data") == 0 );
 
     fseek(file, 0, SEEK_SET);
 
@@ -34,12 +33,12 @@ section_t* getSection( FILE *file, const char *section_title )
     while( fgets(line, sizeof(line), file ) ) {
         if ( strstr(line, "section") )
             break;
-
         char *temp =
         realloc( section_content, strlen(section_content) + strlen(line) + 1 );
         assert(section_content != NULL);
         section_content = temp;
         strcat( section_content, line );  
+        section_content[strlen(section_content) - 1] = '\0'; 
     }
 
     section->section_content = section_content;
@@ -48,16 +47,17 @@ section_t* getSection( FILE *file, const char *section_title )
     section->head            = 0;
     section->tokens          = NULL;
 
-    if ( strcmp ( section_title, ".text" ) )
+    if ( strcmp ( section_title, ".text" ) == 0 )
          section->section_type = EXECUTABLE;
-    else if ( strcmp( section_title, ".data" ) )
-         section->section_type = INITIALIZED_DATA;
     else 
-         section->section_type = READONLY_DATA;
+         section->section_type = DATA;
 
     return section;
 }
 
+token_t* nextToken( section_t *section ) {}
 
+symbol_table_t* generateSTable( section_t *dot_text, section_t *dot_data ) {}
 
+program_t* createProgram( FILE *file ) { }
 

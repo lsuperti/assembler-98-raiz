@@ -9,8 +9,7 @@
 
 enum s_types {
     EXECUTABLE = 1,
-    READONLY_DATA = 2,
-    INITIALIZED_DATA = 3,
+    DATA = 2,
     S_TYPES_SIZE
 };
 
@@ -49,9 +48,9 @@ typedef struct _program_t{
     char          *elf98;
 } program_t;
 
-symbol_table_t generateSTable( section_t dot_text, section_t dot_data );
-program_t*     createProgram( FILE *file );
-token_t*       nextToken( section_t *section );
-section_t*     getSection( FILE *file, const char *section_title );
+symbol_table_t* generateSTable( section_t *dot_text, section_t *dot_data );
+program_t*      createProgram( FILE *file );
+token_t*        nextToken( section_t *section );
+section_t*      getSection( FILE *file, const char *section_title );
 
 #endif // MONTADOR_H
