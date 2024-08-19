@@ -1,63 +1,69 @@
 
 #include "montador.h"
 
-// Expects that the file passed is in read mode,
-// undefined behaviour otherwise.
-section_t* getSection( FILE *file, const char *section_title )
-{
-    assert( file != NULL && section_title != NULL );
-    assert( strcmp( section_title, ".text") == 0 || 
-            strcmp( section_title, ".data") == 0 );
+/* 
+ * Arquivo com código source é passado para 
+ * essa função.
+*/
+program_t* createProgram( FILE *file )
+{ 
+    assert( file != NULL );
+    program_t *program =
+    ( program_t * ) malloc( sizeof ( program_t ) );
 
-    fseek(file, 0, SEEK_SET);
+    long lSize;
+    char *buffer;
 
-    section_t *section =
-        (section_t *) malloc( sizeof (section_t) );
-    assert(section != NULL);
+    fseek( file, 0L , SEEK_END);
+    lSize = ftell( file );
+    rewind( file );
 
-    char line[MAX_LINE_LENGTH];
-    assert( strlen(section_title) <= 41 ); 
+    buffer = calloc( 1, lSize+1 );
+    if( !buffer ) fclose(file),fputs("Memory alloc fails",stderr),exit(1);
 
-    char *section_content = (char *) malloc( MAX_LINE_LENGTH );
-    assert(section_content != NULL);
-    section_content[0] = '\0';
+    if( 1!=fread( buffer, lSize, 1, file) )
+      fclose(file),free(buffer),fputs("Entire read fails",stderr),exit(1);
 
-    char section_seek[50] = "section ";
-    strcat( section_seek, section_title );
+    program->source       = buffer;
+    program->HEAD         = 0;             
+    program->tokens       = NULL;
+    program->sections     = NULL;
+    program->table        = NULL;
+    program->program_size = strlen(program->source);
 
-    while( fgets(line, sizeof(line), file) ){
-       if ( strstr(line, section_seek) != NULL )
-           break;
-    }
-   
-    while( fgets(line, sizeof(line), file ) ) {
-        if ( strstr(line, "section") )
-            break;
-        char *temp =
-        realloc( section_content, strlen(section_content) + strlen(line) + 1 );
-        assert(section_content != NULL);
-        section_content = temp;
-        strcat( section_content, line );  
-        section_content[strlen(section_content) - 1] = '\0'; 
-    }
-
-    section->section_content = section_content;
-    section->section_size    = strlen(section_content);
-    section->section_title   = strdup(section_title);
-    section->head            = 0;
-    section->tokens          = NULL;
-
-    if ( strcmp ( section_title, ".text" ) == 0 )
-         section->section_type = EXECUTABLE;
-    else 
-         section->section_type = DATA;
-
-    return section;
+    return program;
 }
 
-token_t* nextToken( section_t *section ) {}
-
-symbol_table_t* generateSTable( section_t *dot_text, section_t *dot_data ) {}
-
-program_t* createProgram( FILE *file ) { }
+/*
+ * Libera a memoria da struct program_t.
+*/
+void freeProgram( program_t *program )
+{
+   if ( program->source )
+       free(program->source);
+   if ( program->sections ) {
+       if ( program->sections->dot_text )
+           free(program->sections->dot_text);
+       if ( program->sections->dot_data )
+           free(program->sections->dot_data);
+       if ( program->sections->dot_rodata)
+           free(program->sections->dot_rodata);
+       free(program->sections);
+       program->sections = NULL;
+   }
+   if ( program->table ) {
+       if ( program->table->tokens )
+           free( program->table->tokens );
+       free(program->table);
+       program->table = NULL;
+   }
+   if ( program->tokens ) {
+       if ( program->tokens->token ) 
+           free(program->tokens->token);
+       free(program->tokens);
+       program->tokens = NULL;
+   }
+   free(program);
+   program = NULL;
+}
 

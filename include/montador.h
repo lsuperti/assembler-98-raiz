@@ -2,55 +2,96 @@
 #define MONTADOR_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include "global.h"
-
-enum s_types {
-    EXECUTABLE = 1,
-    DATA = 2,
-    S_TYPES_SIZE
-};
+#include "architecture.h"
 
 enum t_types {
-    OPCODE = 1,
-    OPERAND_1 = 2,
-    OPERAND_2 = 3,
+    INSTRUCTION = 1,
+    OPERAND_1   = 2,
+    OPERAND_2   = 3,
+    IDENTIFIER  = 4,
+    SECTION     = 5,
     T_TYPES_SIZE
 };
 
+/* 
+ * Valor = 0 se for uma keyword como section.
+ *
+ * Exemplo_1 > 
+ * char  *token       = "LOAD",
+ * enum   t_types type = INSTRUCTION,
+ * bool   defined      = false,
+ * word_t value        = X,
+ *
+ * O valor depende do proximo token então
+ * so pode ser colocado na hora do parsing
+ * por exemplo LOAD pode ser ( 3, 50, 51 ).
+ *
+ * Exemplo_2 > 
+ * char   *token       = "ZERO",
+ * enum   t_types type = IDENTIFIER,
+ * bool   defined      = false,
+ * word_t value        = X
+*/
 typedef struct _token_t {
     char  *token;
     enum   t_types type;
-    int    value;
-    size_t size;
+    bool   defined;
+    word_t value;
 } token_t;
 
-typedef struct _section_t {
-    char    *section_content;
-    char    *section_title;
-    enum     s_types section_type; 
-    size_t   section_size;
-    int      head;
-    token_t *tokens;
-} section_t;
-
+/*
+ * Tabela de símbolos ou tokens 
+ * com type = IDENTIFIER.
+*/
 typedef struct _symbol_table_t {
     token_t *tokens;
     size_t   num_s;
 } symbol_table_t;
 
+/*
+ * Seções do arquivo binario
+ * exemplo em program.elf98
+*/ 
+typedef struct _sections_t {
+    word_t *dot_text;
+    word_t *dot_data;
+    word_t *dot_rodata;
+} sections_t;
+
+/*
+ * source       = conteudo de um arquivo target { Ex : syntax }
+ * sections     = vetores com os dados das seções suportadas 
+ *                { .text, .data, .rodata }
+ * tokens       = todos os tokens do arquivo target começa com nenhum.
+ * table        = tokens que são identifiers começa com nenhum.
+ * head         = cabeçote do atual caracter do source
+ * program_size = strlen( source )
+*/
 typedef struct _program_t{
-    section_t     *sections;
-    symbol_table_t symbols;
-    size_t         program_size;
-    char          *elf98;
+    char           *source;
+    sections_t     *sections;
+    token_t        *tokens;
+    symbol_table_t *table;
+    int             HEAD;
+    size_t          program_size;
 } program_t;
 
-symbol_table_t* generateSTable( section_t *dot_text, section_t *dot_data );
-program_t*      createProgram( FILE *file );
-token_t*        nextToken( section_t *section );
-section_t*      getSection( FILE *file, const char *section_title );
+void            tokenize( program_t *program );
+void            assembleProgram( program_t *program, FILE *output );
+void            appendSections( program_t *program, FILE *output );
+void            freeProgram( program_t *program );
+
+//              vvvv Lucas Superti, Rodrigo Santos e Gabriel Oliveira
+symbol_table_t* parse( program_t *program );
+
+//              vvvv Rodrigo Raupp e Fernanda Petiz
+token_t*        nextToken( program_t *program );
+
+program_t*      createProgram( FILE *input );
 
 #endif // MONTADOR_H
