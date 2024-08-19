@@ -47,6 +47,29 @@ Dentro do MSYS2 ->
 - cmake -G Ninja .. | ou | cmake -G "MinGW Makefiles" .. | ou | cmake .. 
 - cmake --build .
 
+# Passos para build dos testes ( Opcional ) : 
+
+- https://github.com/Snaipe/Criterion
+
+Em UNIX :
+
+- cd tests
+- ./unix-run-tests.sh
+
+WINDOWS :
+
+Dentro do MSYS2 -> 
+- cd tests
+- mkdir build
+- cd build
+- cmake -G Ninja .. | ou | cmake -G "MinGW Makefiles" .. | ou | cmake .. 
+- cmake --build .
+- Cada arquivo executavel é uma teste suite.
+
+# Instalando Criterion no Ubuntu : 
+
+- apt-get install libcriterion-dev
+
 # Instalando GTK3 no ubuntu : 
 
 - sudo apt update
