@@ -20,7 +20,7 @@ enum t_types {
 
 /* 
  * Valor = 0 se for uma keyword como section.
- *
+ * LOAD 20   -> LOAD_IMMEDIATE 20
  * Exemplo_1 > 
  * char  *token       = "LOAD",
  * enum   t_types type = INSTRUCTION,
@@ -38,7 +38,7 @@ enum t_types {
  * word_t value        = X
 */
 typedef struct _token_t {
-    char  *token;
+    char   *token;
     enum   t_types type;
     bool   defined;
     word_t value;
@@ -76,6 +76,7 @@ typedef struct _program_t{
     char           *source;
     sections_t     *sections;
     token_t        *tokens;
+    size_t          n_tokens;
     symbol_table_t *table;
     int             HEAD;
     size_t          program_size;

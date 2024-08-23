@@ -67,3 +67,13 @@ void freeProgram( program_t *program )
    program = NULL;
 }
 
+token_t*        nextToken( program_t *program )
+{
+    return (void*)0;
+}
+
+symbol_table_t* parse( program_t *program ) 
+{
+
+
+}

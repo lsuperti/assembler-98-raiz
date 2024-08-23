@@ -28,7 +28,30 @@ Test(montador_suite, test_CREATE_PROGRAM) {
     freeProgram(program);
 }
 
-Test(montador_suite, test_NEXT_TOKEN) {}
+Test(montador_suite, test_NEXT_TOKEN)
+{
+
+  //  FILE *input = fopen("test_next_token", "w");
+  //  assert(input != NULL );
+  //  char source[] = 
+  //  " LOAD 20 STORE 29";
+
+  //  fprintf(input, "%s", source);
+  //  fclose(input);
+  //  input = fopen("test_create_program", "r");
+  //  program_t *program = createProgram(input);    
+  //  fclose(input);
+
+  //  token_t *tokens =
+  //  (token_t *) malloc( 2 * sizeof ( token_t ) );
+  //  tokens[0].token = "LOAD";
+  //  tokens[1].token = "20";
+
+  //  nextToken(program);
+
+  //  cr_assert_str_eq( tokens[0].token, program->tokens[0].token ); 
+    
+}
 
 Test(montador_suite, test_PARSE) {}
 
@@ -36,8 +59,10 @@ Test(montador_suite, test_TOKENIZE) {}
 
 Test(montador_suite, test_APPEND_SECTIONS) {}
 
+Test(montador_suite, test_INTERFACE) {}
+
 //Test(montador_suite, test_ASSEMBLE_PROGRAM) {
-//    
+//   
 //    FILE *input = fopen("some_path", "r");
 //    assert(input != NULL);
 //    program_t *program = createProgram(input);

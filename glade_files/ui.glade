@@ -434,14 +434,14 @@
       <object class="GtkButton" id="Console">
         <property name="label" translatable="yes">Terminal</property>
         <property name="width-request">100</property>
-        <property name="height-request">80</property>
+        <property name="height-request">83</property>
         <property name="visible">True</property>
         <property name="can-focus">True</property>
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">207</property>
-        <property name="y">358</property>
+        <property name="x">219</property>
+        <property name="y">357</property>
       </packing>
     </child>
     <child>
@@ -454,8 +454,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">490</property>
-        <property name="y">358</property>
+        <property name="x">444</property>
+        <property name="y">360</property>
       </packing>
     </child>
   </object>
