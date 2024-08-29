@@ -1,5 +1,8 @@
 
 #include "montador.h"
+#include <ctype.h>
+
+#define WHITESPACES " \n\t\r"
 
 /* 
  * Arquivo com código source é passado para 
@@ -67,13 +70,18 @@ void freeProgram( program_t *program )
    program = NULL;
 }
 
-token_t*        nextToken( program_t *program )
-{
+token_t* nextToken( program_t *program ) { 
+    // Pula espaços em branco
+    while ( program->HEAD < program->program_size && 
+            strchr(WHITESPACES, program->source[program->HEAD]) ) {
+        program->HEAD++;
+    }
+
+    // Verifica se chegou no fim
+    if ( program->HEAD >= program->program_size ) {
+        return NULL;
+    }
+    
     return (void*)0;
 }
 
-symbol_table_t* parse( program_t *program ) 
-{
-
-
-}
