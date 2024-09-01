@@ -15,3 +15,8 @@ void change_to_main(GtkWidget *widget, GtkStack *stack){
     gtk_stack_set_visible_child_name(stack, "WINDOW_FIXED_START" );
     mop = MOP_NOT_DEFINED;
 }
+
+void change_to_file_gui(GtkWidget *widget, GtkStack *stack){
+    gtk_stack_set_visible_child_name(stack, "WINDOW_FIXED_MOP3" );
+    mop = MOP3;
+}

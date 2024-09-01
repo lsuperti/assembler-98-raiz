@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.40.0 -->
+<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
   <object class="GtkWindow" id="CONTAINER_WINDOW">
@@ -425,6 +425,51 @@
       </packing>
     </child>
   </object>
+  <object class="GtkFixed" id="WINDOW_FIXED_MOP3">
+    <property name="width-request">800</property>
+    <property name="height-request">800</property>
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <child>
+      <object class="GtkFileChooserButton" id="file">
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="title" translatable="yes"/>
+      </object>
+      <packing>
+        <property name="x">114</property>
+        <property name="y">96</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkTextView" id="file_text">
+        <property name="width-request">300</property>
+        <property name="height-request">400</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+      </object>
+      <packing>
+        <property name="x">86</property>
+        <property name="y">251</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="back2">
+        <property name="label" translatable="yes">Back</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+      <packing>
+        <property name="x">627</property>
+        <property name="y">55</property>
+      </packing>
+    </child>
+  </object>
   <object class="GtkFixed" id="WINDOW_FIXED_START">
     <property name="width-request">800</property>
     <property name="height-request">800</property>
@@ -434,14 +479,14 @@
       <object class="GtkButton" id="Console">
         <property name="label" translatable="yes">Terminal</property>
         <property name="width-request">100</property>
-        <property name="height-request">80</property>
+        <property name="height-request">83</property>
         <property name="visible">True</property>
         <property name="can-focus">True</property>
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">207</property>
-        <property name="y">358</property>
+        <property name="x">219</property>
+        <property name="y">357</property>
       </packing>
     </child>
     <child>
@@ -454,8 +499,22 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">490</property>
-        <property name="y">358</property>
+        <property name="x">444</property>
+        <property name="y">360</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkButton" id="FILE_GUI">
+        <property name="label" translatable="yes">button</property>
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="receives-default">True</property>
+      </object>
+      <packing>
+        <property name="x">637</property>
+        <property name="y">361</property>
       </packing>
     </child>
   </object>
