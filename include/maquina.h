@@ -16,6 +16,7 @@ void execute_current_instruction(void* data);
 void update_memory_tree(void* data);
 void step(GtkWidget *widget, gpointer data);
 void run(GtkWidget *widget, gpointer data);
+void open_file(GtkButton *button, gpointer user_data);
 
 #endif // MAQUINA_H
 

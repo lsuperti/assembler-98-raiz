@@ -1569,6 +1569,52 @@ void step(GtkWidget *widget, gpointer data) {
     update_memory_tree(user_data_t);
 }
 
+void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
+    GtkWidget *text_view = GTK_WIDGET(gtk_builder_get_object(builder, "console2"));
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        g_print("Erro ao abrir o arquivo");
+        return;
+    }
+
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
+    gtk_text_buffer_set_text(buffer, "", -1);
+
+    char buffer_line[256];
+    while (fgets(buffer_line, sizeof(buffer_line), file) != NULL) {
+        gtk_text_buffer_insert_at_cursor(buffer, buffer_line, -1);
+    }
+
+    fclose(file);
+}
+
+void open_file(GtkButton *button, gpointer user_data) {
+    GtkBuilder *builder = GTK_BUILDER(user_data);
+
+    GtkWidget *dialog = gtk_file_chooser_dialog_new("Escolha um arquivo",
+                                                    GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))),
+                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
+                                                    "_Cancelar", GTK_RESPONSE_CANCEL,
+                                                    "_Abrir", GTK_RESPONSE_ACCEPT,
+                                                    NULL);
+
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        char *filename = gtk_file_chooser_get_filename(chooser);
+
+        g_print("Arquivo selecionado: %s\n", filename);
+
+        read_and_insert_file_content(builder, filename);
+
+        g_free(filename);
+    } else {
+        g_print("Nenhum arquivo selecionado ou diálogo cancelado.\n");
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
 void run(GtkWidget *widget, gpointer data) {
 
     running = true;
