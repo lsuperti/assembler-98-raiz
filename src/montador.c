@@ -70,18 +70,103 @@ void freeProgram( program_t *program )
    program = NULL;
 }
 
-token_t* nextToken( program_t *program ) { 
+/* Peeks for next character also checks if possible 
+ * returns empty if no next character since the 
+ * character cannot be empty afterwards.
+*/
+char peek( char *str, int head )
+{
+   if ( head + 1 <= strlen(str) )
+   {
+       return str[head + 1];
+   }
+   return ' ';
+}
+
+/* Retorna um token NULL se não existem mais tokens */
+/* Exemplo tokens válidos : 
+ *      LOAD 
+ *      203 
+ *      RET
+*/
+
+token_t nextToken( program_t *program ) { 
+
+    token_t *token_n = (token_t *) malloc ( sizeof ( token_t ) );
+    assert( token_n != NULL );
+    token_n->token = NULL;
+
     // Pula espaços em branco
     while ( program->HEAD < program->program_size && 
-            strchr(WHITESPACES, program->source[program->HEAD]) ) {
+            strchr(WHITESPACES, program->source[program->HEAD]) )
+    {
         program->HEAD++;
     }
 
-    // Verifica se chegou no fim
-    if ( program->HEAD >= program->program_size ) {
-        return NULL;
+    char *temp = ( char * ) malloc ( 1 );
+    assert ( temp != NULL );
+    temp[0] = '\0';
+    int c = 0;
+    bool digit = false;
+
+    // Retorna token = numero
+    while ( program->HEAD < program->program_size && 
+         isdigit(program->source[program->HEAD]) )
+    {
+       digit = true;
+       temp = ( char * ) realloc ( temp, c + 2 );
+       assert( temp != NULL );
+       temp[c] = program->source[program->HEAD]; 
+       c++;
+       program->HEAD++;
+       temp[c] = '\0';
+    }
+
+    if ( digit ) 
+    {
+        token_n->token   = temp;
+        token_n->defined = true;
+        token_n->value   = atoi(temp);
+        token_n->type    = LITERAL;
+        return *token_n;
     }
     
-    return (void*)0;
+    switch ( program->source[program->HEAD++] ) {
+        case '&':
+           token_n->token   = "&";
+           token_n->defined = true;
+           token_n->value   = -1;
+           token_n->type    = ADDRESSING;
+            break;
+        case '#':
+           token_n->token   = "#"; 
+           token_n->defined = true;
+           token_n->value   = -1;
+           token_n->type    = ADDRESSING;
+            break;
+        // -1 to +1 por que HEAD + 1 já foi feito
+        // antes de entrar no caso.
+        case 'L':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 'O'
+                 && peek(program->source, program->HEAD)
+                 == 'A'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'D' )
+            {
+                token_n->token   = "LOAD";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = INSTRUCTION;
+                program->HEAD    += 3;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return *token_n;
+
 }
+
 

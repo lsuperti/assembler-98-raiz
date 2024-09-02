@@ -15,6 +15,8 @@ enum t_types {
     OPERAND_2   = 3,
     IDENTIFIER  = 4,
     SECTION     = 5,
+    ADDRESSING  = 6,
+    LITERAL     = 7,
     T_TYPES_SIZE
 };
 
@@ -72,6 +74,7 @@ typedef struct _sections_t {
  * head         = cabeçote do atual caracter do source
  * program_size = strlen( source )
 */
+
 typedef struct _program_t{
     char           *source;
     sections_t     *sections;
@@ -91,7 +94,7 @@ void            freeProgram( program_t *program );
 symbol_table_t* parse( program_t *program );
 
 //              vvvv Rodrigo Raupp e Fernanda Petiz
-token_t*        nextToken( program_t *program );
+token_t         nextToken( program_t *program );
 
 program_t*      createProgram( FILE *input );
 
