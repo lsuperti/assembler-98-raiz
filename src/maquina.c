@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <assert.h>
 #include "types.h"
+#include "global.h"
 #include "helper.h"
 #include "stack.h"
 #include "architecture.h"
@@ -1591,28 +1592,17 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
 
 void open_file(GtkButton *button, gpointer user_data) {
     GtkBuilder *builder = GTK_BUILDER(user_data);
+    GtkFileChooserButton *btn = GTK_FILE_CHOOSER_BUTTON(button);
+    
+    char *filename =
+        gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(btn));
 
-    GtkWidget *dialog = gtk_file_chooser_dialog_new("Escolha um arquivo",
-                                                    GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))),
-                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
-                                                    "_Cancelar", GTK_RESPONSE_CANCEL,
-                                                    "_Abrir", GTK_RESPONSE_ACCEPT,
-                                                    NULL);
+    current_program = filename;
+    g_print("Arquivo selecionado: %s\n", filename);
 
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-        char *filename = gtk_file_chooser_get_filename(chooser);
+    read_and_insert_file_content(builder, filename);
 
-        g_print("Arquivo selecionado: %s\n", filename);
-
-        read_and_insert_file_content(builder, filename);
-
-        g_free(filename);
-    } else {
-        g_print("Nenhum arquivo selecionado ou diálogo cancelado.\n");
-    }
-
-    gtk_widget_destroy(dialog);
+    g_free(filename);
 }
 
 void run(GtkWidget *widget, gpointer data) {
