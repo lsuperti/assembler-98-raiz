@@ -444,18 +444,6 @@
       </packing>
     </child>
     <child>
-      <object class="GtkTextView" id="file_text">
-        <property name="width-request">278</property>
-        <property name="height-request">400</property>
-        <property name="visible">True</property>
-        <property name="can-focus">True</property>
-      </object>
-      <packing>
-        <property name="x">61</property>
-        <property name="y">234</property>
-      </packing>
-    </child>
-    <child>
       <object class="GtkButton" id="back2">
         <property name="label" translatable="yes">Back</property>
         <property name="width-request">100</property>
@@ -467,6 +455,33 @@
       <packing>
         <property name="x">687</property>
         <property name="y">14</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="width-request">278</property>
+        <property name="height-request">400</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="shadow-type">in</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkTextView" id="console2">
+                <property name="width-request">278</property>
+                <property name="height-request">400</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="x">61</property>
+        <property name="y">234</property>
       </packing>
     </child>
   </object>

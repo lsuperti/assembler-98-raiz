@@ -432,27 +432,15 @@
     <property name="can-focus">False</property>
     <child>
       <object class="GtkFileChooserButton" id="file">
-        <property name="width-request">100</property>
+        <property name="width-request">277</property>
         <property name="height-request">80</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="title" translatable="yes"/>
       </object>
       <packing>
-        <property name="x">114</property>
-        <property name="y">96</property>
-      </packing>
-    </child>
-    <child>
-      <object class="GtkTextView" id="file_text">
-        <property name="width-request">300</property>
-        <property name="height-request">400</property>
-        <property name="visible">True</property>
-        <property name="can-focus">True</property>
-      </object>
-      <packing>
-        <property name="x">86</property>
-        <property name="y">251</property>
+        <property name="x">63</property>
+        <property name="y">129</property>
       </packing>
     </child>
     <child>
@@ -465,8 +453,36 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">627</property>
-        <property name="y">55</property>
+        <property name="x">687</property>
+        <property name="y">14</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="width-request">278</property>
+        <property name="height-request">400</property>
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="shadow-type">in</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkTextView" id="console2">
+                <property name="width-request">278</property>
+                <property name="height-request">400</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="cursor-visible">False</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="x">61</property>
+        <property name="y">234</property>
       </packing>
     </child>
   </object>
@@ -485,8 +501,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">219</property>
-        <property name="y">357</property>
+        <property name="x">117</property>
+        <property name="y">356</property>
       </packing>
     </child>
     <child>
@@ -499,13 +515,13 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">444</property>
-        <property name="y">360</property>
+        <property name="x">356</property>
+        <property name="y">358</property>
       </packing>
     </child>
     <child>
       <object class="GtkButton" id="FILE_GUI">
-        <property name="label" translatable="yes">button</property>
+        <property name="label" translatable="yes">File</property>
         <property name="width-request">100</property>
         <property name="height-request">80</property>
         <property name="visible">True</property>
@@ -513,8 +529,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">637</property>
-        <property name="y">361</property>
+        <property name="x">577</property>
+        <property name="y">357</property>
       </packing>
     </child>
   </object>
