@@ -288,3 +288,99 @@ token_t nextToken( program_t *program ) {
     return *token_n;
 }
 
+token_t *peekToken( program_t *program, int head )
+{
+    if ( head + 1 < program->n_tokens ) 
+    { 
+        return &program->tokens[head + 1];
+    }else 
+    {
+        return NULL;
+    }
+}
+
+void parse( program_t *program ) 
+{
+    assert( program->tokens != NULL );
+    bool section_hit = false;
+
+    int sec_n = 0, text_idx, data_idx; 
+
+    // Sanity checks before parsing
+    // and symbol table generation
+    for ( int k=0; k < program->n_tokens; k++ ) 
+    {
+        token_t tok = program->tokens[k];
+        token_t *peeked;
+        switch ( tok.type ) 
+        {
+            case TOK_SECTION:
+                ++sec_n;
+                peeked = peekToken(program, k);
+                assert( peeked != NULL );
+                if 
+                ( strcmp( peeked->token, ".text" ) )
+                { 
+                    text_idx = k+2;
+                }else if
+                ( strcmp( peeked->token, ".data" ) )
+                {
+                    data_idx = k+2;
+                }else
+                {
+                    // Error undefined section.
+                    return;
+                }
+                break;
+            case TOK_IDENTIFIER:
+                if ( 0 < k ) 
+                {
+                    if ( program->tokens[ k - 1 ].type != TOK_GLOBAL &&
+                         program->tokens[ k - 1 ].type != TOK_EXTERN )
+                    {
+                    }
+                }
+
+
+                break;
+            case TOK_GLOBAL:
+            case TOK_EXTERN:
+                peeked = peekToken(program, k);
+                if ( peeked->type != TOK_IDENTIFIER ) 
+                {
+                    // Error : Expected identifier found something else
+                    return;
+                }
+                break;
+            case TOK_UNKNOWN:
+                // Error undefined token
+                return;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if ( sec_n != 2 )
+    {
+        // Error more than two sections.
+        return;
+    }
+
+    // Parse text section
+    for( int i=text_idx; i < program->n_tokens; i++ )
+    {
+        token_t tok = program->tokens[i];
+        
+
+    }
+
+    // Parse data section
+    for( int i=data_idx; i < program->n_tokens; i++ )
+    {
+        token_t tok = program->tokens[i];
+        
+
+    }
+}
+

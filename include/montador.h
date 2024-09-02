@@ -94,6 +94,9 @@ typedef struct _program_t{
     token_t        *tokens;
     size_t          n_tokens;
     symbol_table_t *table;
+    size_t          n_symbols;
+    token_t        *globals;
+    token_t        *externs;
     int             HEAD;
     size_t          program_size;
 } program_t;
@@ -102,9 +105,8 @@ void            tokenize( program_t *program );
 void            assembleProgram( program_t *program, FILE *output );
 void            appendSections( program_t *program, FILE *output );
 void            freeProgram( program_t *program );
-
 //              vvvv Lucas Superti, Rodrigo Santos e Gabriel Oliveira
-symbol_table_t* parse( program_t *program );
+void            parse( program_t *program );
 
 //              vvvv Rodrigo Raupp e Fernanda Petiz
 token_t         nextToken( program_t *program );
