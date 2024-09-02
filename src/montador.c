@@ -185,7 +185,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = INSTRUCTION;
                 program->HEAD    += 3;
             }
-            break;
+        break;
         case 'S':
             if ( peek(program->source, program->HEAD - 1) 
                  == 'T'
@@ -201,8 +201,85 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = INSTRUCTION;
                 program->HEAD    += 4;
+            }      //S 
+            else if( peek(program->source, program->HEAD - 1)
+                 == 'T'
+                 && peek(program->source, program->HEAD)
+                 == 'O'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'P')
+            {
+                token_n->token   = "STOP";
+                token_n->defined = false;
+                token_n->value   = 11;
+                token_n->type    = INSTRUCTION;
+                program->HEAD    += 3;
+            }      //S
+            else if(peek(program->source, program->HEAD - 1)
+                 == 'U'
+                 && peek(program->source, program->HEAD)
+                 == 'B')
+            {
+                token_n->token   = "SUB";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = INSTRUCTION;
+                program->HEAD    += 2;
             }
-            break;
+            //fiquei na duvida se incluir SPACE eh boa ideia
+            // else if (peek(program->source, program->HEAD - 1) 
+            //      == 'P'
+            //      && peek(program->source, program->HEAD)
+            //      == 'A'
+            //      && peek(program->source, program->HEAD + 1) 
+            //      == 'C' 
+            //      && peek(program->source, program->HEAD + 2) 
+            //      == 'E')
+            // {
+            //     token_n->token   = "SPACE";
+            //     token_n->defined = false;
+            //     token_n->value   = -1;
+            //     token_n->type    = INSTRUCTION; //como identifica uma pseudoinstrucao nessa estrutura?
+            //     program->HEAD    += 4;
+            // }
+                   //S
+            else if (peek(program->source, program->HEAD - 1) 
+                 == 'T'
+                 && peek(program->source, program->HEAD)
+                 == 'A'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'C' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'K')
+            {
+                token_n->token   = "STACK";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = INSTRUCTION; //como identifica uma pseudoinstrucao nessa estrutura?
+                program->HEAD    += 4;
+            }
+        break;
+        case 's':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 'e'
+                 && peek(program->source, program->HEAD)
+                 == 'c'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 't' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'i' 
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'o'
+                 && peek(program->source, program->HEAD + 4) 
+                 == 'n' )
+            {
+                token_n->token   = "section";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = SECTION;
+                program->HEAD    += 6;
+            }
+        break;
         // vvvv Fazer IDENTIFICADORES 
         default:
             break;
