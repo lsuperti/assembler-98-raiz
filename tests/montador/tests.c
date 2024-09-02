@@ -95,7 +95,34 @@ Test(montador_suite, test_NEXT_TOKEN)
 
 Test(montador_suite, test_PARSE) {}
 
-Test(montador_suite, test_TOKENIZE) {}
+Test(montador_suite, test_TOKENIZE) 
+{
+    FILE *input = fopen("test_tokenize", "w");
+    assert(input != NULL );
+    char source[] = 
+    " &LOAD 20 STORE 29";
+
+    fprintf(input, "%s", source);
+    fclose(input);
+    input = fopen("test_tokenize", "r");
+    program_t *program = createProgram(input);    
+    fclose(input);
+
+    token_t *exp_tokens =
+        ( token_t * ) malloc ( 5 * sizeof(token_t) );
+
+    exp_tokens[0].token = "&";
+    exp_tokens[1].token = "LOAD";
+    exp_tokens[2].token = "20";
+    exp_tokens[3].token = "STORE";
+    exp_tokens[4].token = "29";
+
+    tokenize(program);
+
+    for ( int i=0; i < 5; i++ ) {
+        cr_assert_str_eq( program->tokens[i].token, exp_tokens[i].token );
+    }
+}
 
 Test(montador_suite, test_APPEND_SECTIONS) {}
 

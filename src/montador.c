@@ -30,6 +30,7 @@ program_t* createProgram( FILE *file )
     program->source       = buffer;
     program->HEAD         = 0;             
     program->tokens       = NULL;
+    program->n_tokens     = 0;
     program->sections     = NULL;
     program->table        = NULL;
     program->program_size = strlen(program->source);
@@ -70,6 +71,27 @@ void freeProgram( program_t *program )
    program = NULL;
 }
 
+void tokenize( program_t *program )
+{ 
+    token_t *tokens =
+        ( token_t * ) malloc ( sizeof ( token_t ) );
+    assert(tokens != NULL);
+    token_t tok;
+    int idx = 0;
+    do { 
+        tok = nextToken(program);
+        if ( tok.token != NULL ) {
+            tokens[idx++] = tok;
+        }
+        tokens = realloc( tokens, sizeof(token_t)*( idx + 1 ) );
+        assert(tokens != NULL);
+    }while ( tok.token != NULL );
+    if ( idx != 0 ) {
+        program->tokens   = tokens;
+        program->n_tokens = ++idx;
+    }
+}
+
 /* Peeks for next character also checks if possible 
  * returns empty if no next character since the 
  * character cannot be empty afterwards.
@@ -89,7 +111,6 @@ char peek( char *str, int head )
  *      203 
  *      RET
 */
-
 token_t nextToken( program_t *program ) { 
 
     token_t *token_n = (token_t *) malloc ( sizeof ( token_t ) );
@@ -121,7 +142,8 @@ token_t nextToken( program_t *program ) {
        program->HEAD++;
        temp[c] = '\0';
     }
-
+    
+    // Fazer digitos em hexa ( como mencionado no trabalho )
     if ( digit ) 
     {
         token_n->token   = temp;
@@ -130,7 +152,10 @@ token_t nextToken( program_t *program ) {
         token_n->type    = LITERAL;
         return *token_n;
     }
-    
+
+    // Fazer para todas as instruções  
+    // Lembrando que para LOAD apenas a instrução em 
+    // mnemonico mais alto nível é necessaria 
     switch ( program->source[program->HEAD++] ) {
         case '&':
            token_n->token   = "&";
@@ -161,12 +186,29 @@ token_t nextToken( program_t *program ) {
                 program->HEAD    += 3;
             }
             break;
+        case 'S':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 'T'
+                 && peek(program->source, program->HEAD)
+                 == 'O'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'R' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'E')
+            {
+                token_n->token   = "STORE";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = INSTRUCTION;
+                program->HEAD    += 4;
+            }
+            break;
+        // vvvv Fazer IDENTIFICADORES 
         default:
             break;
     }
 
     return *token_n;
-
 }
 
 

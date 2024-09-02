@@ -10,8 +10,12 @@
 
 *- 
     COMENTARIO 
-    BLOCO
+    BLOCO 
 -* 
+
+{ global, main, .extern, InitWindow, 
+  STACK, 55, section, .text, main:, 
+  READ, &, 788, READ, &, DATA_REG, ... }
 
 global main        -- == INTDEF main 
 
@@ -33,9 +37,10 @@ section .text  -- == START
   main:
 	READ   &788
 	READ   &DATA_REG 
-	READ   &(DATA_REG + 1)     
+    READ   &(DATA_REG + 1)     
 	LOAD   &(DATA_REG)
     ADD    &(DATA_REG + 1)
+    ADD    #(DATA_REG / 4)
     STORE  &(DATA_REG + 2)
     WRITE  msg_helloworld
     STOP
@@ -43,8 +48,7 @@ section .text  -- == START
 section .data
 
     value1    .word  123    -- == CONST 123
-    value2    .word  457    -- == CONST 457
-    value3    .word  232    -- == CONST 232
+    value2    .word  457    -- == CONST 457 
+    value3    .word  232    -- == CONST 232 
     value4    .word  10024  -- == CONST 10024
-    msg_helloworld .asciiz "Hello, World!"
-    
+    msg_helloworld .asciiz "Hello, World!"     
