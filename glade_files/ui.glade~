@@ -474,7 +474,6 @@
                 <property name="height-request">400</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="cursor-visible">False</property>
               </object>
             </child>
           </object>

@@ -431,7 +431,7 @@
     <property name="visible">True</property>
     <property name="can-focus">False</property>
     <child>
-      <object class="GtkFileChooserButton" id="file">
+      <object class="GtkFileChooserButton" id="file_button">
         <property name="width-request">277</property>
         <property name="height-request">80</property>
         <property name="visible">True</property>
