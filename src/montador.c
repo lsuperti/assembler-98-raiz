@@ -253,6 +253,182 @@ token_t nextToken( program_t *program ) {
                 program->HEAD    += 4;
             }
         break;
+        case 'B':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'Z'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'E' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'R'
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'O')
+            {
+                token_n->token   = "BRZERO";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BRZERO;
+                program->HEAD    += 5;
+            }      //B
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'P'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'O' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'S')
+            {
+                token_n->token   = "BRPOS";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BRPOS;
+                program->HEAD    += 4;
+            }      //B
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'N'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'E' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'G')
+            {
+                token_n->token   = "BRNEG";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BRNEG;
+                program->HEAD    += 4;
+            }      //B
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'R')
+            {
+                token_n->token   = "BR";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BR;
+                program->HEAD    += 1;
+            }
+        break;
+        case 'R':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'E'
+                 && peek(program->source, program->HEAD)
+                 == 'A'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'D')
+            {
+                token_n->token   = "READ";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_READ;
+                program->HEAD    += 3;
+            }
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'E'
+                 && peek(program->source, program->HEAD)
+                 == 'T')
+            {
+                token_n->token   = "RET";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_RET;
+                program->HEAD    += 2;
+            }
+        break;
+        case 'C':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'A'
+                 && peek(program->source, program->HEAD)
+                 == 'L'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'L')
+            {
+                token_n->token   = "CALL";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_CALL;
+                program->HEAD    += 3;
+            }
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'O'
+                 && peek(program->source, program->HEAD)
+                 == 'P'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'Y')
+            {
+                token_n->token   = "COPY";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_COPY;
+                program->HEAD    += 3;
+            }
+        break;
+        case 'A':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'D'
+                 && peek(program->source, program->HEAD)
+                 == 'D')
+            {
+                token_n->token   = "ADD";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_ADD;
+                program->HEAD    += 2;
+            }
+        break;
+        case 'D':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'I'
+                 && peek(program->source, program->HEAD)
+                 == 'V'
+                 && peek(program->source, program->HEAD + 1)
+                 == 'I'
+                 && peek(program->source, program->HEAD + 2)
+                 == 'D'
+                 && peek(program->source, program->HEAD + 3)
+                 == 'E')
+            {
+                token_n->token   = "DIVIDE";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_DIVIDE;
+                program->HEAD    += 5;
+            }
+        break;
+        case 'M':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'U'
+                 && peek(program->source, program->HEAD)
+                 == 'L'
+                 && peek(program->source, program->HEAD + 1)
+                 == 'T')
+            {
+                token_n->token   = "MULT";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_MULT;
+                program->HEAD    += 3;
+            }
+        break;
+        case 'W':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'I'
+                 && peek(program->source, program->HEAD + 1)
+                 == 'T'
+                 && peek(program->source, program->HEAD + 2)
+                 == 'E')
+            {
+                token_n->token   = "WRITE";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_WRITE;
+                program->HEAD    += 4;
+            }
+        break;
         case 's':
             if ( peek(program->source, program->HEAD - 1) 
                  == 'e'
