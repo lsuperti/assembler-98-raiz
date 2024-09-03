@@ -159,6 +159,11 @@ token_t nextToken( program_t *program ) {
         return *token_n;
     }
 
+    temp = ( char * ) malloc ( 1 );
+    assert ( temp != NULL );
+    temp[0] = '\0';
+    c = 0;
+
     // Fazer para todas as instruções  
     // Lembrando que para LOAD apenas a instrução em 
     // mnemonico mais alto nível é necessaria 
@@ -232,23 +237,6 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_SUB;
                 program->HEAD    += 2;
             }
-            //fiquei na duvida se incluir SPACE eh boa ideia
-            // else if (peek(program->source, program->HEAD - 1) 
-            //      == 'P'
-            //      && peek(program->source, program->HEAD)
-            //      == 'A'
-            //      && peek(program->source, program->HEAD + 1) 
-            //      == 'C' 
-            //      && peek(program->source, program->HEAD + 2) 
-            //      == 'E')
-            // {
-            //     token_n->token   = "SPACE";
-            //     token_n->defined = false;
-            //     token_n->value   = -1;
-            //     token_n->type    = INSTRUCTION; //como identifica uma pseudoinstrucao nessa estrutura?
-            //     program->HEAD    += 4;
-            // }
-                   //S
             else if (peek(program->source, program->HEAD - 1) 
                  == 'T'
                  && peek(program->source, program->HEAD)
@@ -259,9 +247,9 @@ token_t nextToken( program_t *program ) {
                  == 'K')
             {
                 token_n->token   = "STACK";
-                token_n->defined = false;
+                token_n->defined = true;
                 token_n->value   = -1;
-                token_n->type    = TOK_STACK; //como identifica uma pseudoinstrucao nessa estrutura?
+                token_n->type    = TOK_STACK;
                 program->HEAD    += 4;
             }
         break;
@@ -280,15 +268,94 @@ token_t nextToken( program_t *program ) {
                  == 'n' )
             {
                 token_n->token   = "section";
-                token_n->defined = false;
+                token_n->defined = true;
                 token_n->value   = -1;
                 token_n->type    = TOK_SECTION;
                 program->HEAD    += 6;
             }
         break;
-        // vvvv Fazer IDENTIFICADORES 
+        case '.':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 't'
+                 && peek(program->source, program->HEAD)
+                 == 'e'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'x' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 't'  )
+            {
+                token_n->token   = ".text";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_SECTION_NAME;
+                program->HEAD    += 4;
+            }else if ( peek(program->source, program->HEAD - 1) 
+                 == 'd'
+                 && peek(program->source, program->HEAD)
+                 == 'a'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 't' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'a'  )
+            {
+                token_n->token   = ".data";
+                token_n->defined = true;
+                token_n->type    = TOK_SECTION_NAME;
+                token_n->value   = -1;
+                program->HEAD    += 4;
+            }else if ( peek(program->source, program->HEAD - 1) 
+                 == 'w'
+                 && peek(program->source, program->HEAD)
+                 == 'o'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'r' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'd'  )
+            {
+                token_n->token   = ".word";
+                token_n->defined = false;
+                token_n->type    = TOK_WORD;
+                token_n->value   = -1;
+                program->HEAD    += 4;
+            }
+        break;
         default:
-            break;
+            bool identifier = false;
+            program->HEAD -= 1;
+            while ( program->HEAD < program->program_size && 
+                 isalpha(program->source[program->HEAD]) )
+            {
+               identifier = true;
+               temp = ( char * ) realloc ( temp, c + 2 );
+               assert( temp != NULL );
+               temp[c] = program->source[program->HEAD]; 
+               c++;
+               program->HEAD++;
+               temp[c] = '\0';
+            }
+
+            if ( identifier ) 
+            {   
+                if ( program->source[program->HEAD] == ':' ) 
+                {
+                    temp = ( char * ) realloc ( temp, c + 2 );
+                    temp[c++] = ':';
+                    temp[c] = '\0';
+                    token_n->token   = temp;
+                    token_n->defined = true;
+                    token_n->value   = -1;
+                    token_n->type    = TOK_LABEL;
+                    program->HEAD++;
+                }else 
+                {
+                    token_n->token   = temp;
+                    token_n->defined = false;
+                    token_n->value   = -1;
+                    token_n->type    = TOK_IDENTIFIER;
+                }
+            }
+            
+        break;
     }
 
     return *token_n;
@@ -302,6 +369,48 @@ token_t *getNextToken( program_t *program )
     }else 
     {
         return NULL;
+    }
+}
+
+void searchAndUpdate( symbol_table_t *table ) 
+{
+}
+
+void resolveIdentifiers( program_t *program ) 
+{
+    token_t *tok =
+        getNextToken( program );
+
+    int pc = 0;
+    while ( program->token_idx < program->n_tokens ) 
+    {
+        switch( tok->type ) 
+        {
+            case TOK_WORD:
+
+            break;
+            case TOK_ASCIIZ:
+
+            break;
+            case TOK_LABEL:
+
+            break;
+            case TOK_IDENTIFIER:
+
+            break;
+            case TOK_STORE:
+            case TOK_LOAD:
+            case TOK_ADD:
+            case TOK_SUB:
+                pc+=2;
+            break;
+            case TOK_COPY:
+                pc+=3;
+            break;
+            default:
+            break;
+        }
+        tok = getNextToken(program);
     }
 }
 
@@ -325,6 +434,13 @@ void parse( program_t *program )
     program->sections->dot_data   = dot_data;
     program->sections->dot_text   = dot_text;
     program->sections->dot_rodata = dot_rodata;
+
+    symbol_table_t *table = 
+        malloc ( sizeof ( symbol_table_t ) );
+    program->table = table;
+
+    resolveIdentifiers(program);
+    program->token_idx = 0;
 
     token_t *tok =
         getNextToken( program );

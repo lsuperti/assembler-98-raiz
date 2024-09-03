@@ -23,7 +23,14 @@ int parseLoad( program_t *program, token_t *c_tok )
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
             insert( program->sections->dot_text, LOAD_IMMEDIATE  );
-            insert( program->sections->dot_text, peeked_1->value );
+            if ( peeked_1->defined == true )
+            {
+                insert( program->sections->dot_text, peeked_1->value );
+            }else 
+            {
+                // Undefined : peeked_1->token
+                return -1;
+            }
             break;
         default:
             // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
