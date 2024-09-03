@@ -14,7 +14,7 @@ void insert( Vector *a, int element )
     if ( a->used == a->size )
     {
         a->size *= 1.5;
-        a->array = realloc(a->array, a->size * sizeof(int) );
+        a->array = realloc(a->array, a->size * sizeof(word_t) );
         assert( a->array != NULL );
     }
     a->array[a->used++] = element;

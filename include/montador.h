@@ -8,15 +8,25 @@
 #include <string.h>
 #include "global.h"
 #include "architecture.h"
+#include "data_structures.h"
 
+// Lista de tipos de tokens não-terminais.
 enum t_types {
-    INSTRUCTION = 1,
-    OPERAND_1   = 2,
-    OPERAND_2   = 3,
-    IDENTIFIER  = 4,
-    SECTION     = 5,
-    ADDRESSING  = 6,
-    LITERAL     = 7,
+    TOK_INSTRUCTION  = 1,
+    TOK_IDENTIFIER   = 4,
+    TOK_SECTION      = 5,
+    TOK_ADDRESSING   = 6,
+    TOK_LITERAL      = 7,
+    TOK_LITERAL_HEX  = 902,
+    TOK_STACK        = 22,
+    TOK_COPY         = 222,
+    TOK_RET          = 402,
+    TOK_STOP         = 502,
+    TOK_LABEL        = 702,
+    TOK_SECTION_NAME = 802,
+    TOK_NT_STRING    = 822,
+    TOK_WORD         = 823,
+    TOK_ASCII        = 824,
     T_TYPES_SIZE
 };
 
@@ -60,9 +70,9 @@ typedef struct _symbol_table_t {
  * exemplo em program.elf98
 */ 
 typedef struct _sections_t {
-    word_t *dot_text;
-    word_t *dot_data;
-    word_t *dot_rodata;
+    Vector *dot_text;
+    Vector *dot_data;
+    Vector *dot_rodata;
 } sections_t;
 
 /*

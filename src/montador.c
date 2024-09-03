@@ -149,7 +149,7 @@ token_t nextToken( program_t *program ) {
         token_n->token   = temp;
         token_n->defined = true;
         token_n->value   = atoi(temp);
-        token_n->type    = LITERAL;
+        token_n->type    = TOK_LITERAL;
         return *token_n;
     }
 
@@ -161,13 +161,13 @@ token_t nextToken( program_t *program ) {
            token_n->token   = "&";
            token_n->defined = true;
            token_n->value   = -1;
-           token_n->type    = ADDRESSING;
+           token_n->type    = TOK_ADDRESSING;
             break;
         case '#':
            token_n->token   = "#"; 
            token_n->defined = true;
            token_n->value   = -1;
-           token_n->type    = ADDRESSING;
+           token_n->type    = TOK_ADDRESSING;
             break;
         // -1 to +1 por que HEAD + 1 já foi feito
         // antes de entrar no caso.
@@ -182,7 +182,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "LOAD";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = INSTRUCTION;
+                token_n->type    = TOK_INSTRUCTION;
                 program->HEAD    += 3;
             }
         break;
@@ -199,7 +199,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "STORE";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = INSTRUCTION;
+                token_n->type    = TOK_INSTRUCTION;
                 program->HEAD    += 4;
             }      //S 
             else if( peek(program->source, program->HEAD - 1)
@@ -212,7 +212,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "STOP";
                 token_n->defined = false;
                 token_n->value   = 11;
-                token_n->type    = INSTRUCTION;
+                token_n->type    = TOK_STOP;
                 program->HEAD    += 3;
             }      //S
             else if(peek(program->source, program->HEAD - 1)
@@ -223,7 +223,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "SUB";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = INSTRUCTION;
+                token_n->type    = TOK_INSTRUCTION;
                 program->HEAD    += 2;
             }
             //fiquei na duvida se incluir SPACE eh boa ideia
@@ -255,7 +255,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "STACK";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = INSTRUCTION; //como identifica uma pseudoinstrucao nessa estrutura?
+                token_n->type    = TOK_STACK; //como identifica uma pseudoinstrucao nessa estrutura?
                 program->HEAD    += 4;
             }
         break;
@@ -276,7 +276,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "section";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = SECTION;
+                token_n->type    = TOK_SECTION;
                 program->HEAD    += 6;
             }
         break;
@@ -287,5 +287,4 @@ token_t nextToken( program_t *program ) {
 
     return *token_n;
 }
-
 
