@@ -372,32 +372,106 @@ token_t *getNextToken( program_t *program )
     }
 }
 
-void searchAndUpdate( symbol_table_t *table ) 
+// Pesquisa por um token 
+// retorna NULL se não existe.
+token_t *searchIdent( symbol_table_t *table, char *token ) 
 {
+    return NULL;
+}
+
+void appendTok( symbol_table_t *table, token_t *tok ) 
+{
+    assert( table != NULL && tok != NULL );
+    if ( table->tokens == NULL ) 
+    {
+        table->tokens = 
+            malloc( sizeof( token_t ) * ( table->num_s + 2 ) );
+    }else 
+    {
+        table->tokens = 
+            realloc( table->tokens,
+                    sizeof( token_t ) * ( table->num_s + 2 ) );
+    }
+
+    table->tokens[ table->num_s++ ] = *tok;
+}
+
+token_t *peek_previous_token( program_t *program )
+{
+    assert( program != NULL );
+    if ( program->token_idx - 1 > 0 ) 
+    {
+        return &program->tokens[ program->token_idx - 1 ];
+    }else 
+    {
+        return NULL;
+    }
+}
+
+token_t *peek_token( program_t *program )
+{
+    assert( program != NULL );
+    if ( program->token_idx < program->n_tokens ) 
+    {
+        return &program->tokens[ program->token_idx ];
+    }else 
+    {
+        return NULL;
+    }
+}
+
+void cut_last ( char *str ) 
+{
+    if ( 0 < strlen( str ) ) 
+    {
+        str[ strlen( str ) - 1 ] = '\0'; 
+    }else
+    {
+        return;
+    }
 }
 
 void resolveIdentifiers( program_t *program ) 
 {
     token_t *tok =
         getNextToken( program );
-
+    token_t *u_tok, *n_tok;
+    
     int pc = 0;
+    int dr_idx = 0;
     while ( program->token_idx < program->n_tokens ) 
     {
         switch( tok->type ) 
         {
-            case TOK_WORD:
-
-            break;
-            case TOK_ASCIIZ:
-
-            break;
             case TOK_LABEL:
+                n_tok = malloc( sizeof( token_t ) );
+                u_tok = peek_token( program );
+                if ( u_tok->type == TOK_WORD ) 
+                {
+                    n_tok->value = data_reg + (dr_idx++);
 
-            break;
-            case TOK_IDENTIFIER:
+                    n_tok->token = malloc( strlen( tok->token ) );
+                    n_tok->token = strcpy( n_tok->token, tok->token);
+                    cut_last( n_tok->token );
 
+                    n_tok->defined = true;
+                    n_tok->type = TOK_IDENTIFIER;
+                    appendTok( program->table, n_tok );
+                }else if ( u_tok->type == TOK_ASCIIZ ) 
+                {
+                }else
+                {
+                    n_tok->value = pc;
+                    n_tok->token = malloc( strlen( tok->token ) );
+                    n_tok->token = strcpy( n_tok->token, tok->token );
+                    cut_last( n_tok->token );
+                    n_tok->defined = true;
+                    n_tok->type = TOK_IDENTIFIER;
+                    appendTok( program->table, n_tok );
+                }
             break;
+            // Incrementa um pc imaginario para 
+            // colocar o valor dos labels.
             case TOK_STORE:
             case TOK_LOAD:
             case TOK_ADD:
@@ -412,6 +486,7 @@ void resolveIdentifiers( program_t *program )
         }
         tok = getNextToken(program);
     }
+
 }
 
 void parse( program_t *program ) 
@@ -438,6 +513,8 @@ void parse( program_t *program )
     symbol_table_t *table = 
         malloc ( sizeof ( symbol_table_t ) );
     program->table = table;
+    program->table->num_s  = 0;
+    program->table->tokens = NULL;
 
     resolveIdentifiers(program);
     program->token_idx = 0;

@@ -14,6 +14,7 @@ file(GLOB MONTADOR_SOURCES
     ../src/montador.c
     ../src/parser.c
     ../src/data_structures.c
+    ../src/architecture.c
 )
 
 file(GLOB LIGADOR_SOURCES  ../src/helper.c)
