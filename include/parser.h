@@ -1,0 +1,12 @@
+#ifndef PARSER_H
+#define PARSER_H
+
+#include "montador_types.h"
+#include <string.h>
+
+int parseLoad( program_t *program, token_t* c_tok);
+int parseStore( program_t *program, token_t* c_tok);
+int parseIdentifier( program_t *program, token_t* c_tok);
+int parseSection( program_t *program, token_t* c_tok);
+
+#endif // PARSER_H

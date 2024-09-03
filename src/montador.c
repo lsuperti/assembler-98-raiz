@@ -1,6 +1,5 @@
 
 #include "montador.h"
-#include <ctype.h>
 
 #define WHITESPACES " \n\t\r"
 
@@ -30,10 +29,13 @@ program_t* createProgram( FILE *file )
     program->source       = buffer;
     program->HEAD         = 0;             
     program->tokens       = NULL;
+    program->token_idx    = 0;
     program->n_tokens     = 0;
     program->sections     = NULL;
     program->table        = NULL;
     program->program_size = strlen(program->source);
+    program->globals      = NULL;
+    program->externs      = NULL;
 
     return program;
 }
@@ -43,32 +45,36 @@ program_t* createProgram( FILE *file )
 */
 void freeProgram( program_t *program )
 {
+   if ( !program ) return;
    if ( program->source )
+   {
        free(program->source);
+       program->source = NULL;
+   }
    if ( program->sections ) {
-       if ( program->sections->dot_text )
-           free(program->sections->dot_text);
-       if ( program->sections->dot_data )
-           free(program->sections->dot_data);
-       if ( program->sections->dot_rodata)
-           free(program->sections->dot_rodata);
        free(program->sections);
        program->sections = NULL;
    }
    if ( program->table ) {
-       if ( program->table->tokens )
-           free( program->table->tokens );
        free(program->table);
        program->table = NULL;
    }
    if ( program->tokens ) {
-       if ( program->tokens->token ) 
-           free(program->tokens->token);
        free(program->tokens);
        program->tokens = NULL;
    }
-   free(program);
-   program = NULL;
+   if ( program->globals ) {
+       free(program->globals);
+       program->globals = NULL;
+   }
+   if ( program->externs ) {
+       free(program->externs);
+       program->externs = NULL;
+   }
+   if ( program ) {
+       free(program);
+       program = NULL;
+   }
 }
 
 void tokenize( program_t *program )
@@ -182,7 +188,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "LOAD";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = TOK_INSTRUCTION;
+                token_n->type    = TOK_LOAD;
                 program->HEAD    += 3;
             }
         break;
@@ -199,7 +205,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "STORE";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = TOK_INSTRUCTION;
+                token_n->type    = TOK_STORE;
                 program->HEAD    += 4;
             }      //S 
             else if( peek(program->source, program->HEAD - 1)
@@ -223,7 +229,7 @@ token_t nextToken( program_t *program ) {
                 token_n->token   = "SUB";
                 token_n->defined = false;
                 token_n->value   = -1;
-                token_n->type    = TOK_INSTRUCTION;
+                token_n->type    = TOK_SUB;
                 program->HEAD    += 2;
             }
             //fiquei na duvida se incluir SPACE eh boa ideia
@@ -288,11 +294,11 @@ token_t nextToken( program_t *program ) {
     return *token_n;
 }
 
-token_t *peekToken( program_t *program, int head )
+token_t *getNextToken( program_t *program )
 {
-    if ( head + 1 < program->n_tokens ) 
+    if ( program->token_idx < program->n_tokens ) 
     { 
-        return &program->tokens[head + 1];
+        return &program->tokens[program->token_idx++];
     }else 
     {
         return NULL;
@@ -301,86 +307,48 @@ token_t *peekToken( program_t *program, int head )
 
 void parse( program_t *program ) 
 {
-    assert( program->tokens != NULL );
-    bool section_hit = false;
+    assert( program != NULL && program->tokens != NULL );
+    int n_secs = 0; 
 
-    int sec_n = 0, text_idx, data_idx; 
+    Vector *dot_text = malloc(sizeof(Vector));
+    initVector( dot_text, 10 ); 
 
-    // Sanity checks before parsing
-    // and symbol table generation
-    for ( int k=0; k < program->n_tokens; k++ ) 
+    Vector *dot_data = malloc(sizeof(Vector));
+    initVector( dot_data, 3 ); 
+
+    Vector *dot_rodata = malloc(sizeof(Vector));
+    initVector( dot_rodata, 2 ); 
+
+    program->sections = 
+        ( sections_t * ) malloc( sizeof( sections_t ) );
+
+    program->sections->dot_data   = dot_data;
+    program->sections->dot_text   = dot_text;
+    program->sections->dot_rodata = dot_rodata;
+
+    token_t *tok =
+        getNextToken( program );
+
+    while ( program->token_idx < program->n_tokens ) 
     {
-        token_t tok = program->tokens[k];
-        token_t *peeked;
-        switch ( tok.type ) 
+        switch ( tok->type ) 
         {
-            case TOK_SECTION:
-                ++sec_n;
-                peeked = peekToken(program, k);
-                assert( peeked != NULL );
-                if 
-                ( strcmp( peeked->token, ".text" ) )
-                { 
-                    text_idx = k+2;
-                }else if
-                ( strcmp( peeked->token, ".data" ) )
-                {
-                    data_idx = k+2;
-                }else
-                {
-                    // Error undefined section.
+            case TOK_LOAD:
+                if( parseLoad(program, tok) <= -1 )
                     return;
-                }
-                break;
-            case TOK_IDENTIFIER:
-                if ( 0 < k ) 
-                {
-                    if ( program->tokens[ k - 1 ].type != TOK_GLOBAL &&
-                         program->tokens[ k - 1 ].type != TOK_EXTERN )
-                    {
-                    }
-                }
-
-
-                break;
-            case TOK_GLOBAL:
-            case TOK_EXTERN:
-                peeked = peekToken(program, k);
-                if ( peeked->type != TOK_IDENTIFIER ) 
-                {
-                    // Error : Expected identifier found something else
+            break;
+            case TOK_STORE:
+                if( parseStore(program, tok) <= -1 )
                     return;
-                }
-                break;
-            case TOK_UNKNOWN:
-                // Error undefined token
-                return;
-                break;
+            break;
+
             default:
-                break;
+            break;
+
+
         }
+        tok = getNextToken(program);
     }
 
-    if ( sec_n != 2 )
-    {
-        // Error more than two sections.
-        return;
-    }
-
-    // Parse text section
-    for( int i=text_idx; i < program->n_tokens; i++ )
-    {
-        token_t tok = program->tokens[i];
-        
-
-    }
-
-    // Parse data section
-    for( int i=data_idx; i < program->n_tokens; i++ )
-    {
-        token_t tok = program->tokens[i];
-        
-
-    }
 }
 

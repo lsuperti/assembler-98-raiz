@@ -1,5 +1,6 @@
 
 #include <criterion/criterion.h>
+#include <criterion/logging.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include "montador.h"
@@ -24,6 +25,8 @@ Test(montador_suite, test_CREATE_PROGRAM) {
     cr_assert_eq( NULL, program->sections );
     cr_assert_eq( NULL, program->table );
     cr_assert_eq( strlen(input_test), program->program_size );
+    cr_assert_eq( NULL, program->globals );
+    cr_assert_eq( NULL, program->externs );
 
     freeProgram(program);
 }
@@ -53,7 +56,7 @@ Test(montador_suite, test_NEXT_TOKEN)
     tokens[1].token = "LOAD";
     tokens[1].defined = false;
     tokens[1].value  = -1;
-    tokens[1].type   = TOK_INSTRUCTION;
+    tokens[1].type   = TOK_LOAD;
 
     tokens[2].token = "20";
     tokens[2].defined = true;
@@ -93,7 +96,30 @@ Test(montador_suite, test_NEXT_TOKEN)
 
 }
 
-Test(montador_suite, test_PARSE) {}
+Test(montador_suite, test_PARSE) 
+{
+
+    FILE *input = fopen("test_parse", "w");
+    assert(input != NULL );
+    char source[] = 
+    " LOAD 20 STORE &29\n";
+
+    fprintf(input, "%s", source);
+    fclose(input);
+    input = fopen("test_parse", "r");
+    program_t *program = createProgram(input);    
+    fclose(input);
+
+    tokenize(program);
+    parse(program);
+
+    cr_assert_eq( program->sections->dot_text->array[0], LOAD_IMMEDIATE );
+    cr_assert_eq( program->sections->dot_text->array[1], 20 );
+    cr_assert_eq( program->sections->dot_text->array[2], STORE_DIRECT   );
+    cr_assert_eq( program->sections->dot_text->array[3], 29 );
+
+    freeProgram(program);
+}
 
 Test(montador_suite, test_TOKENIZE) 
 {
@@ -117,11 +143,20 @@ Test(montador_suite, test_TOKENIZE)
     exp_tokens[3].token = "STORE";
     exp_tokens[4].token = "29";
 
+    exp_tokens[0].type  = TOK_ADDRESSING;
+    exp_tokens[1].type  = TOK_LOAD;
+    exp_tokens[2].type  = TOK_LITERAL;
+    exp_tokens[3].type  = TOK_STORE;
+    exp_tokens[4].type  = TOK_LITERAL;
+
     tokenize(program);
 
     for ( int i=0; i < 5; i++ ) {
         cr_assert_str_eq( program->tokens[i].token, exp_tokens[i].token );
+        cr_assert_eq( program->tokens[i].type, exp_tokens[i].type);
     }
+
+    freeProgram(program);
 }
 
 Test(montador_suite, test_APPEND_SECTIONS) {}
