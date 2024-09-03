@@ -3,6 +3,38 @@
 
 #define WHITESPACES " \n\t\r"
 
+void generateOutput( program_t *program, FILE *output )
+{
+   fprintf( output,  magic );  
+   fprintf( output, "\nsection .text\n" ); 
+   for (int i=0; i < program->sections->dot_text->used; i++ )
+   {
+       fprintf( output, "%d ", program->sections->dot_text->array[i] );
+   }
+   fprintf( output, "\nsection .data\n");
+   for (int i=0; i < program->sections->dot_data->used; i++ )
+   {
+       fprintf( output, "%d", program->sections->dot_data->array[i] );
+   }
+   fprintf( output, "\nsection .rodata\n");
+   for (int i=0; i < program->sections->dot_data->used; i++ )
+   {
+       fprintf( output, "%d", program->sections->dot_data->array[i] );
+   }
+}
+
+void assembleProgram( char *file_path, char *output_path ) 
+{
+   FILE *i = fopen( file_path, "r" ); 
+   program_t *program = createProgram(i);
+   fclose(i);
+   tokenize(program);
+   parse(program);
+   FILE *o = fopen( output_path, "w" );
+   generateOutput( program, o );
+   fclose(o);
+}
+
 /* 
  * Arquivo com código source é passado para 
  * essa função.

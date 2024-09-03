@@ -219,20 +219,21 @@ Test(montador_suite, test_TOKENIZE)
     freeProgram(program);
 }
 
-Test(montador_suite, test_APPEND_SECTIONS) {}
+Test(montador_suite, test_ASSEMBLE_PROGRAM) 
+{
+    FILE *input = fopen("test_assemble_program", "w");
+    assert(input != NULL );
 
-Test(montador_suite, test_INTERFACE) {}
+    char source[] = 
+    " section .text\n"
+    " loop: LOAD 220 - STORE &29\n";
 
-//Test(montador_suite, test_ASSEMBLE_PROGRAM) {
-//   
-//    FILE *input = fopen("some_path", "r");
-//    assert(input != NULL);
-//    program_t *program = createProgram(input);
-//    tokenize(program);
-//    symbol_table_t *table = parse(program);
-//    FILE *output = fopen("some_path_2", "w");
-//    assert(output != NULL);
-//    appendSections( program, output );   
-//
-//}
+    fprintf(input, "%s", source);
+    fclose(input);
+
+    assembleProgram( "test_assemble_program", "test_assemble_program_output" );
+    
+    FILE *output = fopen( "test_assemble_program_output", "r" ); 
+    fclose(output);
+}
 

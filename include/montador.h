@@ -5,8 +5,8 @@
 #include "parser.h"
 
 void            tokenize( program_t *program );
-void            assembleProgram( program_t *program, FILE *output );
-void            appendSections( program_t *program, FILE *output );
+void            assembleProgram( char *file_path, char *output_path );
+void            generateOutput( program_t *program, FILE *output );
 void            freeProgram( program_t *program );
 //              vvvv Lucas Superti, Rodrigo Santos e Gabriel Oliveira
 void            parse( program_t *program );

@@ -1,6 +1,9 @@
 
 #include "parser.h"
 
+// recursive descent parsing
+// não-terminal gramatica
+
 // LOAD 20
 // LOAD &20
 // LOAD #20

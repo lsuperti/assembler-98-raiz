@@ -52,3 +52,41 @@ section .data
     value3    .word  232    -- == CONST 232 
     value4    .word  10024  -- == CONST 10024
     msg_helloworld .asciiz "Hello, World!"     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
