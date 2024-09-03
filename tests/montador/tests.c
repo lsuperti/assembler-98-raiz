@@ -48,17 +48,17 @@ Test(montador_suite, test_NEXT_TOKEN)
     tokens[0].token = "&";
     tokens[0].defined = true;
     tokens[0].value  = -1;
-    tokens[0].type   = ADDRESSING;
+    tokens[0].type   = TOK_ADDRESSING;
 
     tokens[1].token = "LOAD";
     tokens[1].defined = false;
     tokens[1].value  = -1;
-    tokens[1].type   = INSTRUCTION;
+    tokens[1].type   = TOK_INSTRUCTION;
 
     tokens[2].token = "20";
     tokens[2].defined = true;
     tokens[2].value  = 20;
-    tokens[2].type   = LITERAL;
+    tokens[2].type   = TOK_LITERAL;
 
     token_t *program_tokens = 
         (token_t *) malloc ( 3 * sizeof( token_t ) );
