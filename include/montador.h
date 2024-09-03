@@ -10,7 +10,7 @@
 #include "architecture.h"
 #include "data_structures.h"
 
-// Lista de tipos de tokens não-terminais.
+// Lista de tipos de tokens.
 enum t_types {
     TOK_INSTRUCTION  = 1,
     TOK_IDENTIFIER   = 4,
@@ -26,7 +26,10 @@ enum t_types {
     TOK_SECTION_NAME = 802,
     TOK_NT_STRING    = 822,
     TOK_WORD         = 823,
-    TOK_ASCII        = 824,
+    TOK_ASCIIZ       = 824,
+    TOK_UNKNOWN      = 825,
+    TOK_GLOBAL       = 826,
+    TOK_EXTERN       = 827,
     T_TYPES_SIZE
 };
 
