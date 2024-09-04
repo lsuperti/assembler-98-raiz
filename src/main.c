@@ -67,6 +67,9 @@ int main (int argc, char *argv[]) {
             ,"clicked", G_CALLBACK(reset), builder);
     g_signal_connect(gtk_builder_get_object(builder, "file_button")
             ,"file-set", G_CALLBACK(open_file), builder);
+    g_signal_connect(gtk_builder_get_object(builder, "assemble")
+            ,"clicked", G_CALLBACK(assembleProgram), builder);
+    
     gtk_builder_connect_signals(builder, NULL);
     // -- // 
     
