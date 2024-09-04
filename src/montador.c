@@ -429,6 +429,41 @@ token_t nextToken( program_t *program ) {
                 program->HEAD    += 4;
             }
         break;
+        case '-': //comentario de unica linha
+            if(peek(program->source, program->HEAD - 1) 
+                 == '-')
+            {
+                while(program->HEAD < program->program_size
+                && program->source[program->HEAD] != '\n'
+                && program->source[program->HEAD] != '\0'){ //se chegou ao fim da string...
+                    program->HEAD++;
+                }
+                /*comentario em inicio ou meio do programa esta tranquilo
+                se um comentario for a ultima coisa escrita no programa, ultimo token eh NULL*/
+                if(program->HEAD < program->program_size){
+                    return nextToken(program);
+                }
+            }
+        break;
+        case '*':
+            if(peek(program->source, program->HEAD - 1) 
+                 == '-')
+            {
+                while(program->HEAD < program->program_size){
+                    if(program->source[program->HEAD] == '-'
+                    && peek(program->source, program->HEAD) == '*'){
+                            program->HEAD += 2;
+                            break;
+                        }
+                    program->HEAD++;
+                }
+                /*comentario em inicio ou meio do programa esta tranquilo
+                se um comentario for a ultima coisa escrita no programa, ultimo token eh NULL*/
+                if(program->HEAD < program->program_size){
+                    return nextToken(program);
+                }
+            }
+        break;
         case 's':
             if ( peek(program->source, program->HEAD - 1) 
                  == 'e'
@@ -495,7 +530,7 @@ token_t nextToken( program_t *program ) {
                 program->HEAD    += 4;
             }
         break;
-        default:
+        default:{ //abre-fecha chaves para permitir declarar identifier
             bool identifier = false;
             program->HEAD -= 1;
             while ( program->HEAD < program->program_size && 
@@ -530,7 +565,7 @@ token_t nextToken( program_t *program ) {
                     token_n->type    = TOK_IDENTIFIER;
                 }
             }
-            
+        }
         break;
     }
 
