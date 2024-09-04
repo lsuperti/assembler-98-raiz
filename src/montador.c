@@ -3,6 +3,9 @@
 
 #define WHITESPACES " \n\t\r"
 
+// Coloca as seções no arquivo ( objeto ) binario 
+// por agora, como o formato já estabelecido em 
+// program.elf98
 void generateOutput( program_t *program, FILE *output )
 {
    fprintf( output,  magic );  
@@ -10,19 +13,24 @@ void generateOutput( program_t *program, FILE *output )
    for (int i=0; i < program->sections->dot_text->used; i++ )
    {
        fprintf( output, "%d ", program->sections->dot_text->array[i] );
+       if ( i % 8 == 0 ) { fprintf( output, "\n" ); }
    }
    fprintf( output, "\nsection .data\n");
    for (int i=0; i < program->sections->dot_data->used; i++ )
    {
-       fprintf( output, "%d", program->sections->dot_data->array[i] );
+       fprintf( output, "%d ", program->sections->dot_data->array[i] );
+       if ( i % 8 == 0 ) { fprintf( output, "\n" ); }
    }
    fprintf( output, "\nsection .rodata\n");
-   for (int i=0; i < program->sections->dot_data->used; i++ )
+   for (int i=0; i < program->sections->dot_rodata->used; i++ )
    {
-       fprintf( output, "%d", program->sections->dot_data->array[i] );
+       fprintf( output, "%d ", program->sections->dot_rodata->array[i] );
+       if ( i % 8 == 0 ) { fprintf( output, "\n" ); }
    }
 }
 
+// Função que recebe dois caminhos de arquivo 
+// e gera um binario.
 void assembleProgram( char *file_path, char *output_path ) 
 {
    FILE *i = fopen( file_path, "r" ); 
@@ -109,6 +117,9 @@ void freeProgram( program_t *program )
    }
 }
 
+// Faz a tokenização do programa já
+// criado por createProgram até
+// encontrar um token NULL.
 void tokenize( program_t *program )
 { 
     token_t *tokens =
@@ -130,8 +141,9 @@ void tokenize( program_t *program )
     }
 }
 
-/* Peeks for next character also checks if possible 
- * returns empty if no next character since the 
+/* 
+ * Peeks for next character also checks if 
+ * that is possible, returns empty if no next character since the 
  * character cannot be empty afterwards.
 */
 char peek( char *str, int head )
@@ -148,6 +160,10 @@ char peek( char *str, int head )
  *      LOAD 
  *      203 
  *      RET
+ *
+ * Sempre retorna apenas um token. 
+ * ( O próximo token no arquivo ) 
+ *  Usa o index HEAD que começa em 0.
 */
 token_t nextToken( program_t *program ) { 
 
@@ -393,6 +409,11 @@ token_t nextToken( program_t *program ) {
     return *token_n;
 }
 
+/* 
+ * Pega o proximo token do programa depois
+ * de já feita a tokenização ( Mutável muda HEAD )
+ * retorna NULL se não existe.
+*/
 token_t *getNextToken( program_t *program )
 {
     if ( program->token_idx < program->n_tokens ) 
@@ -411,6 +432,7 @@ token_t *searchIdent( symbol_table_t *table, char *token )
     return NULL;
 }
 
+// Adiciona um token na tabela de simbolos dinâmicamente
 void appendTok( symbol_table_t *table, token_t *tok ) 
 {
     assert( table != NULL && tok != NULL );
@@ -428,6 +450,7 @@ void appendTok( symbol_table_t *table, token_t *tok )
     table->tokens[ table->num_s++ ] = *tok;
 }
 
+// Retorna o token anterior ao atual, não mutável.
 token_t *peek_previous_token( program_t *program )
 {
     assert( program != NULL );
@@ -440,6 +463,7 @@ token_t *peek_previous_token( program_t *program )
     }
 }
 
+// Retorna o token após o atual, não mutável.
 token_t *peek_token( program_t *program )
 {
     assert( program != NULL );
@@ -452,6 +476,8 @@ token_t *peek_token( program_t *program )
     }
 }
 
+// Função para retirar o ultimo character de uma 
+// string. 
 void cut_last ( char *str ) 
 {
     if ( 0 < strlen( str ) ) 
@@ -463,6 +489,9 @@ void cut_last ( char *str )
     }
 }
 
+// Função que resolve os identificadores
+// os colocando depois de definidos na tabela
+// de símbolos.
 void resolveIdentifiers( program_t *program ) 
 {
     token_t *tok =
@@ -521,6 +550,9 @@ void resolveIdentifiers( program_t *program )
 
 }
 
+// Função que faz o parsing, atualiza 
+// os vetores ( dot_data, dot_text, dot_rodata )
+// que serão colocados no arquivo de saída.
 void parse( program_t *program ) 
 {
     assert( program != NULL && program->tokens != NULL );

@@ -2,7 +2,7 @@
 #include "parser.h"
 
 // recursive descent parsing
-// não-terminal gramatica
+// gramatica não-terminal 
 
 // LOAD 20
 // LOAD &20
@@ -10,6 +10,7 @@
 int parseLoad( program_t *program, token_t *c_tok ) 
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
+    bool defined;
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -26,14 +27,30 @@ int parseLoad( program_t *program, token_t *c_tok )
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
             insert( program->sections->dot_text, LOAD_IMMEDIATE  );
-            if ( peeked_1->defined == true )
+            insert( program->sections->dot_text, peeked_1->value );
+            break;
+        case TOK_IDENTIFIER:
+            defined = false;
+            for ( int i=0; i < program->table->num_s; i++ )
             {
-                insert( program->sections->dot_text, peeked_1->value );
-            }else 
+                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
+                {
+                    defined = true;    
+                    insert( program->sections->dot_text, LOAD_DIRECT );
+                    insert( program->sections->dot_text,
+                        program->table->tokens[i].value );
+                }
+            }
+        
+            if ( !defined ) 
             {
-                // Undefined : peeked_1->token
+                current_parser_error = 
+                    realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                        "Undefined identifier : %s", peeked_1->token );
                 return -1;
             }
+
             break;
         default:
             // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
@@ -47,9 +64,11 @@ int parseLoad( program_t *program, token_t *c_tok )
 
 // STORE #29
 // STORE &29
+// STORE Var
 int parseStore( program_t *program, token_t *c_tok ) 
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
+    bool defined;
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -62,6 +81,26 @@ int parseStore( program_t *program, token_t *c_tok )
                 insert( program->sections->dot_text, STORE_INDIRECT );
             }
             insert( program->sections->dot_text, peeked_2->value );
+            break;
+        case TOK_IDENTIFIER:
+            defined = false;
+            for ( int i=0; i < program->table->num_s; i++ )
+            {
+                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
+                {
+                    defined = true;    
+                    insert( program->sections->dot_text, STORE_DIRECT );
+                    insert( program->sections->dot_text,
+                        program->table->tokens[i].value );
+                }
+            }
+        
+            if ( !defined ) 
+            {
+                // Undefined identifier : peeked_1->token
+                return -1;
+            }
+              
             break;
         default:
             // Expected token type ( TOK_ADDRESSING )

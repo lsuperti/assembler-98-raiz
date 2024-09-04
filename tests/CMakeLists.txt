@@ -13,6 +13,7 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 file(GLOB MONTADOR_SOURCES 
     ../src/montador.c
     ../src/parser.c
+    ../src/global.c
     ../src/data_structures.c
     ../src/architecture.c
 )

@@ -104,7 +104,7 @@ Test(montador_suite, test_PARSE)
     char source[] = 
     " section .text\n"
     " loop: LOAD 220 STORE &29\n"
-    " LOAD var \n"
+    " LOAD value\n"
     " looptwo: STORE &23 \n"
     " section .data\n"
     " value: .word 40\n"
@@ -134,8 +134,11 @@ Test(montador_suite, test_PARSE)
     cr_assert_eq( program->sections->dot_text->array[1], 220 );
     cr_assert_eq( program->sections->dot_text->array[2], STORE_DIRECT   );
     cr_assert_eq( program->sections->dot_text->array[3], 29  );
-   // cr_assert_eq( program->sections->dot_text->array[4], LOAD_DIRECT );
-   // cr_assert_eq( program->sections->dot_text->array[5], data_reg );
+    cr_assert_eq( program->sections->dot_text->array[4], LOAD_DIRECT );
+    cr_assert_eq( program->sections->dot_text->array[5], data_reg );
+    cr_assert_eq( program->sections->dot_text->array[6], STORE_DIRECT );
+    cr_assert_eq( program->sections->dot_text->array[7], 23 );
+
 
     freeProgram(program);
 }
@@ -226,7 +229,7 @@ Test(montador_suite, test_ASSEMBLE_PROGRAM)
 
     char source[] = 
     " section .text\n"
-    " loop: LOAD 220 - STORE &29\n";
+    " loop: LOAD 220  STORE &29\n";
 
     fprintf(input, "%s", source);
     fclose(input);

@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "montador_types.h"
+#include "global.h"
 #include <string.h>
 
 int parseLoad( program_t *program, token_t* c_tok);
