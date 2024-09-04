@@ -3,6 +3,23 @@
 
 #define WHITESPACES " \n\t\r"
 
+// Função para visualizar os tokens 
+// gerados por tokenize.
+void printTokens( program_t *program ) 
+{
+    assert(program->tokens != NULL);
+    fprintf( stdout, "{ " );
+    fflush(stdout);
+    for ( int i=0; i < program->n_tokens; i++ )
+    {
+        fprintf( stdout, "%s, ", program->tokens[i].token );
+        fflush(stdout);
+        if ( ( i + 1 ) % 3 == 0 ) { fprintf( stdout, "\n" ); }
+    }
+    fprintf( stdout, " }" );
+    fflush(stdout);
+}
+
 // Coloca as seções no arquivo ( objeto ) binario 
 // por agora, como o formato já estabelecido em 
 // program.elf98
@@ -13,25 +30,25 @@ void generateOutput( program_t *program, FILE *output )
    for (int i=0; i < program->sections->dot_text->used; i++ )
    {
        fprintf( output, "%d ", program->sections->dot_text->array[i] );
-       if ( i % 8 == 0 ) { fprintf( output, "\n" ); }
+       if ( ( i + 1 ) % 8 == 0 ) { fprintf( output, "\n" ); }
    }
    fprintf( output, "\nsection .data\n");
    for (int i=0; i < program->sections->dot_data->used; i++ )
    {
        fprintf( output, "%d ", program->sections->dot_data->array[i] );
-       if ( i % 8 == 0 ) { fprintf( output, "\n" ); }
+       if ( ( i + 1 ) % 8 == 0 ) { fprintf( output, "\n" ); }
    }
    fprintf( output, "\nsection .rodata\n");
    for (int i=0; i < program->sections->dot_rodata->used; i++ )
    {
        fprintf( output, "%d ", program->sections->dot_rodata->array[i] );
-       if ( i % 8 == 0 ) { fprintf( output, "\n" ); }
+       if ( ( i + 1 ) % 8 == 0 ) { fprintf( output, "\n" ); }
    }
 }
 
 // Função que recebe dois caminhos de arquivo 
 // e gera um binario.
-void assembleProgram( char *file_path, char *output_path ) 
+program_t *assembleProgram( char *file_path, char *output_path ) 
 {
    FILE *i = fopen( file_path, "r" ); 
    program_t *program = createProgram(i);
@@ -41,6 +58,7 @@ void assembleProgram( char *file_path, char *output_path )
    FILE *o = fopen( output_path, "w" );
    generateOutput( program, o );
    fclose(o);
+   return program;
 }
 
 /* 
@@ -322,6 +340,189 @@ token_t nextToken( program_t *program ) {
                 program->HEAD    += 6;
             }
         break;
+        case 'B':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'Z'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'E' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'R'
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'O')
+            {
+                token_n->token   = "BRZERO";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BRZERO;
+                program->HEAD    += 5;
+            }      //B
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'P'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'O' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'S')
+            {
+                token_n->token   = "BRPOS";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BRPOS;
+                program->HEAD    += 4;
+            }      //B
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'N'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'E' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'G')
+            {
+                token_n->token   = "BRNEG";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BRNEG;
+                program->HEAD    += 4;
+            }      //B
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'R')
+            {
+                token_n->token   = "BR";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_BR;
+                program->HEAD    += 1;
+            }
+        break;
+        case 'R':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'E'
+                 && peek(program->source, program->HEAD)
+                 == 'A'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'D')
+            {
+                token_n->token   = "READ";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_READ;
+                program->HEAD    += 3;
+            }
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'E'
+                 && peek(program->source, program->HEAD)
+                 == 'T')
+            {
+                token_n->token   = "RET";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_RET;
+                program->HEAD    += 2;
+            }
+        break;
+        case 'C':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'A'
+                 && peek(program->source, program->HEAD)
+                 == 'L'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'L')
+            {
+                token_n->token   = "CALL";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_CALL;
+                program->HEAD    += 3;
+            }
+            else if(peek(program->source, program->HEAD - 1) 
+                 == 'O'
+                 && peek(program->source, program->HEAD)
+                 == 'P'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'Y')
+            {
+                token_n->token   = "COPY";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_COPY;
+                program->HEAD    += 3;
+            }
+        break;
+        case 'A':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'D'
+                 && peek(program->source, program->HEAD)
+                 == 'D')
+            {
+                token_n->token   = "ADD";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_ADD;
+                program->HEAD    += 2;
+            }
+        break;
+        case 'D':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'I'
+                 && peek(program->source, program->HEAD)
+                 == 'V' )
+            {
+                token_n->token   = "DIV";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_DIVIDE;
+                program->HEAD    += 2;
+            }
+        break;
+        case 'M':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'U'
+                 && peek(program->source, program->HEAD)
+                 == 'L'
+                 && peek(program->source, program->HEAD + 1)
+                 == 'T')
+            {
+                token_n->token   = "MULT";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_MULT;
+                program->HEAD    += 3;
+            }
+        break;
+        case 'W':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'R'
+                 && peek(program->source, program->HEAD)
+                 == 'I'
+                 && peek(program->source, program->HEAD + 1)
+                 == 'T'
+                 && peek(program->source, program->HEAD + 2)
+                 == 'E')
+            {
+                token_n->token   = "WRITE";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_WRITE;
+                program->HEAD    += 4;
+            }
+        break;
+        case 'P':
+            if(peek(program->source, program->HEAD - 1) 
+                 == 'U'
+                 && peek(program->source, program->HEAD)
+                 == 'T' )
+            {
+                token_n->token   = "PUT";
+                token_n->defined = false;
+                token_n->value   = -1;
+                token_n->type    = TOK_PUT;
+                program->HEAD    += 2;
+            }
+        break;
         case '.':
             if ( peek(program->source, program->HEAD - 1) 
                  == 't'
@@ -361,10 +562,26 @@ token_t nextToken( program_t *program ) {
                  == 'd'  )
             {
                 token_n->token   = ".word";
-                token_n->defined = false;
+                token_n->defined = true;
                 token_n->type    = TOK_WORD;
                 token_n->value   = -1;
                 program->HEAD    += 4;
+            }else if ( peek(program->source, program->HEAD - 1) 
+                 == 's'
+                 && peek(program->source, program->HEAD)
+                 == 'p'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'a' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'c' 
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'e'  )
+            {
+                token_n->token   = ".space";
+                token_n->defined = true;
+                token_n->type    = TOK_SPACE;
+                token_n->value   = -1;
+                program->HEAD    += 5;
             }
         break;
         default:
@@ -507,7 +724,8 @@ void resolveIdentifiers( program_t *program )
             case TOK_LABEL:
                 n_tok = malloc( sizeof( token_t ) );
                 u_tok = peek_token( program );
-                if ( u_tok->type == TOK_WORD ) 
+                if ( u_tok->type == TOK_WORD ||
+                     u_tok->type == TOK_SPACE ) 
                 {
                     n_tok->value = data_reg + (dr_idx++);
 
@@ -518,11 +736,12 @@ void resolveIdentifiers( program_t *program )
                     n_tok->defined = true;
                     n_tok->type = TOK_IDENTIFIER;
                     appendTok( program->table, n_tok );
+
                 }else if ( u_tok->type == TOK_ASCIIZ ) 
                 {
                 }else
                 {
-                    n_tok->value = pc;
+                    n_tok->value = pc + 256;
                     n_tok->token = malloc( strlen( tok->token ) );
                     n_tok->token = strcpy( n_tok->token, tok->token );
                     cut_last( n_tok->token );
@@ -537,7 +756,20 @@ void resolveIdentifiers( program_t *program )
             case TOK_LOAD:
             case TOK_ADD:
             case TOK_SUB:
+            case TOK_BRNEG:
+            case TOK_BRZERO:
+            case TOK_BRPOS:
+            case TOK_CALL:
+            case TOK_DIVIDE:
+            case TOK_MULT:
+            case TOK_READ:
+            case TOK_WRITE:
+            case TOK_PUT:
+            case TOK_STOP:
                 pc+=2;
+            break;
+            case TOK_RET:
+                pc++;
             break;
             case TOK_COPY:
                 pc+=3;
@@ -596,6 +828,44 @@ void parse( program_t *program )
             break;
             case TOK_STORE:
                 if( parseStore(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_WORD:
+                if( parseWord(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_SPACE:
+               insert( program->sections->dot_data, 0 ); 
+            break;
+            case TOK_STOP:
+               insert( program->sections->dot_text, STOP ); 
+            break;
+            case TOK_BR:
+                if( parseBR(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_BRNEG:
+                if( parseBRNEG(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_BRZERO:
+                if( parseBRZERO(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_BRPOS:
+                if( parseBRPOS(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_ADD:
+                if( parseADD(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_SUB:
+                if( parseSUB(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_READ:
+                if( parseRead(program, tok) <= -1 )
                     return;
             break;
 

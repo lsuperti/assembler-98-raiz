@@ -31,6 +31,12 @@ Test(montador_suite, test_CREATE_PROGRAM) {
     freeProgram(program);
 }
 
+Test( montador_suite, test_FIBONNACI ) 
+{
+   program_t *program = assembleProgram("../fibonnaci.asm", "fibonnaci.elf98");
+   printTokens(program);
+}
+
 Test(montador_suite, test_NEXT_TOKEN)
 {
 
@@ -120,8 +126,8 @@ Test(montador_suite, test_PARSE)
     parse(program);
 
     cr_assert( program->table->tokens != NULL );
-    cr_assert_eq( program->table->tokens[0].value, 0 );
-    cr_assert_eq( program->table->tokens[1].value, 6 );
+    cr_assert_eq( program->table->tokens[0].value, 256 );
+    cr_assert_eq( program->table->tokens[1].value, 262 );
     cr_assert_eq( program->table->tokens[2].value, data_reg );
     cr_assert_eq( program->table->tokens[3].value, data_reg + 1 );
 
