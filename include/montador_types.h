@@ -46,6 +46,7 @@ enum t_types {
     TOK_SUB          = 1012,
     TOK_WRITE        = 1013,
     TOK_PUT          = 1014,
+    TOK_SPACE        = 1015,
     T_TYPES_SIZE
 };
 
