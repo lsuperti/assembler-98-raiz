@@ -1597,7 +1597,14 @@ void open_file(GtkButton *button, gpointer user_data) {
     char *filename =
         gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(btn));
 
-    current_program = filename;
+    current_program = 
+        malloc( strlen(filename) + 1 );
+    if ( current_program == NULL )
+    {
+    }
+
+    strcpy( current_program, filename);
+
     g_print("Arquivo selecionado: %s\n", filename);
 
     read_and_insert_file_content(builder, filename);

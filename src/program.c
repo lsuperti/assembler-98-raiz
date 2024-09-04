@@ -28,7 +28,7 @@ enum sections_t {
 
 void load_program() {
 
-    FILE *f = fopen(current_program, "r");
+    FILE *f = fopen(current_binary, "r");
    
         if (!f) {
             perror("Failed to open file");

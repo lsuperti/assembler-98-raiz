@@ -9,6 +9,12 @@
 #define WORD_LOWER_BYTE(x) ((uint8_t)(x & 0xFF))
 #define WORD_UPPER_BYTE(x) ((uint8_t)( x >> 8 ) & 0xFF)
 
+#define FILE_OK 0
+#define FILE_NOT_EXIST 1
+#define FILE_TOO_LARGE 2
+#define FILE_READ_ERROR 3
+
+char * c_read_file(const char * f_name, int * err, size_t * f_size);
 void append_text_to_text_view(GtkTextView *text_view, const char *text);
 word_t show_number_input_dialog(GtkWidget *widget, gpointer window);
 void get_scroll_position(GtkScrolledWindow *scrolled_window,

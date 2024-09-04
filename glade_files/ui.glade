@@ -580,7 +580,7 @@
         <property name="height-request">80</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="label" translatable="yes">Assembler Erros</property>
+        <property name="label" translatable="yes">Assembler Errors</property>
       </object>
       <packing>
         <property name="x">215</property>
