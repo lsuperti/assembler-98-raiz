@@ -10,8 +10,15 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # ----------------------- || -------------
 
-file(GLOB MONTADOR_SOURCES ../src/montador.c)
-file(GLOB LIGADOR_SOURCES ../src/helper.c)
+file(GLOB MONTADOR_SOURCES 
+    ../src/montador.c
+    ../src/parser.c
+    ../src/global.c
+    ../src/data_structures.c
+    ../src/architecture.c
+)
+
+file(GLOB LIGADOR_SOURCES  ../src/helper.c)
 
 set(CMAKE_C_FLAGS_DEBUG "-g")
 

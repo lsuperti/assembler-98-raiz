@@ -3,11 +3,12 @@
 
 #include <types.h>
 #include <assert.h>
+#include <stdint.h>
 
 // Vetor dinâmico com fator de crescimento 1.5X 
 // https://en.wikipedia.org/wiki/Dynamic_array
 typedef struct _Vector {
-    int *array;
+    word_t *array;
     size_t used;
     size_t size;
 } Vector;
