@@ -7,11 +7,10 @@
 #include "types.h"
 #include "screens.h"
 #include "program.h"
+#include "montador.h"
 #define NDEBUG
 
 int main (int argc, char *argv[]) {
-
-    load_program();
 
     gtk_init(&argc, &argv);
 
@@ -65,6 +64,11 @@ int main (int argc, char *argv[]) {
             ,"clicked", G_CALLBACK(reset), builder);
     g_signal_connect(gtk_builder_get_object(builder, "reset1")
             ,"clicked", G_CALLBACK(reset), builder);
+    g_signal_connect(gtk_builder_get_object(builder, "file_button")
+            ,"file-set", G_CALLBACK(open_file), builder);
+    g_signal_connect(gtk_builder_get_object(builder, "assemble")
+            ,"clicked", G_CALLBACK(assemble_and_update_file_gui), &data);
+    
     gtk_builder_connect_signals(builder, NULL);
     // -- // 
     
@@ -89,6 +93,8 @@ int main (int argc, char *argv[]) {
         GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP0"));
     GtkWidget *window_fixed_mop2 =
         GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP2"));
+    GtkWidget *window_fixed_mop3 =
+        GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP3"));
 
     gtk_stack_add_titled(stack, start_window_fixed,
             "WINDOW_FIXED_START", "Main window"); 
@@ -96,6 +102,8 @@ int main (int argc, char *argv[]) {
             "WINDOW_FIXED_MOP0", "Terminal");
     gtk_stack_add_titled(stack, window_fixed_mop2,
             "WINDOW_FIXED_MOP2", "GUI");
+    gtk_stack_add_titled(stack, window_fixed_mop3,
+            "WINDOW_FIXED_MOP3", "FILE_GUI");
 
     GtkWidget *console_button = GTK_WIDGET(gtk_builder_get_object(builder, "Console"));
     g_signal_connect(console_button, "clicked", G_CALLBACK(change_to_console), stack); 
@@ -103,10 +111,16 @@ int main (int argc, char *argv[]) {
     GtkWidget *gui_button = GTK_WIDGET(gtk_builder_get_object(builder, "GUI"));
     g_signal_connect(gui_button, "clicked", G_CALLBACK(change_to_gui), stack);
 
+    GtkWidget *file_gui_button =
+        GTK_WIDGET(gtk_builder_get_object(builder, "FILE_GUI"));
+    g_signal_connect(file_gui_button, "clicked", G_CALLBACK(change_to_file_gui), stack);
+
     GtkWidget *back_button = GTK_WIDGET(gtk_builder_get_object(builder, "back"));
     g_signal_connect(back_button, "clicked", G_CALLBACK(change_to_main), stack);
     GtkWidget *back1_button = GTK_WIDGET(gtk_builder_get_object(builder, "back1"));
     g_signal_connect(back1_button, "clicked", G_CALLBACK(change_to_main), stack);
+    GtkWidget *back2_button = GTK_WIDGET(gtk_builder_get_object(builder, "back2"));
+    g_signal_connect(back2_button, "clicked", G_CALLBACK(change_to_main), stack);
 
     g_signal_connect(container_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     gtk_widget_show_all(container_window);

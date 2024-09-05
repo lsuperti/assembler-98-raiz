@@ -17,6 +17,7 @@ RUN apt-get update && \
     libxrender-dev \
     libxfixes-dev \
     libxext-dev \
+    dbus-x11 \
     libcanberra-gtk3-dev \
     && rm -rf /var/lib/apt/lists/*
 

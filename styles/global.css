@@ -1,6 +1,6 @@
 
 /* add style to every button widget */
-button {
+/* button {
     background: black; 
     min-width: 50px;
     min-height: 25px;
@@ -8,7 +8,7 @@ button {
     padding: 10px;
     border: none;
     border-radius: 4px;
-}
+} */
 
 button:hover {
     background-color: #45a049;
@@ -22,9 +22,9 @@ button:hover {
     border: 1px solid lightgreen;
 }
 
-box {
+/* box {
     border: 1px solid lightgreen;
-}
+} */
 
 spinbutton {
     padding: 10px;

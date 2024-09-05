@@ -10,6 +10,7 @@
 #define magic ("7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00\n")
 
 extern char *current_program; 
+extern char *current_binary; 
 extern char *current_parser_error;
 
 #endif // GLOBAL_H
