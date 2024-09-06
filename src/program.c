@@ -9,7 +9,6 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 
-#define DEBUG_PRINT
 #ifdef DEBUG_PRINT
     #define debug_print(fmt, ...) \
         do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)

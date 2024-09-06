@@ -562,17 +562,24 @@ int parseLoad( program_t *program, token_t *c_tok )
             if ( !defined ) 
             {
                 current_parser_error = 
-                    realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
-                sprintf( current_parser_error, 
-                        "Undefined identifier : %s", peeked_1->token );
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                snprintf( current_parser_error, 100, 
+                        "Undefined identifier { %s } at line : { %d }", peeked_1->token,
+                        peeked_1->line );
+                gtk_text_buffer_set_text(cpe, current_parser_error, -1);
                 return -1;
             }
 
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = ( char * ) malloc( 150 ); 
+            snprintf( current_parser_error,
+               150, 
+    "Expected token ( TOK_IDENTIFIER || TOK_ADDRESSING || TOK_LITERAL ||"
+    " TOK_LITERAL_HEX ) "
+    "Found : %s at line : %d",
+               peeked_1->token, peeked_1->line ) ;
+            gtk_text_buffer_set_text(cpe, current_parser_error, -1);
             return -1;
     }
 

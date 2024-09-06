@@ -94,6 +94,7 @@ program_t* createProgram( FILE *file )
     program->table        = NULL;
     program->program_size = lSize;
     program->globals      = NULL;
+    program->c_line       = 0;
     program->n_globals    = 0;
     program->externs      = NULL;
     program->n_externs    = 0;
@@ -173,7 +174,6 @@ void tokenize( program_t *program )
         program->tokens = NULL;
         program->n_tokens = 0;
     }
-    printTokens(program);
 }
 
 /* 
@@ -223,7 +223,7 @@ token_t digit(program_t *program)
         return token_n;
     }
 
-    free(temp);
+    token_n.line    = program->c_line;
     return token_n;
 }
 
@@ -270,7 +270,7 @@ token_t hex_digit(program_t *program)
         return token_n;
     }
 
-    free(temp);
+    token_n.line    = program->c_line;
     return token_n;
 }
 /* Retorna um token NULL se não existem mais tokens */
@@ -301,7 +301,10 @@ token_t nextToken( program_t *program ) {
     token_n->defined = true;
     token_n->value   = -1;
     token_n->type    = TOK_UNKNOWN;
+    token_n->line    = program->c_line;
 
+    if ( program->source[program->HEAD] == '\n' ) 
+         ++program->c_line;
     // Pula espaços em branco
     if ( program->HEAD < program->program_size && 
             strchr(WHITESPACES, program->source[program->HEAD]) )
@@ -317,6 +320,7 @@ token_t nextToken( program_t *program ) {
     if ( token_n->type != TOK_UNKNOWN ) 
         return *token_n;
 
+    char *temp;
     token_n->offset  = program->HEAD;
     bool reserved = false;
     // Fazer para todas as instruções  
@@ -780,25 +784,32 @@ token_t nextToken( program_t *program ) {
             }
         break;
         default:{ //abre-fecha chaves para permitir declarar identifier
-            char *temp;
     check_identifier:      
-            temp = ( char * ) malloc ( 1 );
+            token_n->line    = program->c_line;
+            temp = ( char * ) malloc ( 3 );
             assert ( temp != NULL );
-            temp[0] = '\0';
-            int c = 0;
-            bool digit = false;
+            int c = 1;
             bool identifier = false;
+
             program->HEAD--;
-            while ( program->HEAD < program->program_size && 
+            if ( program->HEAD < program->program_size && 
                  isalpha(program->source[program->HEAD]) )
             {
                identifier = true;
-               temp = ( char * ) realloc ( temp, c + 2 );
-               assert( temp != NULL );
-               temp[c] = program->source[program->HEAD]; 
-               c++;
-               program->HEAD++;
-               temp[c] = '\0';
+               temp[0] = program->source[program->HEAD++];
+               temp[1] = '\0';
+            }
+
+            while (   identifier && 
+                     isalnum(program->source[program->HEAD])
+                     || program->source[program->HEAD] == '_' ) 
+            {
+                temp = ( char * ) realloc ( temp, c + 2 );
+                assert( temp != NULL );
+                temp[c] = program->source[program->HEAD]; 
+                c++;
+                program->HEAD++;
+                temp[c] = '\0';
             }
 
             if ( identifier ) 
@@ -830,6 +841,7 @@ token_t nextToken( program_t *program ) {
     if ( !reserved ) 
         goto check_identifier;
 
+    token_n->line    = program->c_line;
     return *token_n;
 }
 
@@ -916,7 +928,7 @@ void cut_last ( char *str )
 // Função que resolve os identificadores
 // os colocando depois de definidos na tabela
 // de símbolos.
-void resolveIdentifiers( program_t *program ) 
+int resolveIdentifiers( program_t *program ) 
 {
     token_t *tok =
         getNextToken( program );
@@ -928,7 +940,26 @@ void resolveIdentifiers( program_t *program )
     {
         switch( tok->type ) 
         {
-            case TOK_LABEL:
+            case TOK_LABEL: {
+                char *str;
+                str = malloc ( strlen ( tok->token ) + 1 );
+                strcpy (str, tok->token);
+                cut_last(str);
+                for ( int i=0; i < program->table->num_s; i++ )
+                {
+                    if (
+                    strcmp ( program->table->tokens[i].token, str ) == 0 ) 
+                    {
+                        current_parser_error = 
+                        realloc ( current_parser_error, 100 + strlen(tok->token) );
+                        snprintf( current_parser_error, 100,
+                        "Multiple definitions of identifier { %s }"
+                        " first defined at line { %d }",
+                        tok->token, tok->line );
+                        gtk_text_buffer_set_text(cpe, current_parser_error, -1);
+                        return -1;
+                    }
+                }
                 n_tok = malloc( sizeof( token_t ) );
                 u_tok = peek_token( program );
                 if ( u_tok->type == TOK_WORD ||
@@ -943,12 +974,11 @@ void resolveIdentifiers( program_t *program )
                     n_tok->defined = true;
                     n_tok->type = TOK_IDENTIFIER;
                     appendTok( program->table, n_tok );
-
                 }else if ( u_tok->type == TOK_ASCIIZ ) 
                 {
                 }else
                 {
-                    n_tok->value = pc + 256;
+                    n_tok->value = pc + TEXT_SEGMENT_START;
                     n_tok->token = malloc( strlen( tok->token ) );
                     n_tok->token = strcpy( n_tok->token, tok->token );
                     cut_last( n_tok->token );
@@ -956,6 +986,7 @@ void resolveIdentifiers( program_t *program )
                     n_tok->type = TOK_IDENTIFIER;
                     appendTok( program->table, n_tok );
                 }
+            }
             break;
             // Incrementa um pc imaginario para 
             // colocar o valor dos labels.
@@ -986,6 +1017,7 @@ void resolveIdentifiers( program_t *program )
         }
         tok = getNextToken(program);
     }
+    return EXIT_SUCCESS;
 
 }
 
@@ -1009,6 +1041,14 @@ void parse( program_t *program )
     program->sections = 
         ( sections_t * ) malloc( sizeof( sections_t ) );
 
+    GtkTextView *console_errors = 
+        GTK_TEXT_VIEW(gtk_builder_get_object(p_builder, "consoleErros" ));
+
+    GtkTextBuffer *console_ebuffer =
+        gtk_text_view_get_buffer( console_errors );
+
+    cpe = console_ebuffer;
+
     program->sections->dot_data   = dot_data;
     program->sections->dot_text   = dot_text;
     program->sections->dot_rodata = dot_rodata;
@@ -1019,11 +1059,16 @@ void parse( program_t *program )
     program->table->num_s  = 0;
     program->table->tokens = NULL;
 
-    resolveIdentifiers(program);
+    int res = resolveIdentifiers(program);
+    if ( res <= -1 ) 
+        return;
+
     program->token_idx = 0;
 
     token_t *tok =
         getNextToken( program );
+
+
 
     while ( program->token_idx < program->n_tokens ) 
     {
@@ -1033,10 +1078,6 @@ void parse( program_t *program )
                 if( parseLoad(program, tok) <= -1 )
                     return;
             break;
-           // case TOK_SECTION:
-           //     if( parseSection(program, tok) <= -1 )
-           //         return;
-           // break;
             case TOK_STORE:
                 if( parseStore(program, tok) <= -1 )
                     return;
@@ -1086,7 +1127,6 @@ void parse( program_t *program )
 
             default:
             break;
-
 
         }
         tok = getNextToken(program);

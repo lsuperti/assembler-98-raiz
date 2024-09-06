@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <gtk/gtk.h>
 
 #define TEXT_SEGMENT_START 256
 #define DATA_SEGMENT_START 767
@@ -12,5 +13,7 @@
 extern char *current_program; 
 extern char *current_binary; 
 extern char *current_parser_error;
+extern GtkBuilder *p_builder;
+extern GtkTextBuffer *cpe;
 
 #endif // GLOBAL_H

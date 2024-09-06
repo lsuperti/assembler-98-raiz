@@ -1634,15 +1634,17 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     fclose(file);
     tokenize(program);
 
-    gtk_text_buffer_insert_at_cursor(buffer, program->source, -1);
+    gtk_text_buffer_set_text(buffer, program->source, -1);
     for( int i=0; i < program->n_tokens - 1; i++ )
     {
-        const char *color = tok_colors[program->tokens[i].type];
-        if ( color != NULL ) 
+        int type = program->tokens[i].type;
+        const char *color = tok_colors[type];
+
+        if ( color != NULL && type != TOK_UNKNOWN ) 
         {
-        colorize_token( buffer, program->tokens[i].offset, 
-                program->tokens[i].offset + strlen(program->tokens[i].token),
-                color );
+            colorize_token( buffer, program->tokens[i].offset, 
+                    program->tokens[i].offset + strlen(program->tokens[i].token),
+                    color );
         }
     }
 }

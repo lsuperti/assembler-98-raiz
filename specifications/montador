@@ -1,4 +1,29 @@
 
+3.1 
+    Entrada do montador qualquer arquivo *                              - 
+    Elementos separados por pelo menos um espaço                        - 
+    A linha tem tamanho indefinido, podendo ser mais que 80 caracteres  -
+    Comentário de unica linha : --, *- multi linha  -*                  -
+
+    A parte de posicionamento dos [ labels, opcodes e operandos ]       -
+    fica mais livre a unica restrição é : ápos um opcode é necessário   -
+    o operando ou operandos daquela instrução.                          -
+
+3.2
+    O primeiro erro é mostrado no console "Assembler errors", e a linha -
+    onde tal erro aconteceu.                                            -
+    Se não aconteceu nenhum erro é mostrado : Assembling finished       -
+
+    O codigo montado é mostrado a direita do source na tela de arquivo  -
+    e também é gerado o arquivo .OBJ                                    -
+
+
+
+
+
+
+
+
 
 
 
