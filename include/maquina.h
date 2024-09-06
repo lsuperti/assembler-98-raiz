@@ -9,6 +9,7 @@
 
 extern bool running;
 extern const char * const enum_str[]; 
+extern const char * const tok_colors[]; 
 
 void update_inst_pc( GtkBuilder *builder, int inst);
 void reset(GtkWidget *widget, gpointer builder);

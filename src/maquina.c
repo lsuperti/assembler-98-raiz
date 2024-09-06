@@ -5,12 +5,49 @@
 #include <assert.h>
 #include "types.h"
 #include "global.h"
+#include "montador.h"
 #include "helper.h"
 #include "stack.h"
 #include "architecture.h"
 
 bool running = false;
 #define ENUM_STR_SIZE (sizeof(enum_str) / sizeof(enum_str[0]))
+
+const char * const tok_colors[] = {
+
+    [TOK_PUT]             = "red",
+    [TOK_SPACE]           = "purple",
+    [TOK_WRITE]           = "red",
+    [TOK_SUB]             = "red",
+    [TOK_STORE]           = "red",
+    [TOK_READ]            = "red",
+    [TOK_MULT]            = "red",
+    [TOK_DIVIDE]          = "red",
+    [TOK_CALL]            = "red",
+    [TOK_BRZERO]          = "red",
+    [TOK_BRPOS]           = "red",
+    [TOK_BRNEG]           = "red",
+    [TOK_BR]              = "red",
+    [TOK_ADD]             = "red",
+    [TOK_LOAD]            = "red",
+    [TOK_EXTERN]          = "red",
+    [TOK_GLOBAL]          = "red",
+    [TOK_ASCIIZ]          = "purple",
+    [TOK_WORD]            = "purple",
+    [TOK_STRING]          = "green",
+    [TOK_SECTION_NAME]    = "purple",
+    [TOK_LABEL]           = "gray",
+    [TOK_STOP]            = "red",
+    [TOK_RET]             = "red",
+    [TOK_COPY]            = "red",
+    [TOK_STACK]           = "red",
+    [TOK_LITERAL_HEX]     = "gray",
+    [TOK_LITERAL]         = "gray",
+    [TOK_ADDRESSING]      = "orange",
+    [TOK_SECTION]         = "red",
+    [TOK_IDENTIFIER]      = "blue",
+
+};
 
 const char * const enum_str[] = {
 
@@ -1570,6 +1607,19 @@ void step(GtkWidget *widget, gpointer data) {
     update_memory_tree(user_data_t);
 }
 
+void colorize_token(GtkTextBuffer *buffer,
+        int token_start, int token_end, const char *color) {
+    GtkTextIter start_iter, end_iter;
+
+    gtk_text_buffer_get_iter_at_offset(buffer, &start_iter, token_start);
+    gtk_text_buffer_get_iter_at_offset(buffer, &end_iter, token_end);
+
+    GtkTextTag *tag =
+        gtk_text_buffer_create_tag(buffer, NULL, "foreground", color, NULL);
+
+    gtk_text_buffer_apply_tag(buffer, tag, &start_iter, &end_iter);
+}
+
 void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     GtkWidget *text_view = GTK_WIDGET(gtk_builder_get_object(builder, "console2"));
 
@@ -1580,14 +1630,21 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     }
 
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-    gtk_text_buffer_set_text(buffer, "", -1);
-
-    char buffer_line[256];
-    while (fgets(buffer_line, sizeof(buffer_line), file) != NULL) {
-        gtk_text_buffer_insert_at_cursor(buffer, buffer_line, -1);
-    }
-
+    program_t *program = createProgram(file); 
     fclose(file);
+    tokenize(program);
+
+    gtk_text_buffer_insert_at_cursor(buffer, program->source, -1);
+    for( int i=0; i < program->n_tokens - 1; i++ )
+    {
+        const char *color = tok_colors[program->tokens[i].type];
+        if ( color != NULL ) 
+        {
+        colorize_token( buffer, program->tokens[i].offset, 
+                program->tokens[i].offset + strlen(program->tokens[i].token),
+                color );
+        }
+    }
 }
 
 void open_file(GtkButton *button, gpointer user_data) {

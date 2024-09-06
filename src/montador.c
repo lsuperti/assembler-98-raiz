@@ -84,6 +84,7 @@ program_t* createProgram( FILE *file )
     if( 1!=fread( buffer, lSize, 1, file) )
       fclose(file),free(buffer),fputs("Entire read fails",stderr),exit(1);
 
+    buffer[lSize] = '\0';
     program->source       = buffer;
     program->HEAD         = 0;             
     program->tokens       = NULL;
@@ -91,9 +92,11 @@ program_t* createProgram( FILE *file )
     program->n_tokens     = 0;
     program->sections     = NULL;
     program->table        = NULL;
-    program->program_size = strlen(program->source);
+    program->program_size = lSize;
     program->globals      = NULL;
+    program->n_globals    = 0;
     program->externs      = NULL;
+    program->n_externs    = 0;
 
     return program;
 }
@@ -140,23 +143,37 @@ void freeProgram( program_t *program )
 // encontrar um token NULL.
 void tokenize( program_t *program )
 { 
-    token_t *tokens =
-        ( token_t * ) malloc ( sizeof ( token_t ) );
+    int capacity = 10;
+    token_t *tokens = (token_t *) malloc(sizeof(token_t) * capacity);
     assert(tokens != NULL);
+
     token_t tok;
     int idx = 0;
+
     do { 
         tok = nextToken(program);
-        if ( tok.token != NULL ) {
-            tokens[idx++] = tok;
+        
+        if (idx >= capacity) {
+            capacity *= 2;
+            tokens = (token_t *) realloc(tokens, sizeof(token_t) * capacity);
+            assert(tokens != NULL);
         }
-        tokens = realloc( tokens, sizeof(token_t)*( idx + 1 ) );
+
+        tokens[idx++] = tok;
+    } while (tok.type != TOK_EOF);
+
+    if (idx > 0) {
+        tokens = (token_t *) realloc(tokens, sizeof(token_t) * idx);
         assert(tokens != NULL);
-    }while ( tok.token != NULL );
-    if ( idx != 0 ) {
-        program->tokens   = tokens;
-        program->n_tokens = ++idx;
+
+        program->tokens = tokens;
+        program->n_tokens = idx;
+    } else {
+        free(tokens);
+        program->tokens = NULL;
+        program->n_tokens = 0;
     }
+    printTokens(program);
 }
 
 /* 
@@ -173,6 +190,89 @@ char peek( char *str, int head )
    return ' ';
 }
 
+token_t digit(program_t *program)
+{
+    token_t token_n;
+    token_n.type = TOK_UNKNOWN;
+
+    char *temp = ( char * ) malloc ( 1 );
+    assert ( temp != NULL );
+    temp[0] = '\0';
+    int c = 0;
+    bool digit = false;
+    // Retorna token = numero
+    while ( program->HEAD < program->program_size && 
+         isdigit(program->source[program->HEAD]) )
+    {
+       digit = true;
+       temp = ( char * ) realloc ( temp, c + 2 );
+       assert( temp != NULL );
+       temp[c] = program->source[program->HEAD]; 
+       c++;
+       program->HEAD++;
+       temp[c] = '\0';
+    }
+    
+    if ( digit ) 
+    {
+        token_n.token   = temp;
+        token_n.defined = true;
+        token_n.value   = atoi(temp);
+        token_n.type    = TOK_LITERAL;
+        token_n.offset  = program->HEAD - strlen(temp);
+        return token_n;
+    }
+
+    free(temp);
+    return token_n;
+}
+
+token_t hex_digit(program_t *program)
+{
+    token_t token_n;
+    token_n.type = TOK_UNKNOWN;
+
+    char *temp = ( char * ) malloc ( 3 );
+    assert ( temp != NULL );
+    temp[0] = '\0';
+    int c = 2;
+    bool h_digit = false;
+
+    if (    program->HEAD < program->program_size
+         && program->source[program->HEAD] == '0' 
+         && peek(program->source, program->HEAD) == 'x'
+         && isxdigit( peek(program->source, program->HEAD + 1) ) )
+    {
+       h_digit = true;
+       strcpy( temp, "0x" );
+       program->HEAD+=2;
+    }
+    
+    while ( program->HEAD < program->program_size &&
+            h_digit == true &&
+            isxdigit(program->source[program->HEAD]) ) 
+    {
+        temp = ( char * ) realloc ( temp, c + 2 );
+        assert( temp != NULL );
+        temp[c] = program->source[program->HEAD]; 
+        c++;
+        program->HEAD++;
+        temp[c] = '\0';
+    } 
+
+    if ( h_digit == true ) 
+    {
+        token_n.token   = temp;
+        token_n.defined = true;
+        token_n.value   = strtol(temp, NULL, 16);
+        token_n.type    = TOK_LITERAL_HEX;
+        token_n.offset  = program->HEAD - strlen(temp);
+        return token_n;
+    }
+
+    free(temp);
+    return token_n;
+}
 /* Retorna um token NULL se não existem mais tokens */
 /* Exemplo tokens válidos : 
  *      LOAD 
@@ -187,49 +287,38 @@ token_t nextToken( program_t *program ) {
 
     token_t *token_n = (token_t *) malloc ( sizeof ( token_t ) );
     assert( token_n != NULL );
-    token_n->token = NULL;
-
-    // Pula espaços em branco
-    while ( program->HEAD < program->program_size && 
-            strchr(WHITESPACES, program->source[program->HEAD]) )
+    if ( program->HEAD >= program->program_size )  
     {
-        program->HEAD++;
-    }
-
-    char *temp = ( char * ) malloc ( 1 );
-    assert ( temp != NULL );
-    temp[0] = '\0';
-    int c = 0;
-    bool digit = false;
-
-    // Retorna token = numero
-    while ( program->HEAD < program->program_size && 
-         isdigit(program->source[program->HEAD]) )
-    {
-       digit = true;
-       temp = ( char * ) realloc ( temp, c + 2 );
-       assert( temp != NULL );
-       temp[c] = program->source[program->HEAD]; 
-       c++;
-       program->HEAD++;
-       temp[c] = '\0';
-    }
-    
-    // Fazer digitos em hexa ( como mencionado no trabalho )
-    if ( digit ) 
-    {
-        token_n->token   = temp;
+        token_n->token   = "EOF";
+        token_n->type    = TOK_EOF;
+        token_n->value   = -1;
         token_n->defined = true;
-        token_n->value   = atoi(temp);
-        token_n->type    = TOK_LITERAL;
+        token_n->offset  = program->HEAD;
         return *token_n;
     }
 
-    temp = ( char * ) malloc ( 1 );
-    assert ( temp != NULL );
-    temp[0] = '\0';
-    c = 0;
+    token_n->token   = "UNKNOWN";
+    token_n->defined = true;
+    token_n->value   = -1;
+    token_n->type    = TOK_UNKNOWN;
 
+    // Pula espaços em branco
+    if ( program->HEAD < program->program_size && 
+            strchr(WHITESPACES, program->source[program->HEAD]) )
+    {
+        program->HEAD++;
+        return nextToken(program);
+    }
+
+    *token_n = hex_digit(program);
+    if ( token_n->type != TOK_UNKNOWN ) 
+        return *token_n;
+    *token_n = digit(program);
+    if ( token_n->type != TOK_UNKNOWN ) 
+        return *token_n;
+
+    token_n->offset  = program->HEAD;
+    bool reserved = false;
     // Fazer para todas as instruções  
     // Lembrando que para LOAD apenas a instrução em 
     // mnemonico mais alto nível é necessaria 
@@ -239,13 +328,15 @@ token_t nextToken( program_t *program ) {
            token_n->defined = true;
            token_n->value   = -1;
            token_n->type    = TOK_ADDRESSING;
-            break;
+           reserved = true;
+           break;
         case '#':
            token_n->token   = "#"; 
            token_n->defined = true;
            token_n->value   = -1;
            token_n->type    = TOK_ADDRESSING;
-            break;
+           reserved = true;
+           break;
         // -1 to +1 por que HEAD + 1 já foi feito
         // antes de entrar no caso.
         case 'L':
@@ -261,6 +352,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_LOAD;
                 program->HEAD    += 3;
+                reserved = true;
             }
         break;
         case 'S':
@@ -278,6 +370,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_STORE;
                 program->HEAD    += 4;
+                reserved = true;
             }      //S 
             else if( peek(program->source, program->HEAD - 1)
                  == 'T'
@@ -291,6 +384,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = 11;
                 token_n->type    = TOK_STOP;
                 program->HEAD    += 3;
+                reserved = true;
             }      //S
             else if(peek(program->source, program->HEAD - 1)
                  == 'U'
@@ -302,6 +396,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_SUB;
                 program->HEAD    += 2;
+                reserved = true;
             }
             else if (peek(program->source, program->HEAD - 1) 
                  == 'T'
@@ -317,6 +412,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_STACK;
                 program->HEAD    += 4;
+                reserved = true;
             }
         break;
         case 'B':
@@ -336,6 +432,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BRZERO;
                 program->HEAD    += 5;
+                reserved = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
                  == 'R'
@@ -351,6 +448,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BRPOS;
                 program->HEAD    += 4;
+                reserved = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
                  == 'R'
@@ -366,6 +464,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BRNEG;
                 program->HEAD    += 4;
+                reserved = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
                  == 'R')
@@ -375,6 +474,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BR;
                 program->HEAD    += 1;
+                reserved = true;
             }
         break;
         case 'R':
@@ -390,6 +490,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_READ;
                 program->HEAD    += 3;
+                reserved = true;
             }
             else if(peek(program->source, program->HEAD - 1) 
                  == 'E'
@@ -401,6 +502,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_RET;
                 program->HEAD    += 2;
+                reserved = true;
             }
         break;
         case 'C':
@@ -416,6 +518,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_CALL;
                 program->HEAD    += 3;
+                reserved = true;
             }
             else if(peek(program->source, program->HEAD - 1) 
                  == 'O'
@@ -429,6 +532,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_COPY;
                 program->HEAD    += 3;
+                reserved = true;
             }
         break;
         case 'A':
@@ -442,6 +546,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_ADD;
                 program->HEAD    += 2;
+                reserved = true;
             }
         break;
         case 'D':
@@ -461,6 +566,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_DIVIDE;
                 program->HEAD    += 5;
+                reserved = true;
             }
         break;
         case 'M':
@@ -476,6 +582,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_MULT;
                 program->HEAD    += 3;
+                reserved = true;
             }
         break;
         case 'W':
@@ -493,6 +600,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_WRITE;
                 program->HEAD    += 4;
+                reserved = true;
             }
         break;
         case '-': //comentario de unica linha
@@ -549,6 +657,47 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_SECTION;
                 program->HEAD    += 6;
+                reserved = true;
+            }
+        break;
+        case 'g':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 'l'
+                 && peek(program->source, program->HEAD)
+                 == 'o'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'b' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'a' 
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'l' )
+            {
+                token_n->token   = "global";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_GLOBAL;
+                program->HEAD    += 5;
+                reserved = true;
+            }
+        break;
+        case 'e':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 'x'
+                 && peek(program->source, program->HEAD)
+                 == 't'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'e' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'r' 
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'n' )
+            {                       
+                token_n->token   = "extern";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_GLOBAL;
+                program->HEAD    += 5;
+                reserved = true;
             }
         break;
         case 'P':
@@ -562,6 +711,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_PUT;
                 program->HEAD    += 2;
+                reserved = true;
             }
         break;
         case '.':
@@ -579,6 +729,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_SECTION_NAME;
                 program->HEAD    += 4;
+                reserved = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'd'
                  && peek(program->source, program->HEAD)
@@ -593,6 +744,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_SECTION_NAME;
                 token_n->value   = -1;
                 program->HEAD    += 4;
+                reserved = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'w'
                  && peek(program->source, program->HEAD)
@@ -607,6 +759,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_WORD;
                 token_n->value   = -1;
                 program->HEAD    += 4;
+                reserved = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 's'
                  && peek(program->source, program->HEAD)
@@ -623,11 +776,19 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_SPACE;
                 token_n->value   = -1;
                 program->HEAD    += 5;
+                reserved = true;
             }
         break;
         default:{ //abre-fecha chaves para permitir declarar identifier
+            char *temp;
+    check_identifier:      
+            temp = ( char * ) malloc ( 1 );
+            assert ( temp != NULL );
+            temp[0] = '\0';
+            int c = 0;
+            bool digit = false;
             bool identifier = false;
-            program->HEAD -= 1;
+            program->HEAD--;
             while ( program->HEAD < program->program_size && 
                  isalpha(program->source[program->HEAD]) )
             {
@@ -660,9 +821,14 @@ token_t nextToken( program_t *program ) {
                     token_n->type    = TOK_IDENTIFIER;
                 }
             }
+            program->HEAD++;
         }
+        return *token_n;
         break;
     }
+
+    if ( !reserved ) 
+        goto check_identifier;
 
     return *token_n;
 }
@@ -867,6 +1033,10 @@ void parse( program_t *program )
                 if( parseLoad(program, tok) <= -1 )
                     return;
             break;
+           // case TOK_SECTION:
+           //     if( parseSection(program, tok) <= -1 )
+           //         return;
+           // break;
             case TOK_STORE:
                 if( parseStore(program, tok) <= -1 )
                     return;
@@ -907,6 +1077,10 @@ void parse( program_t *program )
             break;
             case TOK_READ:
                 if( parseRead(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_PUT:
+                if( parsePUT(program, tok) <= -1 )
                     return;
             break;
 

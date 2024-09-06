@@ -7,7 +7,7 @@ main:
     READ N
     LOAD N
     BRNEG  zero
-    BRZERO zero
+    BRZERO zero 
     SUB 1
     BRZERO one
     LOAD N
@@ -29,16 +29,19 @@ loop:
     SUB 1
     STORE N
     BRPOS loop
+    PUT FIB
     STOP
 
 zero:
     LOAD 0
     STORE FIB
+    PUT FIB
     STOP
 
 one:
     LOAD 1
     STORE FIB
+    PUT FIB
     STOP
     
 section   .data

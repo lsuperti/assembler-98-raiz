@@ -14,7 +14,6 @@
 
 // Lista de tipos de tokens.
 enum t_types {
-    TOK_INSTRUCTION  = 1,
     TOK_IDENTIFIER   = 4,
     TOK_SECTION      = 5,
     TOK_ADDRESSING   = 6,
@@ -26,9 +25,9 @@ enum t_types {
     TOK_STOP         = 502,
     TOK_LABEL        = 702,
     TOK_SECTION_NAME = 802,
-    TOK_NT_STRING    = 822,
+    TOK_STRING       = 822, //*  Não feito ainda no nextToken
     TOK_WORD         = 823,
-    TOK_ASCIIZ       = 824,
+    TOK_ASCIIZ       = 824, //*  Não feito ainda no nextToken
     TOK_UNKNOWN      = 825,
     TOK_GLOBAL       = 826,
     TOK_EXTERN       = 827,
@@ -47,6 +46,7 @@ enum t_types {
     TOK_WRITE        = 1013,
     TOK_PUT          = 1014,
     TOK_SPACE        = 1015,
+    TOK_EOF          = 1020,
     T_TYPES_SIZE
 };
 
@@ -74,6 +74,7 @@ typedef struct _token_t {
     enum   t_types type;
     bool   defined;
     word_t value;
+    int    offset;
 } token_t;
 
 /*
@@ -114,7 +115,9 @@ typedef struct _program_t{
     symbol_table_t *table;
     size_t          n_symbols;
     token_t        *globals;
+    size_t          n_globals;
     token_t        *externs;
+    size_t          n_externs;
     int             HEAD;
     size_t          program_size;
 } program_t;
