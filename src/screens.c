@@ -24,7 +24,46 @@ void change_to_file_gui(GtkWidget *widget, GtkStack *stack){
 void assemble_and_update_file_gui(GtkWidget *widget, gpointer data) 
 {
     user_data_t *user_data_t = data;  
-    program_t *program = assembleProgram(current_program, current_binary);
+    program_t *program 
+        = malloc( sizeof( program_t ) ); 
+
+    GtkWidget *console_errors =
+        GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,
+                   "consoleErros"));
+    gtk_text_buffer_set_text( 
+            gtk_text_view_get_buffer( GTK_TEXT_VIEW(console_errors) ), "", -1 );
+
+    GtkWidget *console_source =
+        GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,
+                   "console2"));
+    GtkTextBuffer *c_buff =
+        gtk_text_view_get_buffer(GTK_TEXT_VIEW(console_source));  
+
+    gchar *source;
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(c_buff, &start, &end);
+    source = gtk_text_buffer_get_text(c_buff, &start, &end, FALSE);
+
+    program->source       = source;
+    program->HEAD         = 0;             
+    program->tokens       = NULL;
+    program->token_idx    = 0;
+    program->n_tokens     = 0;
+    program->sections     = NULL;
+    program->table        = NULL;
+    program->program_size = strlen(source);
+    program->globals      = NULL;
+    program->c_line       = 0;
+    program->n_globals    = 0;
+    program->externs      = NULL;
+    program->n_externs    = 0;
+
+    tokenize(program);
+    parse(program);
+    FILE *o = fopen( current_binary, "w" );
+    generateOutput( program, o );
+    fclose(o);
+
     GtkWidget *console_assembled_files =
         GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,
                    "consoleAssembledFiles"));
@@ -45,6 +84,7 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
     load_program();
     update_inst_pc( user_data_t->builder, memory[program_counter] );
     update_memory_tree(user_data_t);
+    g_free(source);
 
 }
 

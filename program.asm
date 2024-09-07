@@ -5,7 +5,7 @@ section .text
 
 main:
     READ Number_of_times
-    LOAD Numberns
+    LOAD Number_of_times 
     BRNEG  zero
     BRZERO zero 
     SUB 1
@@ -28,7 +28,7 @@ loop:
     LOAD Number_of_times
     SUB 1
     STORE Number_of_times
-Numberns: BRPOS loop
+    BRPOS loop
     PUT Fibonnac1
     STOP
 
