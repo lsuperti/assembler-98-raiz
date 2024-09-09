@@ -50,7 +50,7 @@ void generateOutput( program_t *program, FILE *output )
 // e gera um binario.
 program_t *assembleProgram( char *file_path, char *output_path ) 
 {
-   FILE *i = fopen( file_path, "r" ); 
+   FILE *i = fopen( file_path, "rb" ); 
    program_t *program = createProgram(i);
    fclose(i);
    tokenize(program);
