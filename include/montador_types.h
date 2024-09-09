@@ -76,6 +76,7 @@ typedef struct _token_t {
     word_t value;
     int    offset;
     int    line;
+    int    column;
 } token_t;
 
 /*
@@ -121,7 +122,8 @@ typedef struct _program_t{
     size_t          n_externs;
     int             HEAD;
     size_t          program_size;
-    int             c_line;
+    int             c_row;
+    int             c_col;
 } program_t;
 
 token_t*        getNextToken( program_t *program );

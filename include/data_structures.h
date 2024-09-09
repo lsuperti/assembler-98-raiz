@@ -1,7 +1,7 @@
 #ifndef DATA_STRUCTURES_H
 #define DATA_STRUCTURES_H
 
-#include <types.h>
+#include "types.h"
 #include <assert.h>
 #include <stdint.h>
 

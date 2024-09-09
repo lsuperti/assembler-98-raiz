@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <gtk/gtk.h>
+#include <stdint.h>
 
 typedef struct _user_data_t {
     GtkTreeView *treeview;
