@@ -1623,7 +1623,7 @@ void colorize_token(GtkTextBuffer *buffer,
 void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     GtkWidget *text_view = GTK_WIDGET(gtk_builder_get_object(builder, "console2"));
 
-    FILE *file = fopen(filename, "r");
+    FILE *file = fopen(filename, "rb");
     if (file == NULL) {
         g_print("Erro ao abrir o arquivo");
         return;

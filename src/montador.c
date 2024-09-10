@@ -50,7 +50,7 @@ void generateOutput( program_t *program, FILE *output )
 // e gera um binario.
 program_t *assembleProgram( char *file_path, char *output_path ) 
 {
-   FILE *i = fopen( file_path, "r" ); 
+   FILE *i = fopen( file_path, "rb" ); 
    program_t *program = createProgram(i);
    fclose(i);
    tokenize(program);
@@ -94,7 +94,8 @@ program_t* createProgram( FILE *file )
     program->table        = NULL;
     program->program_size = lSize;
     program->globals      = NULL;
-    program->c_line       = 0;
+    program->c_row        = 1;
+    program->c_col        = 1;
     program->n_globals    = 0;
     program->externs      = NULL;
     program->n_externs    = 0;
@@ -161,6 +162,7 @@ void tokenize( program_t *program )
         }
 
         tokens[idx++] = tok;
+        // printf("%s: %d:%d\n", tok.token, tok.line, tok.column);
     } while (tok.type != TOK_EOF);
 
     if (idx > 0) {
@@ -209,6 +211,7 @@ token_t digit(program_t *program)
        assert( temp != NULL );
        temp[c] = program->source[program->HEAD]; 
        c++;
+       program->c_col++;
        program->HEAD++;
        temp[c] = '\0';
     }
@@ -217,13 +220,13 @@ token_t digit(program_t *program)
     {
         token_n.token   = temp;
         token_n.defined = true;
-        token_n.value   = atoi(temp);
+        token_n.value   = strtol(temp, NULL, 10);
         token_n.type    = TOK_LITERAL;
         token_n.offset  = program->HEAD - strlen(temp);
         return token_n;
     }
 
-    token_n.line    = program->c_line;
+    token_n.line    = program->c_row;
     return token_n;
 }
 
@@ -245,6 +248,7 @@ token_t hex_digit(program_t *program)
     {
        h_digit = true;
        strcpy( temp, "0x" );
+       program->c_col+=2;
        program->HEAD+=2;
     }
     
@@ -256,6 +260,7 @@ token_t hex_digit(program_t *program)
         assert( temp != NULL );
         temp[c] = program->source[program->HEAD]; 
         c++;
+        program->c_col++;
         program->HEAD++;
         temp[c] = '\0';
     } 
@@ -270,7 +275,7 @@ token_t hex_digit(program_t *program)
         return token_n;
     }
 
-    token_n.line    = program->c_line;
+    token_n.line    = program->c_row;
     return token_n;
 }
 /* Retorna um token NULL se não existem mais tokens */
@@ -287,6 +292,53 @@ token_t nextToken( program_t *program ) {
 
     token_t *token_n = (token_t *) malloc ( sizeof ( token_t ) );
     assert( token_n != NULL );
+
+    token_n->token   = "UNKNOWN";
+    token_n->defined = true;
+    token_n->value   = -1;
+    token_n->type    = TOK_UNKNOWN;
+
+    // Pula espaços em branco e conta a numeração da linha
+    while ( program->HEAD < program->program_size )
+    {
+        switch (program->source[program->HEAD])
+        {
+            case '\r':
+                // CRLF
+                if ( peek(program->source, program->HEAD) == '\n' )
+                {
+                    program->HEAD += 2;
+                    program->c_row++;
+                    program->c_col = 1;
+                // CR
+                } else
+                {
+                    program->HEAD++;
+                    program->c_col = 1;
+                }
+                break;
+            // LF
+            case '\n':
+                program->HEAD++;
+                program->c_row++;
+                program->c_col = 1;
+                break;
+            case '\t':
+            case ' ':
+                program->HEAD++;
+                program->c_col++;
+                break;
+            default:
+                goto break_whitespace_loop;
+        }
+        continue;
+        
+        break_whitespace_loop:
+        break;
+    }
+    
+    int tok_col = program->c_col;
+
     if ( program->HEAD >= program->program_size )  
     {
         token_n->token   = "EOF";
@@ -294,31 +346,22 @@ token_t nextToken( program_t *program ) {
         token_n->value   = -1;
         token_n->defined = true;
         token_n->offset  = program->HEAD;
+        token_n->line    = program->c_row;
+        token_n->column    = tok_col;
         return *token_n;
     }
 
-    token_n->token   = "UNKNOWN";
-    token_n->defined = true;
-    token_n->value   = -1;
-    token_n->type    = TOK_UNKNOWN;
-    token_n->line    = program->c_line;
-
-    if ( program->source[program->HEAD] == '\n' ) 
-         ++program->c_line;
-    // Pula espaços em branco
-    if ( program->HEAD < program->program_size && 
-            strchr(WHITESPACES, program->source[program->HEAD]) )
-    {
-        program->HEAD++;
-        return nextToken(program);
-    }
 
     *token_n = hex_digit(program);
-    if ( token_n->type != TOK_UNKNOWN ) 
+    if ( token_n->type != TOK_UNKNOWN ) {
+        token_n->column = tok_col;
         return *token_n;
+    }
     *token_n = digit(program);
-    if ( token_n->type != TOK_UNKNOWN ) 
+    if ( token_n->type != TOK_UNKNOWN )  {
+        token_n->column = tok_col;
         return *token_n;
+    }
 
     char *temp;
     token_n->offset  = program->HEAD;
@@ -326,6 +369,7 @@ token_t nextToken( program_t *program ) {
     // Fazer para todas as instruções  
     // Lembrando que para LOAD apenas a instrução em 
     // mnemonico mais alto nível é necessaria 
+    program->c_col++;
     switch ( program->source[program->HEAD++] ) {
         case '&':
            token_n->token   = "&";
@@ -356,6 +400,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_LOAD;
                 program->HEAD    += 3;
+                program->c_col   += 3;
                 reserved = true;
             }
         break;
@@ -374,6 +419,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_STORE;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }      //S 
             else if( peek(program->source, program->HEAD - 1)
@@ -388,6 +434,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = 11;
                 token_n->type    = TOK_STOP;
                 program->HEAD    += 3;
+                program->c_col   += 3;
                 reserved = true;
             }      //S
             else if(peek(program->source, program->HEAD - 1)
@@ -400,6 +447,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_SUB;
                 program->HEAD    += 2;
+                program->c_col   += 2;
                 reserved = true;
             }
             else if (peek(program->source, program->HEAD - 1) 
@@ -416,6 +464,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_STACK;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }
         break;
@@ -436,6 +485,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BRZERO;
                 program->HEAD    += 5;
+                program->c_col   += 5;
                 reserved = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
@@ -452,6 +502,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BRPOS;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
@@ -468,6 +519,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BRNEG;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
@@ -478,6 +530,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_BR;
                 program->HEAD    += 1;
+                program->c_col   += 1;
                 reserved = true;
             }
         break;
@@ -494,6 +547,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_READ;
                 program->HEAD    += 3;
+                program->c_col   += 3;
                 reserved = true;
             }
             else if(peek(program->source, program->HEAD - 1) 
@@ -506,6 +560,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_RET;
                 program->HEAD    += 2;
+                program->c_col   += 2;
                 reserved = true;
             }
         break;
@@ -522,6 +577,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_CALL;
                 program->HEAD    += 3;
+                program->c_col   += 3;
                 reserved = true;
             }
             else if(peek(program->source, program->HEAD - 1) 
@@ -536,6 +592,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_COPY;
                 program->HEAD    += 3;
+                program->c_col   += 3;
                 reserved = true;
             }
         break;
@@ -550,6 +607,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_ADD;
                 program->HEAD    += 2;
+                program->c_col   += 2;
                 reserved = true;
             }
         break;
@@ -570,6 +628,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_DIVIDE;
                 program->HEAD    += 5;
+                program->c_col   += 5;
                 reserved = true;
             }
         break;
@@ -586,6 +645,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_MULT;
                 program->HEAD    += 3;
+                program->c_col   += 3;
                 reserved = true;
             }
         break;
@@ -604,6 +664,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_WRITE;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }
         break;
@@ -615,6 +676,7 @@ token_t nextToken( program_t *program ) {
                 && program->source[program->HEAD] != '\n'
                 && program->source[program->HEAD] != '\0'){ //se chegou ao fim da string...
                     program->HEAD++;
+                    program->c_col++;
                 }
                 /*comentario em inicio ou meio do programa esta tranquilo
                 se um comentario for a ultima coisa escrita no programa, ultimo token eh NULL*/
@@ -630,10 +692,12 @@ token_t nextToken( program_t *program ) {
                 while(program->HEAD < program->program_size){
                     if(program->source[program->HEAD] == '-'
                     && peek(program->source, program->HEAD) == '*'){
-                            program->HEAD += 2;
+                            program->HEAD  += 2;
+                            program->c_col += 2;
                             break;
                         }
                     program->HEAD++;
+                    program->c_col++;
                 }
                 /*comentario em inicio ou meio do programa esta tranquilo
                 se um comentario for a ultima coisa escrita no programa, ultimo token eh NULL*/
@@ -661,6 +725,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_SECTION;
                 program->HEAD    += 6;
+                program->c_col   += 6;
                 reserved = true;
             }
         break;
@@ -681,6 +746,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_GLOBAL;
                 program->HEAD    += 5;
+                program->c_col   += 5;
                 reserved = true;
             }
         break;
@@ -701,6 +767,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_GLOBAL;
                 program->HEAD    += 5;
+                program->c_col   += 5;
                 reserved = true;
             }
         break;
@@ -715,6 +782,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_PUT;
                 program->HEAD    += 2;
+                program->c_col   += 2;
                 reserved = true;
             }
         break;
@@ -733,6 +801,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 token_n->type    = TOK_SECTION_NAME;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'd'
@@ -748,6 +817,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_SECTION_NAME;
                 token_n->value   = -1;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'w'
@@ -763,6 +833,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_WORD;
                 token_n->value   = -1;
                 program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 's'
@@ -780,23 +851,27 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_SPACE;
                 token_n->value   = -1;
                 program->HEAD    += 5;
+                program->c_col   += 5;
                 reserved = true;
             }
         break;
         default:{ //abre-fecha chaves para permitir declarar identifier
     check_identifier:      
-            token_n->line    = program->c_line;
+            token_n->line    = program->c_row;
+            token_n->column  = tok_col;
             temp = ( char * ) malloc ( 3 );
             assert ( temp != NULL );
             int c = 1;
             bool identifier = false;
 
             program->HEAD--;
+            program->c_col--;
             if ( program->HEAD < program->program_size && 
                  isalpha(program->source[program->HEAD]) )
             {
                identifier = true;
                temp[0] = program->source[program->HEAD++];
+               program->c_col++;
                temp[1] = '\0';
             }
 
@@ -809,6 +884,7 @@ token_t nextToken( program_t *program ) {
                 temp[c] = program->source[program->HEAD]; 
                 c++;
                 program->HEAD++;
+                program->c_col++;
                 temp[c] = '\0';
             }
 
@@ -824,6 +900,7 @@ token_t nextToken( program_t *program ) {
                     token_n->value   = -1;
                     token_n->type    = TOK_LABEL;
                     program->HEAD++;
+                    program->c_col++;
                 }else 
                 {
                     token_n->token   = temp;
@@ -833,6 +910,7 @@ token_t nextToken( program_t *program ) {
                 }
             }
             program->HEAD++;
+            program->c_col++;
         }
         return *token_n;
         break;
@@ -841,7 +919,8 @@ token_t nextToken( program_t *program ) {
     if ( !reserved ) 
         goto check_identifier;
 
-    token_n->line    = program->c_line;
+    token_n->line    = program->c_row;
+    token_n->column  = tok_col;
     return *token_n;
 }
 
