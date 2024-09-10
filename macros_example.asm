@@ -25,6 +25,18 @@
 %macro nothing 
 %endmacro
 
+*- 
+Exemplo macro onde passado um argumento 
+o programa encerra se tal for positivo. 
+{%%label} local a macro.
+-*
+%macro label_example 1
+    LOAD %1
+    BRPOS %%not_
+    STOP
+  %%not_:
+%endmacro
+
 global main
 
 section .text
@@ -36,6 +48,8 @@ main:
     do_anything 30
     do_nothing 55 value
     nothing
+    label_example 50
+    label_example 75
     STOP
 
 section .data

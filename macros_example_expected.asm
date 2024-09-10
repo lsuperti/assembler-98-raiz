@@ -19,6 +19,14 @@ main:
     ADD 30
     STORE value
     STORE 55
+    LOAD 50
+    BRPOS label_example0000not_
+    STOP
+label_example0000not_:
+    LOAD 75
+    BRPOS label_example0001not_
+    STOP
+label_example0001not_:
     STOP
 
 section .data
