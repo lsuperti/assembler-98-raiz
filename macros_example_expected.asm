@@ -8,7 +8,7 @@ main:
     LOAD 20 
     RET
     STORE &value
-    STORE 40
+    STORE &40
     LOAD 20
     RET
     STORE &30
@@ -18,7 +18,7 @@ main:
     RET 
     ADD 30
     STORE value
-    STORE 55
+    STORE &55
     LOAD 50
     BRPOS label_example0000not_
     STOP

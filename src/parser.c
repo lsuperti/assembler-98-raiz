@@ -604,7 +604,26 @@ int parseStore( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, STORE_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+            defined = false;
+            for ( int i=0; i < program->table->num_s; i++ )
+            {
+                if ( strcmp( program->table->tokens[i].token, peeked_2->token ) == 0 )
+                {
+                    defined = true;
+                    insert( program->sections->dot_text,
+                        program->table->tokens[i].value );
+                }
+            }
+
+            if ( !defined )
+                goto not_defined;
+
+            }else 
+            {
+                insert( program->sections->dot_text, peeked_2->value );
+            }
             break;
         case TOK_IDENTIFIER:
             defined = false;
@@ -621,6 +640,7 @@ int parseStore( program_t *program, token_t *c_tok )
         
             if ( !defined ) 
             {
+        not_defined:
                 // Undefined identifier : peeked_1->token
                 return -1;
             }

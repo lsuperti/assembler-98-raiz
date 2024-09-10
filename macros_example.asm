@@ -44,9 +44,9 @@ section .text
 main:
     LOAD 20
     assign 20 &value
-    do_something 20 &30 40
+    do_something 20 &30 &40
     do_anything 30
-    do_nothing 55 value
+    do_nothing &55 value
     nothing
     label_example 50
     label_example 75
