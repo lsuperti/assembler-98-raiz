@@ -1,25 +1,25 @@
 
-%macro assign 2
-    LOAD %1
+%macro assign ONE TWO
+    LOAD ONE
     RET
-    STORE %2
+    STORE TWO
 %endmacro
 
-%macro do_something 3
-   STORE %3
-   assign %1 %2
+%macro do_something MO NS TO
+   STORE  TO
+   assign MO NS
 %endmacro
 
-%macro do_anything 1
-    %macro do_nothing 2
+%macro do_anything    MON
+    %macro do_nothing MON XY
         RET
         RET
-        ADD %1
-        STORE %3
-        STORE %2
+        ADD MON
+        STORE XY
+        STORE LET
     %endmacro
     LOAD 20
-    ADD %1
+    ADD  MON
 %endmacro
 
 %macro nothing 
@@ -27,11 +27,11 @@
 
 *- 
 Exemplo macro onde passado um argumento 
-o programa encerra se tal for positivo. 
-{%%label} local a macro.
--*
-%macro label_example 1
-    LOAD %1
+o programa encerra se tal for não positivo. 
+{%%label} local a macro. -*
+
+%macro label_example ONE
+    LOAD ONE
     BRPOS %%not_
     STOP
   %%not_:

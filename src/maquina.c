@@ -46,6 +46,10 @@ const char * const tok_colors[] = {
     [TOK_ADDRESSING]      = "orange",
     [TOK_SECTION]         = "red",
     [TOK_IDENTIFIER]      = "blue",
+    [TOK_MACRO_START]     = "orange",
+    [TOK_MACRO_END]       = "orange",
+    [TOK_LOCAL_LABEL]     = "gray",
+    [TOK_LOCAL_IDENTIFIER]= "blue",
     [TOK_NEWLINE]         = NULL,
 
 };
@@ -1634,6 +1638,7 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     program_t *program = createProgram(file); 
     fclose(file);
     tokenize(program);
+    printTokens(program);
 
     gtk_text_buffer_set_text(buffer, program->source, -1);
     for( int i=0; i < program->n_tokens - 1; i++ )
@@ -1643,7 +1648,11 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
 
         if ( color != NULL && type != TOK_UNKNOWN ) 
         {
-            colorize_token( buffer, program->tokens[i].offset, 
+            // Offset coloring is broken currently
+            // idk why, a fix is to subtract one from the first argument
+            // program->tokens[i].offset - 1
+            // but that is not wanted.
+            colorize_token( buffer, program->tokens[i].offset - 1, 
                     program->tokens[i].offset + strlen(program->tokens[i].token),
                     color );
         }

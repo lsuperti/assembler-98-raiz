@@ -10,6 +10,7 @@
 #include <string.h>
 #include "global.h"
 #include "architecture.h"
+#include "uthash.h"
 #include "data_structures.h"
 
 // Lista de tipos de tokens.
@@ -48,6 +49,10 @@ enum t_types {
     TOK_SPACE        = 1015,
     TOK_NEWLINE      = 1016,
     TOK_EOF          = 1020,
+    TOK_MACRO_START  = 1220,
+    TOK_LOCAL_LABEL  = 1330,
+    TOK_LOCAL_IDENTIFIER = 1350,
+    TOK_MACRO_END    = 1230,
     T_TYPES_SIZE
 };
 
@@ -79,6 +84,16 @@ typedef struct _token_t {
     int    line;
     int    column;
 } token_t;
+
+/*
+ * Definição de Macro
+*/ 
+typedef struct _MACRO_T {
+    char    *name;
+    token_t *tokens;
+    size_t   n_tokens; 
+    UT_hash_handle hh;
+} MACRO_T ;
 
 /*
  * Tabela de símbolos ou tokens 
@@ -125,6 +140,7 @@ typedef struct _program_t{
     size_t          program_size;
     int             c_row;
     int             c_col;
+    MACRO_T        *macros;
 } program_t;
 
 token_t*        getNextToken( program_t *program );

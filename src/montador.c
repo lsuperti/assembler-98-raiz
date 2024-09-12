@@ -12,8 +12,11 @@ void printTokens( program_t *program )
     fflush(stdout);
     for ( int i=0; i < program->n_tokens; i++ )
     {
-        fprintf( stdout, "%s, ", program->tokens[i].token );
-        fflush(stdout);
+        if ( program->tokens[i].token != NULL )
+        {
+            fprintf( stdout, "%s, ", program->tokens[i].token );
+            fflush(stdout);
+        }
         if ( ( i + 1 ) % 3 == 0 ) { fprintf( stdout, "\n" ); }
     }
     fprintf( stdout, " }" );
@@ -99,6 +102,7 @@ program_t* createProgram( FILE *file )
     program->n_globals    = 0;
     program->externs      = NULL;
     program->n_externs    = 0;
+    program->macros       = NULL;
 
     return program;
 }
@@ -142,7 +146,7 @@ void freeProgram( program_t *program )
 
 // Faz a tokenização do programa já
 // criado por createProgram até
-// encontrar um token NULL.
+// encontrar um token TOK_EOF.
 void tokenize( program_t *program )
 { 
     int capacity = 10;
@@ -298,6 +302,8 @@ token_t nextToken( program_t *program ) {
     token_n->value   = -1;
     token_n->type    = TOK_UNKNOWN;
 
+    bool LOCAL_LABEL = false;
+
     // Pula espaços em branco e conta a numeração da linha
     while ( program->HEAD < program->program_size )
     {
@@ -364,7 +370,7 @@ token_t nextToken( program_t *program ) {
         token_n->defined = true;
         token_n->offset  = program->HEAD;
         token_n->line    = program->c_row;
-        token_n->column    = tok_col;
+        token_n->column  = tok_col;
         return *token_n;
     }
 
@@ -381,11 +387,9 @@ token_t nextToken( program_t *program ) {
     }
 
     char *temp;
-    token_n->offset  = program->HEAD;
+    token_n->offset = program->HEAD;
     bool reserved = false;
-    // Fazer para todas as instruções  
-    // Lembrando que para LOAD apenas a instrução em 
-    // mnemonico mais alto nível é necessaria 
+
     program->c_col++;
     switch ( program->source[program->HEAD++] ) {
         case '&':
@@ -685,42 +689,43 @@ token_t nextToken( program_t *program ) {
                 reserved = true;
             }
         break;
-        case '-': //comentario de unica linha
+        case '-': 
             if(peek(program->source, program->HEAD - 1) 
                  == '-')
             {
+                program->HEAD++;
                 while(program->HEAD < program->program_size
-                && program->source[program->HEAD] != '\n'
-                && program->source[program->HEAD] != '\0'){ //se chegou ao fim da string...
+                && program->source[program->HEAD] != '\n' )
+                {
                     program->HEAD++;
                     program->c_col++;
                 }
-                /*comentario em inicio ou meio do programa esta tranquilo
-                se um comentario for a ultima coisa escrita no programa, ultimo token eh NULL*/
-                if(program->HEAD < program->program_size){
-                    return nextToken(program);
-                }
+
+                free(token_n);
+                return nextToken(program);
+                
             }
         break;
         case '*':
             if(peek(program->source, program->HEAD - 1) 
                  == '-')
             {
+                program->HEAD++;
                 while(program->HEAD < program->program_size){
+
                     if(program->source[program->HEAD] == '-'
                     && peek(program->source, program->HEAD) == '*'){
-                            program->HEAD  += 2;
-                            program->c_col += 2;
-                            break;
-                        }
+                        program->HEAD  += 2;
+                        program->c_col += 2;
+                        break;
+                    }
+
                     program->HEAD++;
                     program->c_col++;
                 }
-                /*comentario em inicio ou meio do programa esta tranquilo
-                se um comentario for a ultima coisa escrita no programa, ultimo token eh NULL*/
-                if(program->HEAD < program->program_size){
-                    return nextToken(program);
-                }
+
+                free(token_n);
+                return nextToken(program);
             }
         break;
         case 's':
@@ -744,6 +749,56 @@ token_t nextToken( program_t *program ) {
                 program->HEAD    += 6;
                 program->c_col   += 6;
                 reserved = true;
+            }
+        break;
+        case '%':
+            if ( peek(program->source, program->HEAD - 1) 
+                 == 'm'
+                 && peek(program->source, program->HEAD)
+                 == 'a'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'c' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'r' 
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'o' )
+            {
+                token_n->token   = "%macro";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_MACRO_START;
+                program->HEAD    += 5;
+                program->c_col   += 5;
+                reserved = true;
+            }else if ( peek(program->source, program->HEAD - 1) 
+                 == 'e'
+                 && peek(program->source, program->HEAD)
+                 == 'n'
+                 && peek(program->source, program->HEAD + 1) 
+                 == 'd' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == 'm' 
+                 && peek(program->source, program->HEAD + 3) 
+                 == 'a' 
+                 && peek(program->source, program->HEAD + 4) 
+                 == 'c'
+                 && peek(program->source, program->HEAD + 5) 
+                 == 'r' 
+                 && peek(program->source, program->HEAD + 6) 
+                 == 'o' )
+            {
+                token_n->token   = "%endmacro";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_MACRO_END;
+                program->HEAD    += 8;
+                program->c_col   += 8;
+                reserved = true;
+            }else if ( peek(program->source, program->HEAD - 1) == '%' )
+            {
+                LOCAL_LABEL = true;
+                program->HEAD+=2;
+                goto check_identifier;
             }
         break;
         case 'g':
@@ -872,7 +927,7 @@ token_t nextToken( program_t *program ) {
                 reserved = true;
             }
         break;
-        default:{ //abre-fecha chaves para permitir declarar identifier
+        default:{
     check_identifier:      
             token_n->line    = program->c_row;
             token_n->column  = tok_col;
@@ -907,7 +962,7 @@ token_t nextToken( program_t *program ) {
 
             if ( identifier ) 
             {   
-                if ( program->source[program->HEAD] == ':' ) 
+                if ( program->source[program->HEAD] == ':')
                 {
                     temp = ( char * ) realloc ( temp, c + 2 );
                     temp[c++] = ':';
@@ -918,12 +973,30 @@ token_t nextToken( program_t *program ) {
                     token_n->type    = TOK_LABEL;
                     program->HEAD++;
                     program->c_col++;
+                    if ( LOCAL_LABEL )
+                    {
+                        char *prefix = malloc(3 + strlen(temp) );
+                        strcpy( prefix, "%%" ); 
+                        strcat( prefix, temp );
+                        token_n->token = prefix;
+                        free(temp);
+                        token_n->type  = TOK_LOCAL_LABEL;
+                    }
                 }else 
                 {
                     token_n->token   = temp;
                     token_n->defined = false;
                     token_n->value   = -1;
                     token_n->type    = TOK_IDENTIFIER;
+                    if ( LOCAL_LABEL ) 
+                    {
+                        char *prefix = malloc(3 + strlen(temp) );
+                        strcpy( prefix, "%%" ); 
+                        strcat( prefix, temp );
+                        token_n->token = prefix;
+                        free(temp);
+                        token_n->type = TOK_LOCAL_IDENTIFIER;
+                    }
                 }
             }
             program->HEAD++;
@@ -1163,8 +1236,6 @@ void parse( program_t *program )
 
     token_t *tok =
         getNextToken( program );
-
-
 
     while ( program->token_idx < program->n_tokens ) 
     {

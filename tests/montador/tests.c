@@ -54,20 +54,20 @@ Test(montador_suite, test_NEXT_TOKEN)
     token_t *tokens =
     (token_t *) malloc( 3 * sizeof ( token_t ) );
 
-    tokens[0].token = "&";
+    tokens[0].token = "\\n";
     tokens[0].defined = true;
     tokens[0].value  = -1;
-    tokens[0].type   = TOK_ADDRESSING;
+    tokens[0].type   = TOK_NEWLINE;
 
-    tokens[1].token = "LOAD";
-    tokens[1].defined = false;
+    tokens[1].token = "\\n";
+    tokens[1].defined = true;
     tokens[1].value  = -1;
-    tokens[1].type   = TOK_LOAD;
+    tokens[1].type   = TOK_NEWLINE;
 
-    tokens[2].token = "GUARANA";
-    tokens[2].defined = false;
+    tokens[2].token = "&";
+    tokens[2].defined = true;
     tokens[2].value  = -1;
-    tokens[2].type   = TOK_IDENTIFIER;
+    tokens[2].type   = TOK_ADDRESSING;
 
     token_t *program_tokens = 
         (token_t *) malloc ( 3 * sizeof( token_t ) );
@@ -174,49 +174,49 @@ Test(montador_suite, test_TOKENIZE)
 
     exp_tokens[0].token  = "section";
     exp_tokens[1].token  = ".text";
-    exp_tokens[2].token  = "loop:";
-    exp_tokens[3].token  = "LOAD";
-    exp_tokens[4].token  = "220";
-    exp_tokens[5].token  = "STORE";
-    exp_tokens[6].token  = "&";
-    exp_tokens[7].token  = "29";
-    exp_tokens[8].token  = "LOAD";
-    exp_tokens[9].token  = "var";
-    exp_tokens[10].token = "looptwo:";
-    exp_tokens[11].token = "STORE";
-    exp_tokens[12].token = "&";
-    exp_tokens[13].token = "23";
-    exp_tokens[14].token = "section";
-    exp_tokens[15].token = ".data";
-    exp_tokens[16].token = "value:";
-    exp_tokens[17].token = ".word";
-    exp_tokens[18].token = "40";
-    exp_tokens[19].token = "valuer:";
-    exp_tokens[20].token = ".word";
-    exp_tokens[21].token = "83";
+    exp_tokens[2].token  = "\\n";
+    exp_tokens[3].token  = "loop:";
+    exp_tokens[4].token  = "LOAD";
+    exp_tokens[5].token  = "220";
+    exp_tokens[6].token  = "STORE";
+    exp_tokens[7].token  = "&";
+    exp_tokens[8].token  = "29";
+    exp_tokens[9].token  = "\\n";
+    exp_tokens[10].token = "LOAD";
+    exp_tokens[11].token = "var";
+    exp_tokens[12].token = "\\n";
+    exp_tokens[13].token = "looptwo:";
+    exp_tokens[14].token = "STORE";
+    exp_tokens[15].token = "&";
+    exp_tokens[16].token = "23";
+    exp_tokens[17].token = "\\n";
+    exp_tokens[18].token = "section";
+    exp_tokens[19].token = ".data";
+    exp_tokens[20].token = "\\n";
+    exp_tokens[21].token = "value:";
 
     exp_tokens[0].type   = TOK_SECTION;
     exp_tokens[1].type   = TOK_SECTION_NAME;
-    exp_tokens[2].type   = TOK_LABEL;
-    exp_tokens[3].type   = TOK_LOAD;
-    exp_tokens[4].type   = TOK_LITERAL;
-    exp_tokens[5].type   = TOK_STORE;
-    exp_tokens[6].type   = TOK_ADDRESSING;
-    exp_tokens[7].type   = TOK_LITERAL;
-    exp_tokens[8].type   = TOK_LOAD;
-    exp_tokens[9].type   = TOK_IDENTIFIER;
-    exp_tokens[10].type  = TOK_LABEL;
-    exp_tokens[11].type  = TOK_STORE;
-    exp_tokens[12].type  = TOK_ADDRESSING;
-    exp_tokens[13].type  = TOK_LITERAL;
-    exp_tokens[14].type  = TOK_SECTION;
-    exp_tokens[15].type  = TOK_SECTION_NAME;
-    exp_tokens[16].type  = TOK_LABEL;
-    exp_tokens[17].type  = TOK_WORD;
-    exp_tokens[18].type  = TOK_LITERAL;
-    exp_tokens[19].type  = TOK_LABEL;
-    exp_tokens[20].type  = TOK_WORD;
-    exp_tokens[21].type  = TOK_LITERAL;
+    exp_tokens[2].type   = TOK_NEWLINE;
+    exp_tokens[3].type   = TOK_LABEL;
+    exp_tokens[4].type   = TOK_LOAD;
+    exp_tokens[5].type   = TOK_LITERAL;
+    exp_tokens[6].type   = TOK_STORE;
+    exp_tokens[7].type   = TOK_ADDRESSING;
+    exp_tokens[8].type   = TOK_LITERAL;
+    exp_tokens[9].type   = TOK_NEWLINE;
+    exp_tokens[10].type  = TOK_LOAD;
+    exp_tokens[11].type  = TOK_IDENTIFIER;
+    exp_tokens[12].type  = TOK_NEWLINE;
+    exp_tokens[13].type  = TOK_LABEL;
+    exp_tokens[14].type  = TOK_STORE;
+    exp_tokens[15].type  = TOK_ADDRESSING;
+    exp_tokens[16].type  = TOK_LITERAL;
+    exp_tokens[17].type  = TOK_NEWLINE;
+    exp_tokens[18].type  = TOK_SECTION;
+    exp_tokens[19].type  = TOK_SECTION_NAME;
+    exp_tokens[20].type  = TOK_NEWLINE;
+    exp_tokens[21].type  = TOK_LABEL;
 
     tokenize(program);
 
