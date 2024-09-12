@@ -46,6 +46,7 @@ enum t_types {
     TOK_WRITE        = 1013,
     TOK_PUT          = 1014,
     TOK_SPACE        = 1015,
+    TOK_NEWLINE      = 1016,
     TOK_EOF          = 1020,
     T_TYPES_SIZE
 };
