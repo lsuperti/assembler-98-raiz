@@ -46,6 +46,7 @@ const char * const tok_colors[] = {
     [TOK_ADDRESSING]      = "orange",
     [TOK_SECTION]         = "red",
     [TOK_IDENTIFIER]      = "blue",
+    [TOK_NEWLINE]         = NULL,
 
 };
 

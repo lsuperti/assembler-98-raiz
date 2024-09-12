@@ -304,17 +304,26 @@ token_t nextToken( program_t *program ) {
         switch (program->source[program->HEAD])
         {
             case '\r':
+                token_n->token   = "\\n";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_NEWLINE;
+                
                 // CRLF
                 if ( peek(program->source, program->HEAD) == '\n' )
                 {
                     program->HEAD += 2;
                     program->c_row++;
                     program->c_col = 1;
+
+                    return *token_n;
                 // CR
                 } else
                 {
                     program->HEAD++;
                     program->c_col = 1;
+
+                    return *token_n;
                 }
                 break;
             // LF
@@ -322,6 +331,14 @@ token_t nextToken( program_t *program ) {
                 program->HEAD++;
                 program->c_row++;
                 program->c_col = 1;
+
+                token_n->token   = "\\n";
+                token_n->defined = true;
+                token_n->value   = -1;
+                token_n->type    = TOK_NEWLINE;
+
+                return *token_n;
+
                 break;
             case '\t':
             case ' ':
