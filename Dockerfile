@@ -19,6 +19,7 @@ RUN apt-get update && \
     libxext-dev \
     dbus-x11 \
     libcanberra-gtk3-dev \
+    libcriterion-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . /app
