@@ -24,6 +24,8 @@ RUN apt-get update && \
 
 COPY . /app
 
+RUN rm -rf /app/tests/build
+
 WORKDIR /app
 
 CMD ["sh", "./unix-build.sh"]
