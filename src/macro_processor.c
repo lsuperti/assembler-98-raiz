@@ -14,6 +14,18 @@ void addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
     (*idx)++;
 }
 
+void goToMacroEnd( program_t *program )
+{
+    token_t tok;
+
+    program->token_idx++;
+    tok = program->tokens[program->token_idx];
+
+    if (tok.type != TOK_MACRO_END) {
+        goToMacroEnd(program);
+    }
+}
+
 void tokenizeMacro( program_t *program, MACRO_T *m )
 {
     int capacity = 10;
@@ -26,6 +38,10 @@ void tokenizeMacro( program_t *program, MACRO_T *m )
     do { 
         program->token_idx++;
         tok = program->tokens[program->token_idx];
+
+        if (tok.type == TOK_MACRO_START) {
+            goToMacroEnd(program);
+        }
         
         if (tok.type == TOK_MACRO_END) {
             break;
