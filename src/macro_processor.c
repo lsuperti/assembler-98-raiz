@@ -1,72 +1,109 @@
 
 #include "macro_processor.h"
+#include <errno.h>
 #include "montador.h"
 
-void addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
+error printMacros( program_t *p ) 
 {
-    if (*idx >= *capacity) {
-        *capacity *= 2;
-        *tokens = (token_t *) realloc(*tokens, sizeof(token_t) * (*capacity));
-        assert(*tokens != NULL);
+    MACRO_T *entry, *tmp; 
+
+    program_t *dirty_hack;
+    if ( ( dirty_hack = malloc(sizeof(program_t)) ) == NULL )
+        return ENOMEM;
+
+    HASH_ITER(hh, p->macros, entry, tmp)
+    {
+        if (entry)
+        {
+            fprintf(stdout, "\nMACRO : %s, NUM_TOKENS : %lu\n",  entry->name,
+                    entry->n_tokens   );
+            fflush(stdout);
+            dirty_hack->tokens   = entry->tokens;
+            dirty_hack->n_tokens = entry->n_tokens;
+            printTokens( dirty_hack );
+        }
     }
 
-    (*tokens)[*idx] = tok;
-    (*idx)++;
+    free(dirty_hack);
+    return EXIT_SUCCESS;
 }
+
 
 void goToMacroEnd( program_t *program )
 {
     token_t tok;
 
     program->token_idx++;
-    tok = program->tokens[program->token_idx];
+    if ( program->token_idx < program->n_tokens ) 
+    {
+        tok = program->tokens[program->token_idx];
+    }else 
+    {
+        return;
+    }
 
     if (tok.type != TOK_MACRO_END) {
         goToMacroEnd(program);
     }
 }
 
-void tokenizeMacro( program_t *program, MACRO_T *m )
+error addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
+{
+    if (*idx >= *capacity) {
+        *capacity *= 2;
+        if ( (*tokens = realloc( *tokens, sizeof(token_t) * (*capacity))) == NULL )
+            return ENOMEM;
+    }
+
+    (*tokens)[*idx] = tok;
+    (*idx)++;
+
+    return EXIT_SUCCESS;
+}
+
+error tokenizeMacro( program_t *program, MACRO_T *m )
 {
     int capacity = 10;
-    token_t *tokens = (token_t *) malloc(sizeof(token_t) * capacity);
-    assert(tokens != NULL);
+    int rv;
+
+    token_t *tokens;
+    if ( (tokens = malloc(sizeof(token_t) * capacity)) == NULL )
+         return ENOMEM;
 
     token_t tok;
     int idx = 0;
 
-    do { 
-        program->token_idx++;
+    while( ++program->token_idx < program->n_tokens ){ 
+
         tok = program->tokens[program->token_idx];
 
         if (tok.type == TOK_MACRO_START) {
             goToMacroEnd(program);
-        }
-        
-        if (tok.type == TOK_MACRO_END) {
+            continue;
+        }else if (tok.type == TOK_MACRO_END) {
             break;
         }
 
-        addToken(&tokens, &capacity, &idx, tok);
-        //printf("%s: %d:%d\n", tok.token, tok.line, tok.column);
-    } while (true);
+        rv = addToken(&tokens, &capacity, &idx, tok);
+        if (rv)
+          return rv;
+    }
 
     char *name = NULL;
     if (idx > 0) {
-        tokens = (token_t *) realloc(tokens, sizeof(token_t) * idx);
-        assert(tokens != NULL);
-
-        name = tokens[0].token;
+        name = malloc( strlen(tokens[0].token) + 1 );
+        strcpy( name, tokens[0].token );
     } else {
         free(tokens);
-
         tokens = NULL;
         idx = 0;
     }
 
-    m->name = name;
-    m->tokens = tokens;
+    m->name     = strdup(name);
+    m->tokens   = tokens;
     m->n_tokens = idx;
+
+    return EXIT_SUCCESS;
 }
 
 void defineMode( program_t *program )
@@ -77,7 +114,6 @@ void defineMode( program_t *program )
     if (m->name != NULL) {
         add_macro(program, m);
     }
-    free(m);
 }
 
 // Expand mode for program->tokens
@@ -104,9 +140,9 @@ void process_macros( program_t *program )
                     expandMode(program);
             break;
             default:
-                program->token_idx++;
             break;
         }
+        program->token_idx++;
     }
 }
 

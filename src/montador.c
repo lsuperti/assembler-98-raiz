@@ -103,6 +103,7 @@ program_t* createProgram( FILE *file )
     program->externs      = NULL;
     program->n_externs    = 0;
     program->macros       = NULL;
+    program->n_macros     = 0;
 
     return program;
 }

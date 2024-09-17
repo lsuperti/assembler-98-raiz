@@ -141,6 +141,7 @@ typedef struct _program_t{
     int             c_row;
     int             c_col;
     MACRO_T        *macros;
+    size_t          n_macros;
 } program_t;
 
 token_t*        getNextToken( program_t *program );
