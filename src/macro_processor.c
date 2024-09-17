@@ -35,9 +35,12 @@ void tokenizeMacro( program_t *program, MACRO_T *m )
         //printf("%s: %d:%d\n", tok.token, tok.line, tok.column);
     } while (true);
 
+    char *name = NULL;
     if (idx > 0) {
         tokens = (token_t *) realloc(tokens, sizeof(token_t) * idx);
         assert(tokens != NULL);
+
+        name = tokens[0].token;
     } else {
         free(tokens);
 
@@ -45,6 +48,7 @@ void tokenizeMacro( program_t *program, MACRO_T *m )
         idx = 0;
     }
 
+    m->name = name;
     m->tokens = tokens;
     m->n_tokens = idx;
 }
@@ -53,6 +57,11 @@ void defineMode( program_t *program )
 {
     MACRO_T *m = malloc( sizeof( MACRO_T ) ); 
     tokenizeMacro(program, m);
+
+    if (m->name != NULL) {
+        add_macro(program, m);
+    }
+    free(m);
 }
 
 // Expand mode for program->tokens
