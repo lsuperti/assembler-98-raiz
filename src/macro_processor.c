@@ -1,10 +1,58 @@
 
 #include "macro_processor.h"
+#include "montador.h"
+
+void addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
+{
+    if (*idx >= *capacity) {
+        *capacity *= 2;
+        *tokens = (token_t *) realloc(*tokens, sizeof(token_t) * (*capacity));
+        assert(*tokens != NULL);
+    }
+
+    (*tokens)[*idx] = tok;
+    (*idx)++;
+}
+
+void tokenizeMacro( program_t *program, MACRO_T *m )
+{
+    int capacity = 10;
+    token_t *tokens = (token_t *) malloc(sizeof(token_t) * capacity);
+    assert(tokens != NULL);
+
+    token_t tok;
+    int idx = 0;
+
+    do { 
+        program->token_idx++;
+        tok = program->tokens[program->token_idx];
+        
+        if (tok.type == TOK_MACRO_END) {
+            break;
+        }
+
+        addToken(&tokens, &capacity, &idx, tok);
+        //printf("%s: %d:%d\n", tok.token, tok.line, tok.column);
+    } while (true);
+
+    if (idx > 0) {
+        tokens = (token_t *) realloc(tokens, sizeof(token_t) * idx);
+        assert(tokens != NULL);
+    } else {
+        free(tokens);
+
+        tokens = NULL;
+        idx = 0;
+    }
+
+    m->tokens = tokens;
+    m->n_tokens = idx;
+}
 
 void defineMode( program_t *program )
 {
     MACRO_T *m = malloc( sizeof( MACRO_T ) ); 
-
+    tokenizeMacro(program, m);
 }
 
 // Expand mode for program->tokens
