@@ -53,6 +53,7 @@ enum t_types {
     TOK_LOCAL_LABEL  = 1330,
     TOK_LOCAL_IDENTIFIER = 1350,
     TOK_MACRO_END    = 1230,
+    TOK_BLANK        = 1632,
     T_TYPES_SIZE
 };
 
