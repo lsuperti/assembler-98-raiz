@@ -15,8 +15,8 @@ error printMacros( program_t *p )
     {
         if (entry)
         {
-            fprintf(stdout, "\nMACRO : %s, NUM_TOKENS : %lu\n",  entry->name,
-                    entry->n_tokens   );
+            fprintf(stdout, "\nMACRO : %s, NUM_TOKENS : %lu, NUM_PARAMS : %lu\n",  entry->name,
+                    entry->n_tokens, entry->n_params   );
             fflush(stdout);
             dirty_hack->tokens   = entry->tokens;
             dirty_hack->n_tokens = entry->n_tokens;
@@ -69,9 +69,16 @@ error tokenizeMacro( program_t *program, MACRO_T *m )
     token_t *tokens;
     if ( (tokens = malloc(sizeof(token_t) * capacity)) == NULL )
          return ENOMEM;
+        
+    token_t *params;
+    if ( (params = malloc(sizeof(token_t) * capacity)) == NULL )
+         return ENOMEM;
 
     token_t tok;
     int idx = 0;
+    int idx2 = 0;
+    bool get_params = true;
+    char *name = NULL;
 
     while( ++program->token_idx < program->n_tokens ){ 
 
@@ -80,28 +87,44 @@ error tokenizeMacro( program_t *program, MACRO_T *m )
         if (tok.type == TOK_MACRO_START) {
             goToMacroEnd(program);
             continue;
-        }else if (tok.type == TOK_MACRO_END) {
+        } else if (tok.type == TOK_MACRO_END) {
             break;
         }
 
-        rv = addToken(&tokens, &capacity, &idx, tok);
+        if (name == NULL) {
+            name = malloc( strlen(tok.token) + 1 );
+            strcpy( name, tok.token );
+            
+            continue;
+        }
+
+        if (get_params) {
+            rv = addToken(&params, &capacity, &idx2, tok);
+            //printf("NEW PARAM: %s\n", tok.token);
+    
+            if (tok.type == TOK_NEWLINE) {
+                get_params = false;
+            }
+        } else {
+            rv = addToken(&tokens, &capacity, &idx, tok);
+        }
         if (rv)
           return rv;
     }
 
-    char *name = NULL;
-    if (idx > 0) {
-        name = malloc( strlen(tokens[0].token) + 1 );
-        strcpy( name, tokens[0].token );
-    } else {
+    if (idx == 0) {
         free(tokens);
         tokens = NULL;
         idx = 0;
+        params = NULL;
+        idx2 = 0;
     }
 
     m->name     = strdup(name);
     m->tokens   = tokens;
     m->n_tokens = idx;
+    m->params   = params;
+    m->n_params = idx2;
 
     return EXIT_SUCCESS;
 }
