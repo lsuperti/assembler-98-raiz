@@ -90,9 +90,16 @@ error tokenizeMacro( program_t *program, MACRO_T *m )
     if ( (params = malloc(sizeof(token_t) * capacity)) == NULL )
          return ENOMEM;
 
+    MACRO_T *local_macros;
+    if ( (local_macros = malloc(sizeof(MACRO_T) * capacity)) == NULL )
+         return ENOMEM;
+    
     token_t tok;
+
     int idx = 0;
     int idx2 = 0;
+    int idx3 = 0;
+
     bool get_params = true;
     char *name = NULL;
 
@@ -132,16 +139,25 @@ error tokenizeMacro( program_t *program, MACRO_T *m )
     if ( idx <= 0 )
     {
         free(tokens);
-        tokens = NULL;
+        free(params);
+        free(local_macros);
+        
         idx = 0;
-        params = NULL;
+        tokens = NULL;
+
         idx2 = 0;
+        params = NULL;
+        
+        idx3 = 0;
+        local_macros = NULL;
     }
 
     m->tokens   = tokens;
     m->n_tokens = idx;
     m->params   = params;
     m->n_params = idx2;
+    m->local_macros = local_macros;
+    m->n_local_macros = idx3;
 
     return EXIT_SUCCESS;
 }

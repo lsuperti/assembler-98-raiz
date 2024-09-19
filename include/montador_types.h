@@ -94,7 +94,9 @@ typedef struct _MACRO_T {
     token_t *tokens;
     size_t   n_tokens; 
     token_t *params;
-    size_t   n_params; 
+    size_t   n_params;
+    struct _MACRO_T *local_macros;
+    size_t   n_local_macros;
     UT_hash_handle hh;
 } MACRO_T ;
 
