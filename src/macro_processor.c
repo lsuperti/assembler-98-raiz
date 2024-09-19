@@ -16,8 +16,8 @@ error printMacros( program_t *p )
         if (entry)
         {
             fprintf(stdout,
-            "\nMACRO : %s, NUM_TOKENS : %lu, NUM_PARAMS : %lu\n",  entry->name,
-                    entry->n_tokens, entry->n_params   );
+            "\nMACRO : %s, NUM_TOKENS : %lu, NUM_PARAMS : %lu, NUM_LOCAL_MACROS : %lu\n",  entry->name,
+                    entry->n_tokens, entry->n_params, entry->n_local_macros   );
             fflush(stdout);
             dirty_hack->tokens   = entry->tokens;
             dirty_hack->n_tokens = entry->n_tokens;
@@ -29,24 +29,6 @@ error printMacros( program_t *p )
     return EXIT_SUCCESS;
 }
 
-void goToMacroEnd( program_t *program )
-{
-    token_t tok;
-
-    program->token_idx++;
-    if ( program->token_idx < program->n_tokens ) 
-    {
-        tok = program->tokens[program->token_idx];
-    }else 
-    {
-        return;
-    }
-
-    if (tok.type != TOK_MACRO_END) {
-        goToMacroEnd(program);
-    }
-}
-
 error addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
 {
     if (*idx >= *capacity) {
@@ -56,6 +38,20 @@ error addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
     }
 
     (*tokens)[*idx] = tok;
+    (*idx)++;
+
+    return EXIT_SUCCESS;
+}
+
+error addMacro( MACRO_T **local_macros, int *capacity, int *idx, MACRO_T *m )
+{
+    if (*idx >= *capacity) {
+        *capacity *= 2;
+        if ( (*local_macros = realloc( *local_macros, sizeof(MACRO_T) * (*capacity))) == NULL )
+            return ENOMEM;
+    }
+
+    (*local_macros)[*idx] = *m;
     (*idx)++;
 
     return EXIT_SUCCESS;
@@ -108,7 +104,10 @@ error tokenizeMacro( program_t *program, MACRO_T *m )
         tok = program->tokens[program->token_idx];
 
         if (tok.type == TOK_MACRO_START) {
-            goToMacroEnd(program);
+            MACRO_T *m2 = malloc( sizeof( MACRO_T ) ); 
+            tokenizeMacro(program, m2);
+            addMacro(&local_macros, &capacity, &idx3, m2);
+
             continue;
         } else if (tok.type == TOK_MACRO_END) {
             break;
