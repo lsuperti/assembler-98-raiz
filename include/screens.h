@@ -6,6 +6,7 @@
 #include "montador.h"
 #include "global.h"
 #include "program.h"
+#include "macro_processor.h"
 #include "helper.h"
 #include "types.h"
 #include "maquina.h"

@@ -53,12 +53,18 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
     program->table        = NULL;
     program->program_size = strlen(source);
     program->globals      = NULL;
-    program->c_row       = 0;
+    program->c_row        = 0;
     program->n_globals    = 0;
     program->externs      = NULL;
     program->n_externs    = 0;
+    program->macros       = NULL;
+    program->n_macros     = 0;
+    program->cur_macro_params = NULL;
 
     tokenize(program);
+    process_macros(program);
+    printMacros(program);
+    printTokens(program);
     parse(program);
     FILE *o = fopen( current_binary, "w" );
     generateOutput( program, o );
