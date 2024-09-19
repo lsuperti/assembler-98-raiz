@@ -121,8 +121,10 @@ error_rv tokenizeMacro( program_t *program, MACRO_T *m )
     int idx2 = 0;
     int idx3 = 0;
 
-    bool get_params = true;
+    bool get_params   = true;
     char *name = NULL;
+    size_t v_p = 0, bl_counter = 0;
+    bool blank_params = false;
 
     while( ++program->token_idx < program->n_tokens ){ 
 
@@ -130,6 +132,13 @@ error_rv tokenizeMacro( program_t *program, MACRO_T *m )
 
         program->tokens[program->token_idx] =
             *createBlankToken( tok.line, tok.column, tok.offset );
+
+        if ( blank_params )
+        {
+             if ( ++bl_counter == v_p )
+                 blank_params=false;
+             continue;
+        }
 
         if (name == NULL) {
             if ( ( name = malloc( strlen(tok.token) + 1 ) ) == NULL )
@@ -145,6 +154,28 @@ error_rv tokenizeMacro( program_t *program, MACRO_T *m )
             continue;
         } else if (tok.type == TOK_MACRO_END) {
             break;
+        } else if (tok.type == TOK_IDENTIFIER )
+        {
+            MACRO_T *lm = find_macro(program, tok.token);
+            int n       = compute_nargs(program);
+            if ( lm != NULL )
+            {
+                if ( n == lm->n_params )
+                {
+                    ++lm->called;
+                    size_t n_tokens = idx;
+                    rv = expandMode( &tokens, &n_tokens,
+                            idx, lm, program->cur_macro_params, program );
+                    if (rv)
+                        return rv;
+                    idx=n_tokens;
+                    capacity=idx;
+                    bl_counter = 0;
+                    v_p = lm->n_params;
+                    blank_params = true;
+                    continue;
+                }
+            }
         }
 
         if (get_params) {
@@ -240,7 +271,8 @@ void trimToken(token_t *t) {
 // Which will be different than the one used 
 // when on defineMode.
 error_rv expandMode( 
-  token_t **tokens, size_t *n_tokens, int tok_idx, MACRO_T *m, token_t *p_values )
+  token_t **tokens, size_t *n_tokens, int tok_idx, MACRO_T *m, token_t *p_values
+  , program_t *program )
 {
     size_t new_size;
     new_size = ((*n_tokens) + m->n_tokens);
@@ -377,6 +409,46 @@ error_rv expandMode(
     }
 
     *n_tokens = new_size;
+    bool local = false;
+
+    // Define all local macros for this expanded macro
+    // put them in the global program->macros
+    for ( int i=0; i < m->n_local_macros; i++ ) 
+    {
+        MACRO_T *c_l = &m->local_macros[i];
+        for ( int j=0; j < m->n_params; j++ )
+        {
+            for ( int k=0; k < c_l->n_params; k++ )
+            {
+                if ( strcmp(c_l->params[k].token, m->params[j].token) == 0 )
+                {
+                     local = true;
+                     break;
+                }
+            }
+
+            if ( local == false )
+            {
+                // Formals
+                token_t param = m->params[j];
+                for ( int b=0; b < c_l->n_tokens; b++ )
+                {
+                       if ( strcmp( param.token, c_l->tokens[b].token)
+                            == 0 ) 
+                       {
+                            c_l->tokens[b] = p_values[j]; 
+                       }
+                }
+            }
+            local = false;
+        }
+        MACRO_T *mt = find_macro( program, c_l->name );
+        if ( mt == NULL )
+            add_macro(program, &m->local_macros[i]);
+        else 
+            replace_macro(program, &m->local_macros[i], mt);
+    }
+
     return EXIT_SUCCESS;
 }
 
@@ -454,7 +526,7 @@ void process_macros( program_t *program )
                         ++m->called;
                         rv = expandMode(&(program->tokens), &(program->n_tokens),
                                     program->token_idx, m,
-                                    program->cur_macro_params);
+                                    program->cur_macro_params, program);
                         if (rv)
                            return;
                     }
@@ -473,6 +545,11 @@ void process_macros( program_t *program )
 void add_macro( program_t *program, MACRO_T *macro ) 
 {
     HASH_ADD_STR( program->macros, name, macro );
+}
+
+void replace_macro( program_t *program, MACRO_T *m1, MACRO_T *m2 )
+{
+    HASH_REPLACE_STR( program->macros, name, m1, m2 );
 }
 
 MACRO_T *find_macro( program_t *program, char *name )

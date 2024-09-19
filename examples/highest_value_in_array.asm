@@ -1,6 +1,11 @@
 
 global main
 
+%macro SUM ONE TWO
+     LOAD ONE
+     ADD TWO
+%endmacro
+
 %macro UPDATE_MAX label
     LOAD   label
     SUB    max_
@@ -10,15 +15,10 @@ global main
 %%keep_max:
 %endmacro
 
-%macro SUM ONE TWO
-    LOAD ONE
-    ADD TWO
-%endmacro
-
 section .text
 
     main:
-    UPDATE_MAX value0 
+    UPDATE_MAX value0
     UPDATE_MAX value1
     UPDATE_MAX value2
     UPDATE_MAX value3

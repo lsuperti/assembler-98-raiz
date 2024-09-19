@@ -10,13 +10,14 @@
    assign MO NS
 %endmacro
 
-%macro do_anything    MON
+%macro do_anything    MON2
     %macro do_nothing MON XY
         RET
         RET
         ADD MON
         STORE XY
-        STORE LET
+        ADD  MON2
+        STORE MON
     %endmacro
     LOAD 20
     ADD  MON
