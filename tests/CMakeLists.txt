@@ -14,6 +14,7 @@ file(GLOB MONTADOR_SOURCES
     ../src/montador.c
     ../src/parser.c
     ../src/global.c
+    ../src/helper.c
     ../src/data_structures.c
     ../src/architecture.c
 )
@@ -23,6 +24,7 @@ file(GLOB PROCESSADOR_MACROS_SOURCES
     ../src/montador.c
     ../src/global.c
     ../src/parser.c
+    ../src/helper.c
     ../src/data_structures.c
     ../src/architecture.c
 )

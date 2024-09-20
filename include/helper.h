@@ -26,5 +26,6 @@ void setup_tree_view(GtkWidget *treeview, GtkCellRenderer *renderer,
 void onDestroy(GtkWidget *widget, gpointer data); 
 int is_copy(int inst);
 int is_empty_line(const char *line);
+unsigned long hash(unsigned char *str);
 
 #endif // HELPER_H

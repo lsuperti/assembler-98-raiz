@@ -2,6 +2,7 @@
 #define MACRO_PROCESSOR_H
 
 #include "montador_types.h"
+#include "helper.h"
 
 #define error_rv int
 #define _EINVAL -1*(EINVAL)

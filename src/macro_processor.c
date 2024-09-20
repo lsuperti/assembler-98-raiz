@@ -354,11 +354,13 @@ error_rv expandMode(
     // Replacement of local labels and identifiers for
     // a generalized call by the convention : 
     // { macro_name }_{ hash }_{ called }_{ (label || ident)_name }
-    int hash_size = 5;
     for ( int i=0; i < m->n_tokens; i++ )
     {
         token_t t = (* tokens)[ i + tok_idx ];
+        unsigned long h = hash( (unsigned char *) m->name );
         char *orf;
+        char *h_prefix = malloc(sizeof(h));
+        sprintf( h_prefix, "%lu", h);
 
         if ( t.type == TOK_LOCAL_LABEL )
         {
@@ -372,13 +374,13 @@ error_rv expandMode(
             sprintf( called_str, "%lu", m->called );
 
             char *lb_name = malloc( strlen(m->name) + 
-                            hash_size + strlen(called_str)
+                            strlen(h_prefix) + strlen(called_str)
                             + strlen(t.token) + 4 );
 
             strcpy( lb_name, m->name );
             strcat( lb_name, "_" );
             // Fazer a hash depois.
-            strcat( lb_name, "HASH" );
+            strcat( lb_name, h_prefix );
             strcat( lb_name, "_" );
             strcat( lb_name, called_str);
             strcat( lb_name, "_" );
@@ -398,17 +400,19 @@ error_rv expandMode(
             sprintf( called_str, "%lu", m->called );
 
             char *lb_name = malloc( strlen(m->name) + 
-                            hash_size + strlen(called_str)
+                            strlen(h_prefix) + strlen(called_str)
                             + strlen(t.token) + 4 );
 
             strcpy( lb_name, m->name );
             strcat( lb_name, "_" );
             // Fazer a hash depois.
-            strcat( lb_name, "HASH" );
+            strcat( lb_name, h_prefix );
             strcat( lb_name, "_" );
             strcat( lb_name, called_str);
             strcat( lb_name, "_" );
             strcat( lb_name, orf );
+
+
             (* tokens)[ i + tok_idx ].type  = TOK_IDENTIFIER;
             (* tokens)[ i + tok_idx ].token = lb_name;
 
@@ -560,6 +564,7 @@ void add_macro( program_t *program, MACRO_T *macro )
     HASH_ADD_STR( program->macros, name, macro );
 }
 
+// m1 -> m2 ;
 void replace_macro( program_t *program, MACRO_T *m1, MACRO_T *m2 )
 {
     HASH_REPLACE_STR( program->macros, name, m1, m2 );

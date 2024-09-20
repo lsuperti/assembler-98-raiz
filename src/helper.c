@@ -5,6 +5,24 @@
 #include "types.h"
 #include <ctype.h>
 
+/*
+ * hash implementation that uses the 
+ * djb2 algorithm. 
+ * http://www.cse.yorku.ca/~oz/hash.html
+*/
+
+unsigned long
+hash(unsigned char *str)
+{
+    unsigned long hash = 5381;
+    int c;
+
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+    return hash;
+}
+
 void append_text_to_text_view(GtkTextView *text_view, const char *text){
     GtkTextBuffer *buffer;
     GtkTextIter end;
