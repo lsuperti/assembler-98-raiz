@@ -970,6 +970,7 @@ token_t nextToken( program_t *program ) {
                     temp[c++] = ':';
                     temp[c] = '\0';
                     token_n->token   = temp;
+                    token_n->formal  = strdup(temp);
                     token_n->defined = true;
                     token_n->value   = -1;
                     token_n->type    = TOK_LABEL;
@@ -980,13 +981,15 @@ token_t nextToken( program_t *program ) {
                         char *prefix = malloc(3 + strlen(temp) );
                         strcpy( prefix, "%%" ); 
                         strcat( prefix, temp );
-                        token_n->token = prefix;
+                        token_n->token  = prefix;
+                        token_n->formal = strdup(prefix);
                         free(temp);
                         token_n->type  = TOK_LOCAL_LABEL;
                     }
                 }else 
                 {
                     token_n->token   = temp;
+                    token_n->formal  = strdup(temp);
                     token_n->defined = false;
                     token_n->value   = -1;
                     token_n->type    = TOK_IDENTIFIER;
@@ -996,6 +999,7 @@ token_t nextToken( program_t *program ) {
                         strcpy( prefix, "%%" ); 
                         strcat( prefix, temp );
                         token_n->token = prefix;
+                        token_n->token = strdup(prefix);
                         free(temp);
                         token_n->type = TOK_LOCAL_IDENTIFIER;
                     }
