@@ -164,7 +164,11 @@ Test( macro_processor_suite, test_SIMPLE_MACRO )
         "     LOAD value \n"
         "     SUM_TWO value 0x320 \n"
         " section .data  \n"
-        "   value: .word 50  \n";
+        "   value: .word 50  \n"
+        " %macro EXIT CODE\n"
+        "       PUT CODE \n"
+        "       RET \n"
+        " %endmacro\n";
 
     fprintf(input, "%s", input_test);
     fclose(input);
@@ -172,11 +176,14 @@ Test( macro_processor_suite, test_SIMPLE_MACRO )
     program_t *program = createProgram(input);    
     fclose(input);
     tokenize(program);
+    fprintf(stdout, "HELOL");
+    fflush(stdout);
     process_macros(program);
     printMacros(program);
     fprintf(stdout, "\n\n");
     fflush(stdout);
     printTokens(program);
+    parse(program);
     
 }
 

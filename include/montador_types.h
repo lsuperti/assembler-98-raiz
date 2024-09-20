@@ -78,6 +78,7 @@ enum t_types {
 */
 typedef struct _token_t {
     char   *token;
+    char   *formal;
     enum   t_types type;
     bool   defined;
     word_t value;

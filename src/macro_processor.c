@@ -225,7 +225,14 @@ void defineMode( program_t *program )
     tokenizeMacro(program, m);
 
     if (m->name != NULL) {
-        add_macro(program, m);
+        MACRO_T *o_m = find_macro( program, m->name );
+        if ( o_m == NULL ) 
+            add_macro(program, m);
+        else 
+        {
+            replace_macro(program, m, o_m);
+            free(o_m);
+        }
     }
 }
 
@@ -433,11 +440,15 @@ error_rv expandMode(
                 token_t param = m->params[j];
                 for ( int b=0; b < c_l->n_tokens; b++ )
                 {
-                       if ( strcmp( param.token, c_l->tokens[b].token)
+                    if ( c_l->tokens[b].formal != NULL )
+                    {
+                       if ( strcmp( param.token, c_l->tokens[b].formal)
                             == 0 ) 
                        {
+                            p_values[j].formal = strdup(c_l->tokens[b].formal);
                             c_l->tokens[b] = p_values[j]; 
                        }
+                    }
                 }
             }
             local = false;
@@ -446,7 +457,9 @@ error_rv expandMode(
         if ( mt == NULL )
             add_macro(program, &m->local_macros[i]);
         else 
+        {
             replace_macro(program, &m->local_macros[i], mt);
+        }
     }
 
     return EXIT_SUCCESS;
