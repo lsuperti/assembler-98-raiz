@@ -53,6 +53,7 @@ enum t_types {
     TOK_LOCAL_LABEL  = 1330,
     TOK_LOCAL_IDENTIFIER = 1350,
     TOK_MACRO_END    = 1230,
+    TOK_BLANK        = 1632,
     T_TYPES_SIZE
 };
 
@@ -92,6 +93,11 @@ typedef struct _MACRO_T {
     char    *name;
     token_t *tokens;
     size_t   n_tokens; 
+    token_t *params;
+    size_t   n_params;
+    struct _MACRO_T *local_macros;
+    size_t   n_local_macros;
+    size_t   called;
     UT_hash_handle hh;
 } MACRO_T ;
 
@@ -141,6 +147,8 @@ typedef struct _program_t{
     int             c_row;
     int             c_col;
     MACRO_T        *macros;
+    size_t          n_macros;
+    token_t        *cur_macro_params;
 } program_t;
 
 token_t*        getNextToken( program_t *program );

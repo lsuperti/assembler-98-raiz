@@ -92,3 +92,49 @@ ou
 -> Dentro do MSYS2 
 - pacman -S mingw-w64-x86_64-glade
 
+# Docker para ubuntu
+
+## Instalação do Docker
+
+```
+sudo apt-get install docker
+```
+
+## Build do projeto
+
+```
+docker build -t a98r . 
+```
+
+## Liberar acesso à interface
+```
+xhost +local:root
+```
+
+## Rodar o projeto
+```
+docker run -it --rm \
+    -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    a98r
+```
+
+## Remover acesso a interface
+```
+xhost -local:root
+```
+
+## Passos para build dos testes ( Opcional ) :
+
+- Permaneça com o projeto rodando
+- Identifique o container através do seu ID:
+```
+docker ps
+```
+- Após identificado: 
+```
+docker exec -it <ID> bash
+cd tests
+./unix-run-tests.sh
+```
+

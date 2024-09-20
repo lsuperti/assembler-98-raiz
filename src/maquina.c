@@ -8,6 +8,7 @@
 #include "montador.h"
 #include "helper.h"
 #include "stack.h"
+#include "macro_processor.h"
 #include "architecture.h"
 
 bool running = false;

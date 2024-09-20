@@ -13,6 +13,12 @@ typedef struct _Vector {
     size_t size;
 } Vector;
 
+typedef struct _GenericVector{
+    void  *array;
+    size_t used;
+    size_t size;
+} GenericVector;
+
 void initVector( Vector *a, size_t initialSize );
 void insert( Vector *a, int element );
 void freeVector( Vector *a );

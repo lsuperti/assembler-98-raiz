@@ -88,21 +88,23 @@ program_t* createProgram( FILE *file )
       fclose(file),free(buffer),fputs("Entire read fails",stderr),exit(1);
 
     buffer[lSize] = '\0';
-    program->source       = buffer;
-    program->HEAD         = 0;             
-    program->tokens       = NULL;
-    program->token_idx    = 0;
-    program->n_tokens     = 0;
-    program->sections     = NULL;
-    program->table        = NULL;
-    program->program_size = lSize;
-    program->globals      = NULL;
-    program->c_row        = 1;
-    program->c_col        = 1;
-    program->n_globals    = 0;
-    program->externs      = NULL;
-    program->n_externs    = 0;
-    program->macros       = NULL;
+    program->source           = buffer;
+    program->HEAD             = 0;             
+    program->tokens           = NULL;
+    program->token_idx        = 0;
+    program->n_tokens         = 0;
+    program->sections         = NULL;
+    program->table            = NULL;
+    program->program_size     = lSize;
+    program->globals          = NULL;
+    program->c_row            = 1;
+    program->c_col            = 1;
+    program->n_globals        = 0;
+    program->externs          = NULL;
+    program->n_externs        = 0;
+    program->macros           = NULL;
+    program->n_macros         = 0;
+    program->cur_macro_params = NULL;
 
     return program;
 }

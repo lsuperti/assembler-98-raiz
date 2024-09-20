@@ -34,12 +34,10 @@ Test(montador_suite, test_CREATE_PROGRAM) {
 Test( montador_suite, test_FIBONNACI ) 
 {
    program_t *program = assembleProgram("../fibonnaci.asm", "fibonnaci.elf98");
-   printTokens(program);
 }
 
 Test(montador_suite, test_NEXT_TOKEN)
 {
-
     FILE *input = fopen("test_next_token", "w");
     assert(input != NULL );
     char source[] = 
