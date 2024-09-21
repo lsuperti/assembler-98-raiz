@@ -427,6 +427,14 @@ token_t nextToken( program_t *program ) {
                 reserved = true;
             }
         break;
+        case '|':
+           token_n->token   = "|";
+           token_n->defined = true;
+           token_n->value   = -1;
+           token_n->type    = TOK_PARAM_DELIMITER;
+           reserved = true;
+           break;
+        break;
         case 'S':
             if ( peek(program->source, program->HEAD - 1) 
                  == 'T'
@@ -1296,6 +1304,17 @@ void parse( program_t *program )
             case TOK_PUT:
                 if( parsePUT(program, tok) <= -1 )
                     return;
+            break;
+            case TOK_DIVIDE:
+                if( parseDIVIDE(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_MULT:
+                if( parseMULT(program, tok) <= -1 )
+                    return;
+            break;
+            case TOK_RET:
+               insert( program->sections->dot_text, RET ); 
             break;
 
             default:

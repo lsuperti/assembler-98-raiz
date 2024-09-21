@@ -3,10 +3,6 @@
 #include <errno.h>
 #include "montador.h"
 
-//void shiftDownTokens( token_t **tokens )
-//{
-//}
-
 error_rv printMacros( program_t *p ) 
 {
     MACRO_T *entry, *tmp; 
@@ -21,7 +17,10 @@ error_rv printMacros( program_t *p )
         {
             fprintf(stdout,
             "\nMACRO : %s, NUM_TOKENS : %lu, NUM_PARAMS : %lu, NUM_LOCAL_MACROS : %lu\n",  entry->name,
-                    entry->n_tokens, entry->n_params, entry->n_local_macros   );
+            entry->n_tokens, entry->n_params, entry->n_local_macros   );
+            for ( int i=0; i < entry->n_params; i++ )
+            {
+            }
             fflush(stdout);
             dirty_hack->tokens   = entry->tokens;
             dirty_hack->n_tokens = entry->n_tokens;
@@ -123,8 +122,6 @@ error_rv tokenizeMacro( program_t *program, MACRO_T *m )
 
     bool get_params   = true;
     char *name = NULL;
-    size_t v_p = 0, bl_counter = 0;
-    bool blank_params = false;
 
     while( ++program->token_idx < program->n_tokens ){ 
 
@@ -132,13 +129,6 @@ error_rv tokenizeMacro( program_t *program, MACRO_T *m )
 
         program->tokens[program->token_idx] =
             *createBlankToken( tok.line, tok.column, tok.offset );
-
-        if ( blank_params )
-        {
-             if ( ++bl_counter == v_p )
-                 blank_params=false;
-             continue;
-        }
 
         if (name == NULL) {
             if ( ( name = malloc( strlen(tok.token) + 1 ) ) == NULL )
@@ -152,34 +142,12 @@ error_rv tokenizeMacro( program_t *program, MACRO_T *m )
             tokenizeMacro(program, m2);
             addMacro(&local_macros, &capacity, &idx3, m2);
             continue;
-        } else if (tok.type == TOK_MACRO_END) {
+        } else if (tok.type == TOK_MACRO_END) 
             break;
-        } else if (tok.type == TOK_IDENTIFIER )
-        {
-            MACRO_T *lm = find_macro(program, tok.token);
-            int n       = compute_nargs(program);
-            if ( lm != NULL )
-            {
-                if ( n == lm->n_params )
-                {
-                    ++lm->called;
-                    size_t n_tokens = idx;
-                    rv = expandMode( &tokens, &n_tokens,
-                            idx, lm, program->cur_macro_params, program );
-                    if (rv)
-                        return rv;
-                    idx=n_tokens;
-                    capacity=idx;
-                    bl_counter = 0;
-                    v_p = lm->n_params;
-                    blank_params = true;
-                    continue;
-                }
-            }
-        }
 
         if (get_params) {
-            if ( tok.type != TOK_IDENTIFIER ) {
+            if ( tok.type == TOK_PARAM_DELIMITER ||
+                 tok.type != TOK_IDENTIFIER ) {
                 get_params = false;
                 rv = addToken(&tokens, &capacity, &idx, tok);
             }else {
@@ -252,15 +220,10 @@ void shiftTokens_reverse_by_amnt( token_t *tokens, size_t last_tok,
    }
 }
 
-int calculateDigits( int n_ )
-{
-    int count = 0, local_n = n_;
-  //  while ( local_n >= 0 )
-  //  {
-  //      local_n /= 10;
-  //      count++;
-  //  }
-    return count;
+int calculateDigits(int n) {
+    if (n < 0) return calculateDigits((n == INT_MIN) ? INT_MAX: -n);
+    if (n < 10) return 1;
+    return 1 + calculateDigits(n / 10);
 }
 
 void trimToken(token_t *t) {
@@ -317,7 +280,10 @@ error_rv expandMode(
         {
             if ( m->tokens != NULL )
             {
-                if ( strcmp((*tokens)[i + tok_idx].token, c_param_formal.token) == 0 ) 
+               
+                if ( strncmp((*tokens)[i + tok_idx].token, c_param_formal.token,
+                            strlen(c_param_formal.token) )
+                        == 0 ) 
                 {
                     if ( c_param_value.type != TOK_ADDRESSING )
                         (*tokens)[i + tok_idx] = c_param_value;
@@ -333,7 +299,7 @@ error_rv expandMode(
                       //    == NULL ) 
                       //          return ENOMEM;
 
-                        ad_tk = true;
+                      //  ad_tk = true;
 
                       //  shiftTokens_reverse_by_amnt( *tokens, new_size - 1,
                       //          i + tok_idx, 2 ); 
@@ -359,7 +325,7 @@ error_rv expandMode(
         token_t t = (* tokens)[ i + tok_idx ];
         unsigned long h = hash( (unsigned char *) m->name );
         char *orf;
-        char *h_prefix = malloc(sizeof(h));
+        char *h_prefix = malloc( sizeof(h) );
         sprintf( h_prefix, "%lu", h);
 
         if ( t.type == TOK_LOCAL_LABEL )
@@ -370,12 +336,12 @@ error_rv expandMode(
                 orf[i - 2] = t.token[i];
             orf[ len - 2 ] = '\0';
 
-            char   *called_str = malloc( calculateDigits( m->called ) );
+            char   *called_str = malloc( calculateDigits( m->called ) + 1 );
             sprintf( called_str, "%lu", m->called );
 
             char *lb_name = malloc( strlen(m->name) + 
                             strlen(h_prefix) + strlen(called_str)
-                            + strlen(t.token) + 4 );
+                            + strlen(t.token) + 15 );
 
             strcpy( lb_name, m->name );
             strcat( lb_name, "_" );
@@ -396,12 +362,12 @@ error_rv expandMode(
                 orf[i - 2] = t.token[i];
             orf[ len - 2 ] = '\0';
 
-            char   *called_str = malloc( calculateDigits( m->called ) );
+            char   *called_str = malloc( calculateDigits( m->called ) + 1 );
             sprintf( called_str, "%lu", m->called );
 
             char *lb_name = malloc( strlen(m->name) + 
                             strlen(h_prefix) + strlen(called_str)
-                            + strlen(t.token) + 4 );
+                            + strlen(t.token) + 15 );
 
             strcpy( lb_name, m->name );
             strcat( lb_name, "_" );
@@ -431,23 +397,26 @@ error_rv expandMode(
         {
             for ( int k=0; k < c_l->n_params; k++ )
             {
-                if ( strcmp(c_l->params[k].token, m->params[j].token) == 0 )
-                {
-                     local = true;
-                     break;
-                }
+                
+                    if ( strncmp(c_l->params[k].formal, m->params[j].formal, 
+                                 strlen(c_l->params[k].formal) ) == 0 )
+                    {
+                         local = true;
+                         break;
+                    }
             }
 
-            if ( local == false )
+            if ( !local )
             {
                 // Formals
                 token_t param = m->params[j];
                 for ( int b=0; b < c_l->n_tokens; b++ )
                 {
-                    if ( c_l->tokens[b].formal != NULL )
+                    token_t  tok = c_l->tokens[b]; 
+                    if ( tok.formal != NULL )
                     {
-                       if ( strcmp( param.token, c_l->tokens[b].formal)
-                            == 0 ) 
+                       if ( strncmp( param.formal, c_l->tokens[b].token, 
+                            strlen(c_l->tokens[b].token) ) == 0 ) 
                        {
                             p_values[j].formal = strdup(c_l->tokens[b].formal);
                             c_l->tokens[b] = p_values[j]; 

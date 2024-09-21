@@ -9,6 +9,8 @@ int parseAddressing( program_t *program, token_t* c_tok );
 int parseRead( program_t *program, token_t* c_tok);
 int parsePUT( program_t *program, token_t *c_tok ); 
 int parseLoad( program_t *program, token_t* c_tok);
+int parseDIVIDE( program_t *program, token_t* c_tok);
+int parseMULT( program_t *program, token_t* c_tok);
 int parseStore( program_t *program, token_t* c_tok);
 int parseBR( program_t *program, token_t* c_tok);
 int parseRET( program_t *program, token_t* c_tok);

@@ -1,9 +1,14 @@
 
-global main
+    global main
 
 %macro SUM ONE TWO
      LOAD ONE
      ADD TWO
+     %macro M_D p1 p2 
+        LOAD   p1
+        MULT   p2
+        ADD    ONE
+     %endmacro
 %endmacro
 
 %macro UPDATE_MAX label
@@ -13,6 +18,12 @@ global main
     LOAD   label
     STORE  max_
 %%keep_max:
+%endmacro
+
+%macro TESTING_ p1 p2 p3 |
+   SUM   p1 p2 
+   STORE p3
+   M_D   p1 p2
 %endmacro
 
 section .text
@@ -26,6 +37,7 @@ section .text
     UPDATE_MAX value5
     UPDATE_MAX value6
     PUT max_
+    TESTING_   20 30 summed
     STOP
 
 
@@ -33,6 +45,7 @@ section .data
     -- Array of values to find the maximum.
     num_elems: .word 7
     max_:      .space
+    summed:    .space
     value0:    .word 20
     value1:    .word 30
     value2:    .word 32
