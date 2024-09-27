@@ -60,6 +60,7 @@ program_t *assembleProgram( char *file_path, char *output_path )
    parse(program);
    FILE *o = fopen( output_path, "w" );
    generateOutput( program, o );
+   resetIdentifiers_Macros(program);
    fclose(o);
    return program;
 }
@@ -115,32 +116,32 @@ program_t* createProgram( FILE *file )
 void freeProgram( program_t *program )
 {
    if ( !program ) return;
-   if ( program->source )
+   if ( !program->source )
    {
        free(program->source);
        program->source = NULL;
    }
-   if ( program->sections ) {
+   if ( !program->sections ) {
        free(program->sections);
        program->sections = NULL;
    }
-   if ( program->table ) {
+   if ( !program->table ) {
        free(program->table);
        program->table = NULL;
    }
-   if ( program->tokens ) {
+   if ( !program->tokens ) {
        free(program->tokens);
        program->tokens = NULL;
    }
-   if ( program->globals ) {
+   if ( !program->globals ) {
        free(program->globals);
        program->globals = NULL;
    }
-   if ( program->externs ) {
+   if ( !program->externs ) {
        free(program->externs);
        program->externs = NULL;
    }
-   if ( program ) {
+   if ( !program ) {
        free(program);
        program = NULL;
    }
@@ -294,6 +295,19 @@ token_t hex_digit(program_t *program)
  * ( O próximo token no arquivo ) 
  *  Usa o index HEAD que começa em 0.
 */
+
+// TODO: o tokenizador pode ser melhorado
+// por que nesse momento se uma instrução for acompanhada
+// de uma nova linha e não um espaço não será reconhecida
+// como instrução e sim como identificador. 
+// a função isWhiteSpace faria o papel de reconhecer se há
+// um espaço a frente, algo parecido já foi feito 
+// é so tirar aquela parte do código e mudar um pouco a lógica.
+bool isWhiteSpace() 
+{
+    return false;
+}
+
 token_t nextToken( program_t *program ) { 
 
     token_t *token_n = (token_t *) malloc ( sizeof ( token_t ) );
@@ -323,14 +337,12 @@ token_t nextToken( program_t *program ) {
                     program->HEAD += 2;
                     program->c_row++;
                     program->c_col = 1;
-
                     return *token_n;
                 // CR
                 } else
                 {
                     program->HEAD++;
                     program->c_col = 1;
-
                     return *token_n;
                 }
                 break;
@@ -371,7 +383,7 @@ token_t nextToken( program_t *program ) {
         token_n->value   = -1;
         token_n->defined = true;
         token_n->offset  = program->HEAD;
-        token_n->line    = program->c_row;
+        token_n->line    = program->c_row + 1;
         token_n->column  = tok_col;
         return *token_n;
     }
@@ -416,14 +428,16 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD)
                  == 'A'
                  && peek(program->source, program->HEAD + 1) 
-                 == 'D' )
+                 == 'D' 
+                 && peek(program->source, program->HEAD + 2) 
+                 == ' ' )
             {
                 token_n->token   = "LOAD";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_LOAD;
-                program->HEAD    += 3;
-                program->c_col   += 3;
+                program->HEAD    += 4;
+                program->c_col   += 4;
                 reserved = true;
             }
         break;
@@ -432,8 +446,7 @@ token_t nextToken( program_t *program ) {
            token_n->defined = true;
            token_n->value   = -1;
            token_n->type    = TOK_PARAM_DELIMITER;
-           reserved = true;
-           break;
+           reserved         = true;
         break;
         case 'S':
             if ( peek(program->source, program->HEAD - 1) 
@@ -443,43 +456,47 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 'R' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 'E')
+                 == 'E'
+                 && peek(program->source, program->HEAD + 3) 
+                 == ' ')
             {
                 token_n->token   = "STORE";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_STORE;
-                program->HEAD    += 4;
-                program->c_col   += 4;
-                reserved = true;
+                program->HEAD    += 5;
+                program->c_col   += 5;
+                reserved         = true;
             }      //S 
             else if( peek(program->source, program->HEAD - 1)
                  == 'T'
                  && peek(program->source, program->HEAD)
                  == 'O'
                  && peek(program->source, program->HEAD + 1) 
-                 == 'P')
+                 == 'P' )
             {
                 token_n->token   = "STOP";
-                token_n->defined = false;
+                token_n->defined = true;
                 token_n->value   = 11;
                 token_n->type    = TOK_STOP;
                 program->HEAD    += 3;
                 program->c_col   += 3;
-                reserved = true;
+                reserved         = true;
             }      //S
             else if(peek(program->source, program->HEAD - 1)
                  == 'U'
                  && peek(program->source, program->HEAD)
-                 == 'B')
+                 == 'B'
+                 && peek(program->source, program->HEAD + 1)
+                 == ' ')
             {
                 token_n->token   = "SUB";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_SUB;
-                program->HEAD    += 2;
-                program->c_col   += 2;
-                reserved = true;
+                program->HEAD    += 3;
+                program->c_col   += 3;
+                reserved         = true;
             }
             else if (peek(program->source, program->HEAD - 1) 
                  == 'T'
@@ -488,15 +505,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 'C' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 'K')
+                 == 'K'
+                 && peek(program->source, program->HEAD + 3) 
+                 == ' ')
             {
                 token_n->token   = "STACK";
                 token_n->defined = true;
                 token_n->value   = -1;
                 token_n->type    = TOK_STACK;
-                program->HEAD    += 4;
-                program->c_col   += 4;
-                reserved = true;
+                program->HEAD    += 5;
+                program->c_col   += 5;
+                reserved         = true;
             }
         break;
         case 'B':
@@ -509,15 +528,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 2) 
                  == 'R'
                  && peek(program->source, program->HEAD + 3) 
-                 == 'O')
+                 == 'O'
+                 && peek(program->source, program->HEAD + 4) 
+                 == ' ')
             {
                 token_n->token   = "BRZERO";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_BRZERO;
-                program->HEAD    += 5;
-                program->c_col   += 5;
-                reserved = true;
+                program->HEAD    += 6;
+                program->c_col   += 6;
+                reserved         = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
                  == 'R'
@@ -526,15 +547,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 'O' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 'S')
+                 == 'S'
+                 && peek(program->source, program->HEAD + 3) 
+                 == ' ')
             {
                 token_n->token   = "BRPOS";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_BRPOS;
-                program->HEAD    += 4;
-                program->c_col   += 4;
-                reserved = true;
+                program->HEAD    += 5;
+                program->c_col   += 5;
+                reserved         = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
                  == 'R'
@@ -543,26 +566,30 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 'E' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 'G')
+                 == 'G'
+                 && peek(program->source, program->HEAD + 3) 
+                 == ' ')
             {
                 token_n->token   = "BRNEG";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_BRNEG;
-                program->HEAD    += 4;
-                program->c_col   += 4;
-                reserved = true;
+                program->HEAD    += 5;
+                program->c_col   += 5;
+                reserved         = true;
             }      //B
             else if(peek(program->source, program->HEAD - 1) 
-                 == 'R')
+                 == 'R'
+                 && peek(program->source, program->HEAD) 
+                 == ' ')
             {
                 token_n->token   = "BR";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_BR;
-                program->HEAD    += 1;
-                program->c_col   += 1;
-                reserved = true;
+                program->HEAD    += 2;
+                program->c_col   += 2;
+                reserved         = true;
             }
         break;
         case 'R':
@@ -571,20 +598,22 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD)
                  == 'A'
                  && peek(program->source, program->HEAD + 1) 
-                 == 'D')
+                 == 'D'
+                 && peek(program->source, program->HEAD + 2) 
+                 == ' ')
             {
                 token_n->token   = "READ";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_READ;
-                program->HEAD    += 3;
-                program->c_col   += 3;
-                reserved = true;
+                program->HEAD    += 4;
+                program->c_col   += 4;
+                reserved         = true;
             }
             else if(peek(program->source, program->HEAD - 1) 
                  == 'E'
                  && peek(program->source, program->HEAD)
-                 == 'T')
+                 == 'T' )
             {
                 token_n->token   = "RET";
                 token_n->defined = false;
@@ -592,7 +621,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_RET;
                 program->HEAD    += 2;
                 program->c_col   += 2;
-                reserved = true;
+                reserved         = true;
             }
         break;
         case 'C':
@@ -601,45 +630,51 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD)
                  == 'L'
                  && peek(program->source, program->HEAD + 1) 
-                 == 'L')
+                 == 'L'
+                 && peek(program->source, program->HEAD + 2) 
+                 == ' ')
             {
                 token_n->token   = "CALL";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_CALL;
-                program->HEAD    += 3;
-                program->c_col   += 3;
-                reserved = true;
+                program->HEAD    += 4;
+                program->c_col   += 4;
+                reserved         = true;
             }
             else if(peek(program->source, program->HEAD - 1) 
                  == 'O'
                  && peek(program->source, program->HEAD)
                  == 'P'
                  && peek(program->source, program->HEAD + 1) 
-                 == 'Y')
+                 == 'Y'
+                 && peek(program->source, program->HEAD + 2) 
+                 == ' ')
             {
                 token_n->token   = "COPY";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_COPY;
-                program->HEAD    += 3;
-                program->c_col   += 3;
-                reserved = true;
+                program->HEAD    += 4;
+                program->c_col   += 4;
+                reserved         = true;
             }
         break;
         case 'A':
             if(peek(program->source, program->HEAD - 1) 
                  == 'D'
                  && peek(program->source, program->HEAD)
-                 == 'D')
+                 == 'D'
+                 && peek(program->source, program->HEAD + 1)
+                 == ' ')
             {
                 token_n->token   = "ADD";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_ADD;
-                program->HEAD    += 2;
-                program->c_col   += 2;
-                reserved = true;
+                program->HEAD    += 3;
+                program->c_col   += 3;
+                reserved         = true;
             }
         break;
         case 'D':
@@ -652,15 +687,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 2)
                  == 'D'
                  && peek(program->source, program->HEAD + 3)
-                 == 'E')
+                 == 'E'
+                 && peek(program->source, program->HEAD + 4)
+                 == ' ')
             {
                 token_n->token   = "DIVIDE";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_DIVIDE;
-                program->HEAD    += 5;
-                program->c_col   += 5;
-                reserved = true;
+                program->HEAD    += 6;
+                program->c_col   += 6;
+                reserved         = true;
             }
         break;
         case 'M':
@@ -669,15 +706,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD)
                  == 'L'
                  && peek(program->source, program->HEAD + 1)
-                 == 'T')
+                 == 'T'
+                 && peek(program->source, program->HEAD + 2)
+                 == ' ')
             {
                 token_n->token   = "MULT";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_MULT;
-                program->HEAD    += 3;
-                program->c_col   += 3;
-                reserved = true;
+                program->HEAD    += 4;
+                program->c_col   += 4;
+                reserved         = true;
             }
         break;
         case 'W':
@@ -688,15 +727,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1)
                  == 'T'
                  && peek(program->source, program->HEAD + 2)
-                 == 'E')
+                 == 'E'
+                 && peek(program->source, program->HEAD + 3)
+                 == ' ')
             {
                 token_n->token   = "WRITE";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_WRITE;
-                program->HEAD    += 4;
-                program->c_col   += 4;
-                reserved = true;
+                program->HEAD    += 5;
+                program->c_col   += 5;
+                reserved         = true;
             }
         break;
         case '-': 
@@ -750,15 +791,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 3) 
                  == 'o'
                  && peek(program->source, program->HEAD + 4) 
-                 == 'n' )
+                 == 'n' 
+                 && peek(program->source, program->HEAD + 5) 
+                 == ' ' )
             {
                 token_n->token   = "section";
                 token_n->defined = true;
                 token_n->value   = -1;
                 token_n->type    = TOK_SECTION;
-                program->HEAD    += 6;
-                program->c_col   += 6;
-                reserved = true;
+                program->HEAD    += 7;
+                program->c_col   += 7;
+                reserved         = true;
             }
         break;
         case '%':
@@ -779,7 +822,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_MACRO_START;
                 program->HEAD    += 5;
                 program->c_col   += 5;
-                reserved = true;
+                reserved         = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'e'
                  && peek(program->source, program->HEAD)
@@ -803,7 +846,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_MACRO_END;
                 program->HEAD    += 8;
                 program->c_col   += 8;
-                reserved = true;
+                reserved         = true;
             }else if ( peek(program->source, program->HEAD - 1) == '%' )
             {
                 LOCAL_LABEL = true;
@@ -821,15 +864,17 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 2) 
                  == 'a' 
                  && peek(program->source, program->HEAD + 3) 
-                 == 'l' )
+                 == 'l'
+                 && peek(program->source, program->HEAD + 4) 
+                 == ' ' )
             {
                 token_n->token   = "global";
                 token_n->defined = true;
                 token_n->value   = -1;
                 token_n->type    = TOK_GLOBAL;
-                program->HEAD    += 5;
-                program->c_col   += 5;
-                reserved = true;
+                program->HEAD    += 6;
+                program->c_col   += 6;
+                reserved         = true;
             }
         break;
         case 'e':
@@ -842,30 +887,34 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 2) 
                  == 'r' 
                  && peek(program->source, program->HEAD + 3) 
-                 == 'n' )
+                 == 'n' 
+                 && peek(program->source, program->HEAD + 4) 
+                 == ' ' )
             {                       
                 token_n->token   = "extern";
                 token_n->defined = true;
                 token_n->value   = -1;
-                token_n->type    = TOK_GLOBAL;
-                program->HEAD    += 5;
-                program->c_col   += 5;
-                reserved = true;
+                token_n->type    = TOK_EXTERN;
+                program->HEAD    += 6;
+                program->c_col   += 6;
+                reserved         = true;
             }
         break;
         case 'P':
             if(peek(program->source, program->HEAD - 1) 
                  == 'U'
                  && peek(program->source, program->HEAD)
-                 == 'T' )
+                 == 'T' 
+                 && peek(program->source, program->HEAD + 1)
+                 == ' ' )
             {
                 token_n->token   = "PUT";
                 token_n->defined = false;
                 token_n->value   = -1;
                 token_n->type    = TOK_PUT;
-                program->HEAD    += 2;
-                program->c_col   += 2;
-                reserved = true;
+                program->HEAD    += 3;
+                program->c_col   += 3;
+                reserved         = true;
             }
         break;
         case '.':
@@ -876,7 +925,7 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 'x' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 't'  )
+                 == 't' )
             {
                 token_n->token   = ".text";
                 token_n->defined = true;
@@ -884,7 +933,7 @@ token_t nextToken( program_t *program ) {
                 token_n->type    = TOK_SECTION_NAME;
                 program->HEAD    += 4;
                 program->c_col   += 4;
-                reserved = true;
+                reserved         = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'd'
                  && peek(program->source, program->HEAD)
@@ -892,7 +941,7 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 't' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 'a'  )
+                 == 'a' )
             {
                 token_n->token   = ".data";
                 token_n->defined = true;
@@ -900,7 +949,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 program->HEAD    += 4;
                 program->c_col   += 4;
-                reserved = true;
+                reserved         = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 'w'
                  && peek(program->source, program->HEAD)
@@ -908,7 +957,7 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 1) 
                  == 'r' 
                  && peek(program->source, program->HEAD + 2) 
-                 == 'd'  )
+                 == 'd' )
             {
                 token_n->token   = ".word";
                 token_n->defined = true;
@@ -916,7 +965,7 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 program->HEAD    += 4;
                 program->c_col   += 4;
-                reserved = true;
+                reserved         = true;
             }else if ( peek(program->source, program->HEAD - 1) 
                  == 's'
                  && peek(program->source, program->HEAD)
@@ -926,7 +975,7 @@ token_t nextToken( program_t *program ) {
                  && peek(program->source, program->HEAD + 2) 
                  == 'c' 
                  && peek(program->source, program->HEAD + 3) 
-                 == 'e'  )
+                 == 'e' )
             {
                 token_n->token   = ".space";
                 token_n->defined = true;
@@ -934,12 +983,12 @@ token_t nextToken( program_t *program ) {
                 token_n->value   = -1;
                 program->HEAD    += 5;
                 program->c_col   += 5;
-                reserved = true;
+                reserved         = true;
             }
         break;
         default:{
     check_identifier:      
-            token_n->line    = program->c_row;
+            token_n->line    = program->c_row + 1;
             token_n->column  = tok_col;
             temp = ( char * ) malloc ( 3 );
             assert ( temp != NULL );
@@ -1023,7 +1072,7 @@ token_t nextToken( program_t *program ) {
     if ( !reserved ) 
         goto check_identifier;
 
-    token_n->line    = program->c_row;
+    token_n->line    = program->c_row + 1;
     token_n->column  = tok_col;
     return *token_n;
 }
@@ -1116,7 +1165,8 @@ int resolveIdentifiers( program_t *program )
     token_t *tok =
         getNextToken( program );
     token_t *u_tok, *n_tok;
-    
+  
+    int rv;
     int pc = 0;
     int dr_idx = 0;
     while ( program->token_idx < program->n_tokens ) 
@@ -1128,21 +1178,7 @@ int resolveIdentifiers( program_t *program )
                 str = malloc ( strlen ( tok->token ) + 1 );
                 strcpy (str, tok->token);
                 cut_last(str);
-                for ( int i=0; i < program->table->num_s; i++ )
-                {
-                    if (
-                    strcmp ( program->table->tokens[i].token, str ) == 0 ) 
-                    {
-                        current_parser_error = 
-                        realloc ( current_parser_error, 100 + strlen(tok->token) );
-                        snprintf( current_parser_error, 100,
-                        "Multiple definitions of identifier { %s }"
-                        " first defined at line { %d }",
-                        tok->token, tok->line );
-                        gtk_text_buffer_set_text(cpe, current_parser_error, -1);
-                        return -1;
-                    }
-                }
+
                 n_tok = malloc( sizeof( token_t ) );
                 u_tok = peek_token( program );
                 if ( u_tok->type == TOK_WORD ||
@@ -1151,12 +1187,11 @@ int resolveIdentifiers( program_t *program )
                     n_tok->value = data_reg + (dr_idx++);
 
                     n_tok->token = malloc( strlen( tok->token ) );
-                    n_tok->token = strcpy( n_tok->token, tok->token);
+                    strcpy( n_tok->token, tok->token);
                     cut_last( n_tok->token );
 
                     n_tok->defined = true;
-                    n_tok->type = TOK_IDENTIFIER;
-                    appendTok( program->table, n_tok );
+                    n_tok->type    = TOK_IDENTIFIER;
                 }else if ( u_tok->type == TOK_ASCIIZ ) 
                 {
                 }else
@@ -1167,9 +1202,33 @@ int resolveIdentifiers( program_t *program )
                     cut_last( n_tok->token );
                     n_tok->defined = true;
                     n_tok->type = TOK_IDENTIFIER;
-                    appendTok( program->table, n_tok );
                 }
+
+                token_t *t;
+                HASH_FIND_STR( program->table->tokens, n_tok->token, t );
+                if ( t == NULL )
+                    HASH_ADD_STR( program->table->tokens, token, n_tok );
+                else
+                {
+                        current_parser_error = 
+                        realloc ( current_parser_error, 100 + strlen(tok->token) );
+                        snprintf( current_parser_error, 100,
+                        "Multiple definitions of identifier { %s }"
+                        " first defined at line { %d }",
+                        tok->token, tok->line );
+                        gtk_text_buffer_set_text(cpe, current_parser_error, -1);
+                        return -1;
+                }
+
             }
+            break;
+            case TOK_EXTERN:
+                rv = parseEXTERN(program, tok);
+                if ( rv <= -1 ) 
+                {
+                    gtk_text_buffer_set_text(cpe, current_parser_error, -1);
+                    return rv;
+                }
             break;
             // Incrementa um pc imaginario para 
             // colocar o valor dos labels.
@@ -1231,6 +1290,7 @@ void parse( program_t *program )
         gtk_text_view_get_buffer( console_errors );
 
     cpe = console_ebuffer;
+    int rv;
 
     program->sections->dot_data   = dot_data;
     program->sections->dot_text   = dot_text;
@@ -1238,6 +1298,7 @@ void parse( program_t *program )
 
     symbol_table_t *table = 
         malloc ( sizeof ( symbol_table_t ) );
+    
     program->table = table;
     program->table->num_s  = 0;
     program->table->tokens = NULL;
@@ -1246,6 +1307,7 @@ void parse( program_t *program )
     if ( res <= -1 ) 
         return;
 
+    program->table->num_s = HASH_COUNT(program->table->tokens);
     program->token_idx = 0;
 
     token_t *tok =
@@ -1256,62 +1318,52 @@ void parse( program_t *program )
         switch ( tok->type ) 
         {
             case TOK_LOAD:
-                if( parseLoad(program, tok) <= -1 )
-                    return;
+                rv = parseLoad(program, tok);
             break;
             case TOK_STORE:
-                if( parseStore(program, tok) <= -1 )
-                    return;
+                rv = parseStore(program, tok);
             break;
             case TOK_WORD:
-                if( parseWord(program, tok) <= -1 )
-                    return;
+                rv = parseWord(program, tok);
             break;
             case TOK_SPACE:
-               insert( program->sections->dot_data, 0 ); 
+                   insert( program->sections->dot_data, 0 ); 
             break;
             case TOK_STOP:
-               insert( program->sections->dot_text, STOP ); 
+                   insert( program->sections->dot_text, STOP ); 
             break;
             case TOK_BR:
-                if( parseBR(program, tok) <= -1 )
-                    return;
+                rv = parseBR(program, tok);
             break;
             case TOK_BRNEG:
-                if( parseBRNEG(program, tok) <= -1 )
-                    return;
+                rv = parseBRNEG(program, tok);
             break;
             case TOK_BRZERO:
-                if( parseBRZERO(program, tok) <= -1 )
-                    return;
+                rv = parseBRZERO(program, tok);
             break;
             case TOK_BRPOS:
-                if( parseBRPOS(program, tok) <= -1 )
-                    return;
+                rv = parseBRPOS(program, tok);
             break;
             case TOK_ADD:
-                if( parseADD(program, tok) <= -1 )
-                    return;
+                rv = parseADD(program, tok);
             break;
             case TOK_SUB:
-                if( parseSUB(program, tok) <= -1 )
-                    return;
+                rv = parseSUB(program, tok);
             break;
             case TOK_READ:
-                if( parseRead(program, tok) <= -1 )
-                    return;
+                rv = parseRead(program, tok);
             break;
             case TOK_PUT:
-                if( parsePUT(program, tok) <= -1 )
-                    return;
+                rv = parsePUT(program, tok);
             break;
             case TOK_DIVIDE:
-                if( parseDIVIDE(program, tok) <= -1 )
-                    return;
+                rv = parseDIVIDE(program, tok);
             break;
             case TOK_MULT:
-                if( parseMULT(program, tok) <= -1 )
-                    return;
+                rv = parseMULT(program, tok);
+            break;
+            case TOK_CALL:
+                rv = parseCALL(program, tok);
             break;
             case TOK_RET:
                insert( program->sections->dot_text, RET ); 
@@ -1321,6 +1373,13 @@ void parse( program_t *program )
             break;
 
         }
+
+        if ( rv <= -1 ) 
+        {
+            gtk_text_buffer_set_text(cpe, current_parser_error, -1);
+            return;
+        }
+
         tok = getNextToken(program);
     }
 

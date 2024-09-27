@@ -3,6 +3,14 @@
 #include <errno.h>
 #include "montador.h"
 
+void resetIdentifiers_Macros( program_t *p ) 
+{
+    HASH_CLEAR(hh, p->table->tokens ); 
+    HASH_CLEAR(hh, p->macros );
+    p->n_macros     = 0;
+    p->table->num_s = 0;
+}
+
 error_rv printMacros( program_t *p ) 
 {
     MACRO_T *entry, *tmp; 
@@ -316,7 +324,7 @@ error_rv expandMode(
         else 
             k++;
     }
-   
+
     // Replacement of local labels and identifiers for
     // a generalized call by the convention : 
     // { macro_name }_{ hash }_{ called }_{ (label || ident)_name }

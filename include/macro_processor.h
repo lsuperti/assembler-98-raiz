@@ -3,6 +3,7 @@
 
 #include "montador_types.h"
 #include "helper.h"
+#include "uthash.h"
 
 #define error_rv int
 #define _EINVAL -1*(EINVAL)
@@ -19,5 +20,6 @@ void shiftTokens_reverse_by_amnt( token_t *tokens, size_t last_tok,
 error_rv expandMode( 
   token_t **tokens, size_t *n_tokens, int tok_idx, MACRO_T *m, token_t *p_values,
   program_t *program );
+void resetIdentifiers_Macros( program_t *p ); 
 
 #endif

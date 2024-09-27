@@ -16,6 +16,7 @@ int parseBR( program_t *program, token_t* c_tok);
 int parseRET( program_t *program, token_t* c_tok);
 int parseBRNEG( program_t *program, token_t* c_tok);
 int parseBRZERO( program_t *program, token_t* c_tok);
+int parseCALL( program_t *program, token_t* c_tok);
 int parseBRPOS( program_t *program, token_t* c_tok);
 int parseSUB( program_t *program, token_t* c_tok);
 int parseADD( program_t *program, token_t* c_tok);

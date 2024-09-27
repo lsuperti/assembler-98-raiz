@@ -86,6 +86,7 @@ typedef struct _token_t {
     int    offset;
     int    line;
     int    column;
+    UT_hash_handle hh;
 } token_t;
 
 /*
@@ -133,24 +134,28 @@ typedef struct _sections_t {
 */
 
 typedef struct _program_t{
+  // vvvv Tokenização
     char           *source;
     sections_t     *sections;
     token_t        *tokens;
     size_t          n_tokens;
     size_t          token_idx;
-    symbol_table_t *table;
     size_t          n_symbols;
-    token_t        *globals;
-    size_t          n_globals;
-    token_t        *externs;
-    size_t          n_externs;
     int             HEAD;
     size_t          program_size;
     int             c_row;
     int             c_col;
+  // vvvv Resolução dos identificadores
+    symbol_table_t *table;
+  // vvvv Processador de macros 
     MACRO_T        *macros;
     size_t          n_macros;
     token_t        *cur_macro_params;
+  // vvvv Necessário para o ligador 
+    token_t        *globals;
+    size_t          n_globals;
+    token_t        *externs;
+    size_t          n_externs;
 } program_t;
 
 token_t*        getNextToken( program_t *program );

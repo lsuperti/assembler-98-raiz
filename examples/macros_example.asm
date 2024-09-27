@@ -10,6 +10,8 @@
    assign MO NS
 %endmacro
 
+-- Erro, MON2 não é mudado para o valor passado para a macro
+-- quando do_anything é chamada, arrumar.
 %macro do_anything    MON2
     %macro do_nothing MON XY
         RET
@@ -24,6 +26,7 @@
 %endmacro
 
 %macro nothing 
+    RET 
 %endmacro
 
 *- 
@@ -44,10 +47,10 @@ section .text
 
 main:
     LOAD 20
-    assign 20 &value
-    do_something 20 &30 &40
+    assign 20 value
+    do_something 20 30 40
     do_anything 30
-    do_nothing &55 value
+    do_nothing 55 value
     nothing
     label_example 50
     label_example 75

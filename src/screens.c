@@ -53,7 +53,8 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
     program->table        = NULL;
     program->program_size = strlen(source);
     program->globals      = NULL;
-    program->c_row        = 0;
+    program->c_row        = 1;
+    program->c_col        = 1;
     program->n_globals    = 0;
     program->externs      = NULL;
     program->n_externs    = 0;
@@ -63,12 +64,14 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
 
     tokenize(program);
     process_macros(program);
-    printMacros(program);
-    printTokens(program);
+   // printMacros(program);
+   // printTokens(program);
     parse(program);
     FILE *o = fopen( current_binary, "w" );
     generateOutput( program, o );
     fclose(o);
+    resetIdentifiers_Macros(program);
+    freeProgram(program);
 
     GtkWidget *console_assembled_files =
         GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,

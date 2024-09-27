@@ -3,6 +3,8 @@
 
 #include "montador_types.h"
 #include "parser.h"
+#include "uthash.h"
+#include "macro_processor.h"
 
 void            tokenize( program_t *program );
 program_t       *assembleProgram( char *file_path, char *output_path );

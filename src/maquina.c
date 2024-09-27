@@ -52,6 +52,7 @@ const char * const tok_colors[] = {
     [TOK_LOCAL_LABEL]     = "gray",
     [TOK_LOCAL_IDENTIFIER]= "blue",
     [TOK_NEWLINE]         = NULL,
+    [TOK_PARAM_DELIMITER] = "orange",
 
 };
 
@@ -1653,9 +1654,14 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
             // idk why, a fix is to subtract one from the first argument
             // program->tokens[i].offset - 1
             // but that is not wanted.
-            colorize_token( buffer, program->tokens[i].offset - 1, 
-                    program->tokens[i].offset + strlen(program->tokens[i].token),
-                    color );
+            if ( program->tokens[i].offset - 1 > 0 )
+                colorize_token( buffer, program->tokens[i].offset - 1, 
+                        program->tokens[i].offset + strlen(program->tokens[i].token),
+                        color );
+            else 
+                colorize_token( buffer, program->tokens[i].offset, 
+                        program->tokens[i].offset + strlen(program->tokens[i].token),
+                        color );
         }
     }
 }

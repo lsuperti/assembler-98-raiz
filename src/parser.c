@@ -4,52 +4,134 @@
 // recursive descent parsing
 // gramatica não-terminal 
 
-int parseSection( program_t *program, token_t *c_tok ) 
+int parseCALL( program_t *program, token_t* c_tok)
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
             peeked_2 = getNextToken( program );
             if ( strncmp( peeked_1->token, "&", 2 ) == 0 )
             {
-                insert( program->sections->dot_text, PUT_DIRECT );
+                insert( program->sections->dot_text, CALL_DIRECT );
             }else 
             {
-                insert( program->sections->dot_text, PUT_INDIRECT );
+                insert( program->sections->dot_text, CALL_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
-            insert( program->sections->dot_text, PUT_IMMEDIATE );
+            insert( program->sections->dot_text, CALL_IMMEDIATE );
             insert( program->sections->dot_text, peeked_1->value );
             break;
-        case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+        case TOK_IDENTIFIER: {
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL ) 
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, PUT_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else {
+                    insert( program->sections->dot_text, CALL_IMMEDIATE );
+                    insert( program->sections->dot_text, t->value    );
+            }
+
+        }
+        break;
+        default:
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
+            return -1;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+int parseEXTERN( program_t *program, token_t *c_tok ) 
+{
+    token_t *peeked_1 = getNextToken( program );
+    bool defined;
+    token_t *t;
+
+    switch ( peeked_1->type ) 
+    {
+        case TOK_IDENTIFIER:
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t);
+            if ( t == NULL )
+            {
+                // Se o identificador externo não tiver sido
+                // utilizado já localmente ou por outra definição
+                // de extern.
+                peeked_1->value = 0x0;
+                HASH_ADD_STR( program->table->tokens, token, peeked_1 );
+            }
+            else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                snprintf( current_parser_error, 100,
+                        "Multiple definitions of Identifier"
+                        " { %s } ",
+                        peeked_1->token );
+                return -1;
             }
 
             break;
         default:
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token TOK_IDENTIFIER found : %s",
+                    peeked_1->token );
+            return -1;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+
+// TODO: make this parse the section "maybe"
+// priority low 
+int parseSection( program_t *program, token_t *c_tok ) 
+{
+    token_t *peeked_1 = getNextToken( program ), *peeked_2;
+    bool defined;
+    token_t *t;
+
+    switch ( peeked_1->type ) 
+    {
+         default:
             // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
             // || TOK_LITERAL_HEX ) 
             // got : peeked_1->type
@@ -63,6 +145,8 @@ int parsePUT( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -74,7 +158,27 @@ int parsePUT( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, PUT_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -82,32 +186,28 @@ int parsePUT( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, PUT_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else {
+                    insert( program->sections->dot_text, PUT_DIRECT );
+                    insert( program->sections->dot_text, t->value    );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -118,6 +218,8 @@ int parseRead( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -129,7 +231,27 @@ int parseRead( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, READ_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -137,32 +259,28 @@ int parseRead( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR(program->table->tokens, peeked_1->token, t);
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, READ_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else 
+            {
+                    insert( program->sections->dot_text, READ_DIRECT );
+                    insert( program->sections->dot_text, t->value    );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -173,6 +291,8 @@ int parseBRPOS( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -184,40 +304,56 @@ int parseBRPOS( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, BRPOS_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
-            insert( program->sections->dot_text, BRPOS_IMMEDIATE    );
+            insert( program->sections->dot_text, BRPOS_IMMEDIATE );
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, BRPOS_IMMEDIATE );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else {
+                    insert( program->sections->dot_text, BRPOS_IMMEDIATE );
+                    insert( program->sections->dot_text, t->value        );
             }
 
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -228,6 +364,8 @@ int parseBRZERO( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -239,7 +377,27 @@ int parseBRZERO( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, BRZERO_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -247,32 +405,28 @@ int parseBRZERO( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t);
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, BRZERO_IMMEDIATE );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else 
+            {
+                    insert( program->sections->dot_text, BRZERO_IMMEDIATE );
+                    insert( program->sections->dot_text, t->value         );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -283,6 +437,8 @@ int parseBRNEG( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -294,7 +450,27 @@ int parseBRNEG( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, BRNEG_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -302,32 +478,28 @@ int parseBRNEG( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t); 
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, BRNEG_IMMEDIATE );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else 
+            {
+                    insert( program->sections->dot_text, BRNEG_IMMEDIATE );
+                    insert( program->sections->dot_text, t->value        );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -338,6 +510,8 @@ int parseBR( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -349,7 +523,27 @@ int parseBR( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, BR_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -357,32 +551,29 @@ int parseBR( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t); 
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, BR_IMMEDIATE );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else 
+            {
+                    insert( program->sections->dot_text, BR_IMMEDIATE );
+                    insert( program->sections->dot_text, t->value     );
             }
 
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -415,6 +606,8 @@ int parseMULT( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -426,7 +619,28 @@ int parseMULT( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, MULT_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
+
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -434,32 +648,28 @@ int parseMULT( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR(program->table->tokens, peeked_1->token, t); 
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, MULT_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else
+            {
+                    insert( program->sections->dot_text, MULT_DIRECT );
+                    insert( program->sections->dot_text, t->value    );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -470,6 +680,8 @@ int parseSUB( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -481,7 +693,27 @@ int parseSUB( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, SUB_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -489,32 +721,29 @@ int parseSUB( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, SUB_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else
+            {
+                    insert( program->sections->dot_text, SUB_DIRECT );
+                    insert( program->sections->dot_text, t->value   );
             }
 
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -525,6 +754,8 @@ int parseDIVIDE( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -536,7 +767,27 @@ int parseDIVIDE( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, DIV_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -544,32 +795,28 @@ int parseDIVIDE( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, DIV_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else
+            {
+                    insert( program->sections->dot_text, DIV_DIRECT );
+                    insert( program->sections->dot_text, t->value   );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
@@ -580,6 +827,8 @@ int parseADD( program_t *program, token_t *c_tok )
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -591,7 +840,27 @@ int parseADD( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, ADD_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -599,45 +868,40 @@ int parseADD( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, ADD_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
                     realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
                 sprintf( current_parser_error, 
                         "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else 
+            {
+                    insert( program->sections->dot_text, ADD_DIRECT );
+                    insert( program->sections->dot_text, t->value   );
             }
-
             break;
         default:
-            // Expected token type ( TOK_ADDRESSING || TOK_LITERAL
-            // || TOK_LITERAL_HEX ) 
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
     return EXIT_SUCCESS;
 }
 
-// LOAD 20
-// LOAD &20
-// LOAD #20
 int parseLoad( program_t *program, token_t *c_tok ) 
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
@@ -649,7 +913,27 @@ int parseLoad( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, LOAD_INDIRECT );
             }
-            insert( program->sections->dot_text, peeked_2->value );
+
+            if ( peeked_2->type == TOK_IDENTIFIER )
+            {
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
+            }else 
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
+                return -1;
+            }
             break;
         case TOK_LITERAL:
         case TOK_LITERAL_HEX:
@@ -657,55 +941,43 @@ int parseLoad( program_t *program, token_t *c_tok )
             insert( program->sections->dot_text, peeked_1->value );
             break;
         case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
             {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, LOAD_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
+        not_defined:
                 current_parser_error = 
-                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
-                snprintf( current_parser_error, 100, 
-                        "Undefined identifier { %s } at line : { %d }", peeked_1->token,
-                        peeked_1->line );
-                gtk_text_buffer_set_text(cpe, current_parser_error, -1);
+                    realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                        "Undefined identifier : %s", peeked_1->token );
                 return -1;
+            }else {
+                    insert( program->sections->dot_text, LOAD_DIRECT );
+                    insert( program->sections->dot_text, t->value    );
             }
-
             break;
         default:
-            current_parser_error = ( char * ) malloc( 150 ); 
-            snprintf( current_parser_error,
-               150, 
-    "Expected token ( TOK_IDENTIFIER || TOK_ADDRESSING || TOK_LITERAL ||"
-    " TOK_LITERAL_HEX ) "
-    "Found : %s at line : %d",
-               peeked_1->token, peeked_1->line ) ;
-            gtk_text_buffer_set_text(cpe, current_parser_error, -1);
+              current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
     }
 
     return EXIT_SUCCESS;
 }
 
-// STORE #29
-// STORE &29
-// STORE Var
 int parseStore( program_t *program, token_t *c_tok ) 
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
     bool defined;
+    token_t *t;
+
     switch ( peeked_1->type ) 
     {
         case TOK_ADDRESSING:
+            
             peeked_2 = getNextToken( program );
             if ( strncmp( peeked_1->token, "&", 2 ) == 0 )
             {
@@ -714,51 +986,55 @@ int parseStore( program_t *program, token_t *c_tok )
             {
                 insert( program->sections->dot_text, STORE_INDIRECT );
             }
+
             if ( peeked_2->type == TOK_IDENTIFIER )
             {
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
-            {
-                if ( strcmp( program->table->tokens[i].token, peeked_2->token ) == 0 )
-                {
-                    defined = true;
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-
-            if ( !defined )
-                goto not_defined;
-
+                HASH_FIND_STR( program->table->tokens, peeked_2->token, t );
+                if ( t == NULL )
+                    goto not_defined;
+                else 
+                    insert( program->sections->dot_text, t->value );
+            }else if ( peeked_2->type == TOK_LITERAL ||
+                       peeked_2->type == TOK_LITERAL_HEX ) {
+                    insert( program->sections->dot_text, peeked_2->value );
             }else 
             {
-                insert( program->sections->dot_text, peeked_2->value );
-            }
-            break;
-        case TOK_IDENTIFIER:
-            defined = false;
-            for ( int i=0; i < program->table->num_s; i++ )
-            {
-                if ( strcmp( program->table->tokens[i].token, peeked_1->token ) == 0 )
-                {
-                    defined = true;    
-                    insert( program->sections->dot_text, STORE_DIRECT );
-                    insert( program->sections->dot_text,
-                        program->table->tokens[i].value );
-                }
-            }
-        
-            if ( !defined ) 
-            {
-        not_defined:
-                // Undefined identifier : peeked_1->token
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                    "Expected token type ( TOK_LITERAL ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL_HEX )"
+                    " found : %s", peeked_1->token );
                 return -1;
             }
-              
             break;
+        case TOK_LITERAL:
+        case TOK_LITERAL_HEX:
+            insert( program->sections->dot_text, STORE_DIRECT );
+            insert( program->sections->dot_text, peeked_1->value );
+            break;
+        case TOK_IDENTIFIER:
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t );
+            if ( t == NULL )
+            {
+        not_defined:
+                current_parser_error = 
+                    realloc ( current_parser_error, 25 + strlen(peeked_1->token) );
+                sprintf( current_parser_error, 
+                        "Undefined identifier : %s", peeked_1->token );
+                return -1;
+            }else {
+                    insert( program->sections->dot_text, STORE_DIRECT );
+                    insert( program->sections->dot_text, t->value     );
+            }
+        break;
         default:
-            // Expected token type ( TOK_ADDRESSING )
-            // got : peeked_1->type
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token ( TOK_ADDRESSING ||"
+                    " TOK_IDENTIFIER || TOK_LITERAL"
+                    " || TOK_LITERAL_HEX ) found : %s", peeked_1->token );
             return -1;
             break;
     }

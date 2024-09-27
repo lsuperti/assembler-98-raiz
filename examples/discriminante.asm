@@ -4,9 +4,16 @@ section .text
 
 main:
 
+    *- 
+       Shifts to the left 
+       what is on the accumulator
+       RP times, which equals
+       multiplying by 2^( RP - 1 ) 
+    -*
     %macro SHIFTL RP
     STORE   TEMP3
     LOAD    RP
+    SUB     1
     STORE   TEMP4
     %%label:
     LOAD    TEMP3
@@ -19,6 +26,11 @@ main:
     LOAD    TEMP3
     %endmacro
 
+    *- 
+       Shifts to the right
+       what is on the accumulator
+       RP times, which equals 
+       dividing by 2^( RP ) -*
     %macro SHIFTR RP
     STORE   TEMP3
     LOAD    RP
@@ -35,7 +47,7 @@ main:
     %endmacro
 
     %macro SCALE RP
-    %macro NMULTSC  A B C
+    %macro MULTSC  A B C
     LOAD    A
     MULT    B
     SHIFTR  RP
@@ -49,26 +61,27 @@ main:
     %endmacro
     %endmacro
 
-    %macro DISCR A B THIRD D | 
-    NMULTSC  A THIRD TEMP1
-    NMULTSC  TEMP1 4 TEMP1
-    NMULTSC  A B TEMP2
+    %macro DISCR A B C D | 
+    MULTSC  A C TEMP1
+    MULTSC  TEMP1 4 TEMP1
+    MULTSC  A B TEMP2
     SUB     TEMP1
     STORE   D
     %endmacro
 
     READ    A
     READ    B
-    READ    C
+    READ    THIRD
     SCALE   3
-    DISCR   A B C D
+
+    DISCR   A B THIRD D
     PUT     D
     STOP
 
 section .data
     A:      .space
     B:      .word 0
-    C:      .space
+    THIRD:      .space
     D:      .space
     TEMP1:  .space
     TEMP2:  .space
