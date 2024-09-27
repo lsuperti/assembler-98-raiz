@@ -149,7 +149,7 @@ int main (int argc, char *argv[]) {
             "WINDOW_FIXED_MOP3", "FILE_GUI");
 
     /*
-    * Botoes de navegacao na gui do software: Console, GUI, File, Back (para cada janela)
+    * Botoes de navegacao na gui do software: Terminal, GUI, File, Back (para cada janela)
     * Conexao dos botoes do arquivo glade com as callbacks para detectar evento clicked
     * Conexao com evento de fechamento da janela
     */
