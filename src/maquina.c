@@ -111,6 +111,13 @@ const char * const enum_str[] = {
 
 };
 
+/**
+ * Esta funcao atualiza na interface grafica os valores dos registradores (com excessao de Acumulador) e da instrucao em execucao
+ * na maquina hipotetica para exibir para o usuario.
+ * 
+ * @param builder objeto GTK com as configuracoes oriundas do arquivo glade
+ * @param inst instrucao a ser mostrada para o usuario
+*/
 void update_inst_pc(GtkBuilder *builder, int inst) {
 
     char pc_str[10], inst_str[10], operand1[10];  
@@ -269,6 +276,12 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
 
 }
 
+/**
+ * Esta funcao seta program_counter para 256.
+ * 
+ * @param widget ponteiro para widget do GTK
+ * @param builder objeto GTK com as configuracoes oriundas de um XML
+ */
 void reset(GtkWidget *widget, gpointer data) {
     user_data_t *user_data_t = data;
     program_counter = 256;
@@ -276,8 +289,14 @@ void reset(GtkWidget *widget, gpointer data) {
     update_memory_tree(user_data_t);
 }
 
+/**
+ * Esta funcao executa a instrucao atual da maquina hipotetica denominada pelo valor da variavel program_counter, que e uma posicao no vetor memory.
+ * 
+ * @param data struct contendo dados do GTK: treeview, store (dados tabulares de memory) e builder (dados oriundos do arquivo glade)
+ */
 void execute_current_instruction(void* data) {
     
+    // preparacao do GTK para escrever mensagens nos consoles (telas Terminal e GUI)
     GtkBuilder *builder = data;
     GtkTextView *textview =  
                 GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console"));
@@ -286,6 +305,7 @@ void execute_current_instruction(void* data) {
 
     char buffer[512];
 
+    // exame da instrucao: execucao e incremento do program_counter ou indicacao de erro
     if ( program_counter < MEMORY_SIZE ) {
         int inst = memory[program_counter];      
         switch(inst) {
@@ -1565,13 +1585,14 @@ void execute_current_instruction(void* data) {
                 append_text_to_text_view( textview2, buffer );
             break;
         }
-    } else  {
+    } else  { // caso program_counter nao estiver nos limites da memory
         textview =
         GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console"));
         append_text_to_text_view( textview, "\nMemory limit reached. \n" );
         append_text_to_text_view( textview2, "\nMemory limit reached. \n" );
     }
 
+    // atualizacao do registrador Acumulador
     char prefix[109] = "ACCUM : ";
     char acm_str[100];
     snprintf(acm_str, 100, "%d", accumulator); 
@@ -1580,6 +1601,11 @@ void execute_current_instruction(void* data) {
 
 }
 
+/**
+ * Esta funcao atualiza a memoria da maquina hipotetica na interface grafica do software.
+ * A funcao impede que a posicao de rolagem seja alterada ao limpar e preencher novamente a tabela.
+ * @param data struct contendo dados do GTK: treeview, store (dados tabulares de memory) e builder (dados oriundos do arquivo glade)
+ */
 void update_memory_tree(void* data) {
 
     user_data_t *d = data;
@@ -1612,6 +1638,12 @@ void update_memory_tree(void* data) {
     set_scroll_position(sw, vscroll, hscroll);
 }
 
+/**
+ * Quando chamada, esta funcao executa apenas uma instrucao da maquina hipotetica.
+ * Esta funcao chama as funcoes de executar a instrucao atual, de atualizar registradores e instrucao na GUI e de atualizar a memory na GUI.
+ * 
+ * @param data struct contendo dados do GTK: treeview, store (dados tabulares de memory) e builder (dados oriundos do arquivo glade)
+ */
 void step(GtkWidget *widget, gpointer data) {
     user_data_t *user_data_t = data;  
     execute_current_instruction(user_data_t->builder);
@@ -1620,6 +1652,14 @@ void step(GtkWidget *widget, gpointer data) {
 }
 
 
+/**
+ * Esta funcao abre o arquivo de entrada, cria um novo programa (struct program_t),
+ * tokeniza o texto do programa, imprime os tokens no terminal, escreve o texto
+ * do programa no console2 (apontado por arquivo glade) e aplica cores aos tokens.
+ * 
+ * @param builder objeto GTK com as configuracoes oriundas do arquivo glade
+ * @param filename nome do arquivo que contem o codigo fonte da maquina hipotetica
+ */
 void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     GtkWidget *text_view = GTK_WIDGET(gtk_builder_get_object(builder, "console2"));
 
@@ -1658,6 +1698,11 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     }
 }
 
+/**
+ * Esta funcao utiliza os componentes do GTK para pesquisar via GUI um arquivo contendo
+ * o codigo fonte do pc hipotetico. Em seguida, chama a funcao para abrir o arquivo
+ * selecionado a partir do nome captado.
+ */
 void open_file(GtkButton *button, gpointer user_data) {
     GtkBuilder *builder = GTK_BUILDER(user_data);
     GtkFileChooserButton *btn = GTK_FILE_CHOOSER_BUTTON(button);
@@ -1679,6 +1724,12 @@ void open_file(GtkButton *button, gpointer user_data) {
 
 }
 
+/**
+ * Esta funcao realiza a execucao do codigo armazenado no vetor memory.
+ * Apos o codigo fonte passar pelo processo de montagem, chamar RUN permite rodar 
+ * o codigo carregado na memoria do pc hipotetico. Sera utilizado um
+ * program_counter definido anteriormente.
+ */
 void run(GtkWidget *widget, gpointer data) {
 
     running = true;
