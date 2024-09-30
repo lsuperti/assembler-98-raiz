@@ -185,10 +185,13 @@ program_t *assembleProgram( char *file_path, char *output_path )
    return program;
 }
 
-/* 
- * Arquivo com código source é passado para 
- * essa função.
-*/
+/**
+ * Esta funcao recebe arquivo contendo codigo fonte do pc hipotetico
+ * e cria um programa pronto para montagem.
+ * 
+ * @param file arquivo contendo codigo fonte do pc hipotetico
+ * @return program (struct program_t) pronto para traducao
+ */
 program_t* createProgram( FILE *file )
 { 
     assert( file != NULL );
@@ -286,9 +289,12 @@ void freeProgram( program_t *program )
    }
 }
 
-// Faz a tokenização do programa já
-// criado por createProgram até
-// encontrar um token TOK_EOF.
+/**
+ * Esta funcao faz a separacao em tokens do codigo fonte que program possui.
+ * A tokenizacao ocorre ate encontrar um token do tipo end of file (TOK_EOF).
+ * 
+ * @param program struct program_t contendo informacoes sobre o programa a ser traduzido.
+ */
 void tokenize( program_t *program )
 { 
     int capacity = 10;
@@ -424,15 +430,15 @@ token_t hex_digit(program_t *program)
     token_n.line    = program->c_row;
     return token_n;
 }
-/* Retorna um token NULL se não existem mais tokens */
-/* Exemplo tokens válidos : 
- *      LOAD 
- *      203 
- *      RET
- *
- * Sempre retorna apenas um token. 
- * ( O próximo token no arquivo ) 
- *  Usa o index HEAD que começa em 0.
+/**
+ * Esta funcao percorre o texto program->source a partir do cabecote program->HEAD
+ * ate encontrar um token. A funcao sempre retorna apenas um token ao realizar a
+ * leitura dos proximos caracteres. program->HEAD inicializa em zero e e 
+ * incrementado conforme o texto source e varrido.
+ * Exemplo tokens validos: {LOAD, 203, RET, STOP}
+ * 
+ * @param program struct program_t contendo codigo fonte para ser analisado.
+ * @return token identificado ou token NULL se nao existirem mais tokens.
 */
 
 // TODO: o tokenizador pode ser melhorado

@@ -21,12 +21,17 @@ void change_to_file_gui(GtkWidget *widget, GtkStack *stack){
     mop = MOP3;
 }
 
+/**
+ * Esta funcao analisa o texto editado no console2 (arquivo glade) da janela File,
+ * cria um novo programa (struct program_t)...
+ */
 void assemble_and_update_file_gui(GtkWidget *widget, gpointer data) 
 {
     user_data_t *user_data_t = data;  
     program_t *program 
         = malloc( sizeof( program_t ) ); 
 
+    // prepara os consoles da janela File para receberem textos
     GtkWidget *console_errors =
         GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,
                    "consoleErros"));
@@ -39,6 +44,11 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
     GtkTextBuffer *c_buff =
         gtk_text_view_get_buffer(GTK_TEXT_VIEW(console_source));  
 
+    /* 
+     * Prepara o texto que esta contido em console2 (arquivo glade).
+     * O texto do arquivo pode ser alterado nesse console, entao cria-se
+     * um novo programa. A partir desse novo programa o codigo alvo e montado
+     */
     gchar *source;
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(c_buff, &start, &end);
