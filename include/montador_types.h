@@ -80,11 +80,11 @@ extern const char * const tok_colors[];
  * word_t value        = X
 */
 typedef struct _token_t {
-    char   *token;
-    char   *formal;
-    enum   t_types type;
-    bool   defined;
-    word_t value;
+    char   *token;          //texto do token encontrado em source
+    char   *formal;         
+    enum   t_types type;    //o tipo do token
+    bool   defined;         //se token esta definido ou nao
+    word_t value;           //valor literal ou posicao de memoria
     int    offset;
     int    line;
     int    column;
@@ -113,8 +113,8 @@ typedef struct _MACRO_T {
  * com type = IDENTIFIER.
 */
 typedef struct _symbol_table_t {
-    token_t *tokens;
-    size_t   num_s;
+    token_t *tokens;        //vetor de tokens (simbolos) na tabela
+    size_t   num_s;         //numero total de simbolos na tabela
 } symbol_table_t;
 
 /*
@@ -127,7 +127,7 @@ typedef struct _sections_t {
     Vector *dot_rodata;
 } sections_t;
 
-/*
+/**
  * source       = conteudo de um arquivo target { Ex : syntax }
  * sections     = vetores com os dados das seções suportadas 
  *                { .text, .data, .rodata }
@@ -136,16 +136,15 @@ typedef struct _sections_t {
  * head         = cabeçote do atual caracter do source
  * program_size = strlen( source )
 */
-
 typedef struct _program_t{
   // vvvv Tokenização
-    char           *source;
-    sections_t     *sections;
-    token_t        *tokens;
-    size_t          n_tokens;
-    size_t          token_idx;
+    char           *source;         //string contendo codigo fonte
+    sections_t     *sections;       //seções do programa
+    token_t        *tokens;         //vetor contendo tokens 
+    size_t          n_tokens;       //total de tokens do programa
+    size_t          token_idx;      //cabecote do vetor de tokens
     size_t          n_symbols;
-    int             HEAD;
+    int             HEAD;           //cabecote do texto em source
     size_t          program_size;
     int             c_row;
     int             c_col;

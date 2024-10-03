@@ -963,14 +963,14 @@ int parseLoad( program_t *program, token_t *c_tok )
 
     switch ( peeked_1->type ) 
     {
-        case TOK_ADDRESSING:
+        case TOK_ADDRESSING: //caso tenha token definindo enderecamento
             peeked_2 = getNextToken( program );
-            if ( strncmp( peeked_1->token, "&", 2 ) == 0 )
+            if ( strncmp( peeked_1->token, "&", 2 ) == 0 ) //direto
             {
                 insert( program->sections->dot_text, LOAD_DIRECT  );
             }else 
             {
-                insert( program->sections->dot_text, LOAD_INDIRECT );
+                insert( program->sections->dot_text, LOAD_INDIRECT ); //indireto
             }
 
             if ( peeked_2->type == TOK_IDENTIFIER )
@@ -994,7 +994,7 @@ int parseLoad( program_t *program, token_t *c_tok )
                 return -1;
             }
             break;
-        case TOK_LITERAL:
+        case TOK_LITERAL: //imediato
         case TOK_LITERAL_HEX:
             insert( program->sections->dot_text, LOAD_IMMEDIATE  );
             insert( program->sections->dot_text, peeked_1->value );

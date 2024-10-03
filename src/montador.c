@@ -291,6 +291,8 @@ void freeProgram( program_t *program )
 
 /**
  * Esta funcao faz a separacao em tokens do codigo fonte que program possui.
+ * Os tokens sao inseridos no vetor program->tokens e o numero total de tokens em
+ * program->n_tokens.
  * A tokenizacao ocorre ate encontrar um token do tipo end of file (TOK_EOF).
  * 
  * @param program struct program_t contendo informacoes sobre o programa a ser traduzido.
@@ -315,7 +317,7 @@ void tokenize( program_t *program )
 
         tokens[idx++] = tok;
         // printf("%s: %d:%d\n", tok.token, tok.line, tok.column);
-    } while (tok.type != TOK_EOF);
+    } while (tok.type != TOK_EOF); // executa ate encontrar token do tipo EOF
 
     if (idx > 0) {
         tokens = (token_t *) realloc(tokens, sizeof(token_t) * idx);
@@ -455,9 +457,9 @@ bool isWhiteSpace()
 
 token_t nextToken( program_t *program ) { 
 
+    // inicializa token
     token_t *token_n = (token_t *) malloc ( sizeof ( token_t ) );
     assert( token_n != NULL );
-
     token_n->token   = "UNKNOWN";
     token_n->defined = true;
     token_n->value   = -1;
@@ -525,6 +527,7 @@ token_t nextToken( program_t *program ) {
     
     int tok_col = program->c_col;
 
+    // ao chegar ao final do arquivo, gera token do tipo EOF
     if ( program->HEAD >= program->program_size )  
     {
         token_n->token   = "EOF";
@@ -538,6 +541,7 @@ token_t nextToken( program_t *program ) {
         return *token_n;
     }
 
+    // tratamento dos valores liteirais decimais e hexadecimais
     *token_n = hex_digit(program);
     if ( token_n->type != TOK_UNKNOWN ) {
         token_n->column = tok_col;
@@ -555,16 +559,17 @@ token_t nextToken( program_t *program ) {
     token_n->offset = program->HEAD;
     bool reserved = false;
 
+    // tratamento dos tokens de instrucoes e diretivas de maquina
     program->c_col++;
     switch ( program->source[program->HEAD++] ) {
-        case '&':
+        case '&': // tipo de enderecamento
            token_n->token   = "&";
            token_n->defined = true;
            token_n->value   = -1;
            token_n->type    = TOK_ADDRESSING;
            reserved = true;
            break;
-        case '#':
+        case '#': // tipo de enderecamento
            token_n->token   = "#"; 
            token_n->defined = true;
            token_n->value   = -1;
@@ -891,7 +896,7 @@ token_t nextToken( program_t *program ) {
                 reserved         = true;
             }
         break;
-        case '-': 
+        case '-': // comentario de linha unica
             if(peek(program->source, program->HEAD - 1) 
                  == '-')
             {
@@ -908,7 +913,7 @@ token_t nextToken( program_t *program ) {
                 
             }
         break;
-        case '*':
+        case '*': //comentario de multiplas linhas
             if(peek(program->source, program->HEAD - 1) 
                  == '-')
             {
@@ -1148,6 +1153,7 @@ token_t nextToken( program_t *program ) {
 
             program->HEAD--;
             program->c_col--;
+            // preparacao do identificador
             if ( program->HEAD < program->program_size && 
                  isalpha(program->source[program->HEAD]) )
             {
@@ -1157,6 +1163,7 @@ token_t nextToken( program_t *program ) {
                temp[1] = '\0';
             }
 
+            // capta todo o identificador contido no source
             while (   identifier && 
                      isalnum(program->source[program->HEAD])
                      || program->source[program->HEAD] == '_' ) 
@@ -1172,7 +1179,7 @@ token_t nextToken( program_t *program ) {
 
             if ( identifier ) 
             {   
-                if ( program->source[program->HEAD] == ':')
+                if ( program->source[program->HEAD] == ':') // rotulo
                 {
                     temp = ( char * ) realloc ( temp, c + 2 );
                     temp[c++] = ':';
@@ -1184,7 +1191,7 @@ token_t nextToken( program_t *program ) {
                     token_n->type    = TOK_LABEL;
                     program->HEAD++;
                     program->c_col++;
-                    if ( LOCAL_LABEL )
+                    if ( LOCAL_LABEL ) // controle do macroprocessador
                     {
                         char *prefix = malloc(3 + strlen(temp) );
                         strcpy( prefix, "%%" ); 
@@ -1194,7 +1201,7 @@ token_t nextToken( program_t *program ) {
                         free(temp);
                         token_n->type  = TOK_LOCAL_LABEL;
                     }
-                }else 
+                }else //identificador
                 {
                     token_n->token   = temp;
                     token_n->formal  = strdup(temp);
@@ -1321,8 +1328,8 @@ int resolveIdentifiers( program_t *program )
   
     int rv;
     int pc = 0;
-    int dr_idx = 0;
-
+    int dr_idx = 0; // posicao na regiao de dados
+                    
     while ( program->token_idx < program->n_tokens ) 
     {
         switch( tok->type ) 
@@ -1416,6 +1423,7 @@ void parse( program_t *program )
     assert( program != NULL && program->tokens != NULL );
     int n_secs = 0; 
 
+    // prepara as secoes do codigo objeto .elf
     Vector *dot_text = malloc(sizeof(Vector));
     initVector( dot_text, 10 ); 
 
@@ -1425,6 +1433,7 @@ void parse( program_t *program )
     Vector *dot_rodata = malloc(sizeof(Vector));
     initVector( dot_rodata, 2 ); 
 
+    // prepara a struct de secoes no program
     program->sections = 
         ( sections_t * ) malloc( sizeof( sections_t ) );
 
@@ -1437,10 +1446,12 @@ void parse( program_t *program )
     cpe = console_ebuffer;
     int rv = EXIT_SUCCESS;
 
+    //atribui as secoes na struct sections dentro de program
     program->sections->dot_data   = dot_data;
     program->sections->dot_text   = dot_text;
     program->sections->dot_rodata = dot_rodata;
 
+    // cria symbol_table e prepara para receber tokens de simbolos
     symbol_table_t *table = 
         malloc ( sizeof ( symbol_table_t ) );
     
@@ -1453,11 +1464,12 @@ void parse( program_t *program )
         return;
 
     program->table->num_s = HASH_COUNT(program->table->tokens);
-    program->token_idx = 0;
+    program->token_idx = 0; //cabecote que percorre o vetor de tokens
 
     token_t *tok =
         getNextToken( program );
 
+    //percorre tokens de program para resolver enderecamento
     while ( program->token_idx < program->n_tokens ) 
     {
         switch ( tok->type ) 
