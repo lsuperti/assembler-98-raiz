@@ -30,3 +30,20 @@ void freeVector( Vector *a )
     a = NULL;
 }
 
+Vector *dupVector ( Vector *a )
+{
+    if ( a == NULL )
+        return NULL;
+
+    Vector *t;
+    if ( (t = malloc(sizeof(Vector))) == NULL )
+        return NULL;
+    printf("hellp");
+
+    //initVector( t, 5 );
+    //for ( int i=0; i < a->used; ++i ) 
+    //    insert( t, a->array[i] );
+
+    return t;
+}
+

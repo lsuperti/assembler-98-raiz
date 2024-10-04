@@ -86,6 +86,7 @@ typedef struct _token_t {
     int    offset;
     int    line;
     int    column;
+    Vector pos;
     UT_hash_handle hh;
 } token_t;
 

@@ -19,9 +19,10 @@ typedef struct _GenericVector{
     size_t size;
 } GenericVector;
 
-void initVector( Vector *a, size_t initialSize );
-void insert( Vector *a, int element );
-void freeVector( Vector *a );
+void    initVector( Vector *a, size_t initialSize );
+void    insert    ( Vector *a, int element );
+void    freeVector( Vector *a );
+Vector *dupVector ( Vector *a );
 
 #endif  // DATA_STRUCTURES_H
 

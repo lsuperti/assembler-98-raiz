@@ -4,6 +4,52 @@
 // recursive descent parsing
 // gramatica não-terminal 
 
+int parseGLOBAL( program_t *program, token_t *c_tok ) 
+{
+    token_t *peeked_1 = getNextToken( program );
+    bool defined;
+    token_t *t;
+
+    switch ( peeked_1->type ) 
+    {
+        case TOK_IDENTIFIER:
+            HASH_FIND_STR( program->table->tokens, peeked_1->token, t);
+            if ( t == NULL )
+            {
+                current_parser_error = 
+                    realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+                snprintf( current_parser_error, 100,
+                        "{ %s } Defined as global but not found on module.",
+                        peeked_1->token );
+                return -1;
+            }
+            else 
+            {
+                token_t *t2;
+                HASH_FIND_STR( program->globals, peeked_1->token, t2 );
+                
+                peeked_1->value = t->value;
+                if ( t2 == NULL )
+                    HASH_ADD_STR( program->globals, token, peeked_1 );
+                else
+                {
+                    HASH_REPLACE_STR( program->globals, token, peeked_1,
+                            t2 );
+                }
+
+            }
+            break;
+        default:
+            current_parser_error = 
+                realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
+            snprintf( current_parser_error, 100,
+                    "Expected token TOK_IDENTIFIER found : %s",
+                    peeked_1->token );
+            return -1;
+    }
+
+    return EXIT_SUCCESS;
+}
 int parseCALL( program_t *program, token_t* c_tok)
 {
     token_t *peeked_1 = getNextToken( program ), *peeked_2;
@@ -95,14 +141,26 @@ int parseEXTERN( program_t *program, token_t *c_tok )
                 // de extern.
                 peeked_1->value = 0x0;
                 HASH_ADD_STR( program->table->tokens, token, peeked_1 );
+
+                Vector xs     = find_all_identifier_pos( program, peeked_1 ); 
+                peeked_1->pos = xs;
+
+                token_t *e;
+                HASH_FIND_STR( program->externs, peeked_1->token, e );
+                if (e == NULL)
+                    HASH_ADD_STR( program->externs, token, peeked_1 ); 
+                else 
+                    HASH_REPLACE_STR( program->externs, token, peeked_1,
+                                      e );
+
             }
             else 
             {
                 current_parser_error = 
                     realloc ( current_parser_error, 100 + strlen(peeked_1->token) );
                 snprintf( current_parser_error, 100,
-                        "Multiple definitions of Identifier"
-                        " { %s } ",
+                        " { %s } "
+                        " Defined externally and locally. ",
                         peeked_1->token );
                 return -1;
             }

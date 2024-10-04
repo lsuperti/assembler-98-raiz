@@ -2,6 +2,7 @@
 #define HELPER_H
 
 #include <gtk/gtk.h>
+#include "montador_types.h"
 #include "types.h"
 
 #define DEFAULT_CAPACITY 10
@@ -27,5 +28,6 @@ void onDestroy(GtkWidget *widget, gpointer data);
 int is_copy(int inst);
 int is_empty_line(const char *line);
 unsigned long hash(unsigned char *str);
+token_t * tokdup( token_t *t );
 
 #endif // HELPER_H

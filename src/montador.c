@@ -47,6 +47,27 @@ void generateOutput( program_t *program, FILE *output )
        fprintf( output, "%d ", program->sections->dot_rodata->array[i] );
        if ( ( i + 1 ) % 8 == 0 ) { fprintf( output, "\n" ); }
    }
+
+   fprintf( output, "\nglobal\n");
+   token_t *el, *tmp;
+   HASH_ITER(hh, program->globals, el, tmp )
+   {
+     fprintf( output, "\t%s %d\n", el->token,
+             el->value );
+   }
+
+   fprintf( output, "\nextern\n" );
+   HASH_ITER(hh, program->externs, el, tmp )
+   {
+     fprintf( output, "\t%s ", el->token );
+     for ( int i=0; i < el->pos.used; i++ ) 
+     {
+         if ( el->pos.array != NULL )
+            fprintf( output, "%d ", el->pos.array[i] );
+     }
+     fprintf( output, "\n" );
+
+   }
 }
 
 // Função que recebe dois caminhos de arquivo 
@@ -1222,14 +1243,6 @@ int resolveIdentifiers( program_t *program )
 
             }
             break;
-            case TOK_EXTERN:
-                rv = parseEXTERN(program, tok);
-                if ( rv <= -1 ) 
-                {
-                    gtk_text_buffer_set_text(cpe, current_parser_error, -1);
-                    return rv;
-                }
-            break;
             // Incrementa um pc imaginario para 
             // colocar o valor dos labels.
             case TOK_STORE:
@@ -1369,6 +1382,14 @@ void parse( program_t *program )
                insert( program->sections->dot_text, RET ); 
             break;
 
+            case TOK_GLOBAL:
+                rv = parseGLOBAL(program, tok);
+            break;
+            
+            case TOK_EXTERN:
+                rv = parseEXTERN(program, tok);
+            break;
+
             default:
             break;
 
@@ -1382,6 +1403,9 @@ void parse( program_t *program )
 
         tok = getNextToken(program);
     }
+
+    program->n_globals = HASH_COUNT( program->globals );
+    program->n_externs = HASH_COUNT( program->externs );
 
 }
 

@@ -173,3 +173,37 @@ char * c_read_file(const char * f_name, int * err, size_t * f_size) {
     return buffer;
 }
 
+token_t * tokdup( token_t *t )
+{
+    if (t == NULL) 
+      return NULL;
+
+    token_t *t2;
+    if ( (t2 = malloc( sizeof( token_t ) ) ) == NULL )
+          return NULL;
+
+    t2->column  = t->column;
+    t2->line    = t->line;
+    t2->offset  = t->offset;
+    t2->defined = t->defined;
+    t2->type    = t->type;
+    t2->value   = t->value;
+
+    char *t_tok;
+    if ( (t_tok = strdup(t->token)) == NULL )
+          return NULL;
+
+    t2->token   = t_tok;
+
+    char *t_form;
+    if ( (t_form = strdup(t->formal)) == NULL )
+          return NULL;
+
+    t2->formal  = t_form;
+
+    t2->pos     = *dupVector( &t->pos );
+
+    return t2;
+
+}
+

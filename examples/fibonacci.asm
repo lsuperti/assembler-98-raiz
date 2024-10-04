@@ -45,7 +45,7 @@ one:
     STOP
     
 section   .data
-    Number_of_times:    .space
+    Number_of_times:  .space
     Fibonnac1:  .space
     a1:    .word 0
     b1:    .word 1 

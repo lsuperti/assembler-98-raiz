@@ -4,6 +4,8 @@
 #include "montador_types.h"
 #include "global.h"
 #include <string.h>
+#include "ligador.h"
+#include "helper.h"
 
 int parseAddressing( program_t *program, token_t* c_tok );
 int parseRead( program_t *program, token_t* c_tok);
