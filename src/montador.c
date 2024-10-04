@@ -290,7 +290,7 @@ void freeProgram( program_t *program )
 }
 
 /**
- * Esta funcao faz a separacao em tokens do codigo fonte que program possui.
+ * Esta funcao faz a separacao em tokens do codigo fonte que program->source possui.
  * Os tokens sao inseridos no vetor program->tokens e o numero total de tokens em
  * program->n_tokens.
  * A tokenizacao ocorre ate encontrar um token do tipo end of file (TOK_EOF).
@@ -315,11 +315,11 @@ void tokenize( program_t *program )
             assert(tokens != NULL);
         }
 
-        tokens[idx++] = tok;
+        tokens[idx++] = tok; //armazena token no vetor e incrementa o cabecote
         // printf("%s: %d:%d\n", tok.token, tok.line, tok.column);
     } while (tok.type != TOK_EOF); // executa ate encontrar token do tipo EOF
 
-    if (idx > 0) {
+    if (idx > 0) { //realoca vetor para tamanho total de tokens
         tokens = (token_t *) realloc(tokens, sizeof(token_t) * idx);
         assert(tokens != NULL);
 
@@ -1327,7 +1327,7 @@ int resolveIdentifiers( program_t *program )
     token_t *u_tok, *n_tok;
   
     int rv;
-    int pc = 0;
+    int pc = 0;  // posicao de memoria do programa
     int dr_idx = 0; // posicao na regiao de dados
                     
     while ( program->token_idx < program->n_tokens ) 
@@ -1339,6 +1339,7 @@ int resolveIdentifiers( program_t *program )
                 n_tok = malloc( sizeof( token_t ) );
                 n_tok->data_l = false;
                 u_tok = peek_token( program );
+                // verifica se e a definicao de uma variavel
                 if ( u_tok->type == TOK_WORD ||
                      u_tok->type == TOK_SPACE ) 
                 {
@@ -1353,7 +1354,7 @@ int resolveIdentifiers( program_t *program )
                     n_tok->type    = TOK_IDENTIFIER;
                 }else if ( u_tok->type == TOK_ASCIIZ ) 
                 {
-                }else
+                }else // se for rotulo para desvio de execucao ou variavel
                 {
                     n_tok->value = pc + TEXT_SEGMENT_START;
                     n_tok->token = malloc( strlen( tok->token ) + 1 );
@@ -1378,7 +1379,6 @@ int resolveIdentifiers( program_t *program )
                         gtk_text_buffer_set_text(cpe, current_parser_error, -1);
                         return -1;
                 }
-
             }
             break;
             // Incrementa um pc imaginario para 
