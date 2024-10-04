@@ -64,8 +64,6 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
 
     tokenize(program);
     process_macros(program);
-   // printMacros(program);
-   // printTokens(program);
     parse(program);
     FILE *o = fopen( current_binary, "w" );
     generateOutput( program, o );
@@ -90,10 +88,6 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
         free(f_data);
     }
 
-    load_program();
-    update_inst_pc( user_data_t->builder, memory[program_counter] );
-    update_memory_tree(user_data_t);
     g_free(source);
-
 }
 

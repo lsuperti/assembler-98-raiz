@@ -594,7 +594,7 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <child>
-          <object class="GtkMenuItem">
+          <object class="GtkMenuItem" id="File">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">_File</property>
@@ -613,12 +613,28 @@
                     <signal name="activate" handler="on_save_assembled_activate" object="consoleAssembledFiles" swapped="no"/>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkMenuItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Link</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Load</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem">
+          <object class="GtkMenuItem" id="Edit">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">_Edit</property>
@@ -668,15 +684,37 @@
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem" id="menuitem1">
+          <object class="GtkMenuItem" id="View">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">_View</property>
             <property name="use-underline">True</property>
+            <child type="submenu">
+              <object class="GtkMenu">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkMenuItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Processador de Macros</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuItem">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Objeto</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem">
+          <object class="GtkMenuItem" id="Help">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="label" translatable="yes">_Help</property>
@@ -752,9 +790,5 @@
         <property name="y">357</property>
       </packing>
     </child>
-  </object>
-  <object class="GtkMenu">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
   </object>
 </interface>

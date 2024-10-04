@@ -12,7 +12,7 @@ extern const char * const enum_str[];
 extern const char * const tok_colors[]; 
 
 void update_inst_pc( GtkBuilder *builder, int inst);
-void reset(GtkWidget *widget, gpointer builder);
+void reset(GtkWidget *widget, gpointer data);
 void execute_current_instruction(void* data);
 void update_memory_tree(void* data);
 void step(GtkWidget *widget, gpointer data);

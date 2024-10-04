@@ -266,9 +266,11 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
 
 }
 
-void reset(GtkWidget *widget, gpointer builder) {
+void reset(GtkWidget *widget, gpointer data) {
+    user_data_t *user_data_t = data;
     program_counter = 256;
-    update_inst_pc(builder, memory[program_counter]);
+    update_inst_pc(user_data_t->builder, memory[program_counter]);
+    update_memory_tree(user_data_t);
 }
 
 void execute_current_instruction(void* data) {

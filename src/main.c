@@ -8,6 +8,8 @@
 #include "screens.h"
 #include "program.h"
 #include "montador.h"
+#include "program.h"
+
 #define NDEBUG
 
 int main (int argc, char *argv[]) {
@@ -62,7 +64,7 @@ int main (int argc, char *argv[]) {
     g_signal_connect(gtk_builder_get_object(builder, "step")
             ,"clicked", G_CALLBACK(step), &data);
     g_signal_connect(gtk_builder_get_object(builder, "reset")
-            ,"clicked", G_CALLBACK(reset), builder);
+            ,"clicked", G_CALLBACK(reset), &data);
     g_signal_connect(gtk_builder_get_object(builder, "reset1")
             ,"clicked", G_CALLBACK(reset), builder);
     g_signal_connect(gtk_builder_get_object(builder, "file_button")
@@ -78,6 +80,10 @@ int main (int argc, char *argv[]) {
 
     ri = memory[program_counter];
     update_inst_pc(builder, memory[program_counter]);
+
+    GtkWidget *load = GTK_WIDGET(gtk_builder_get_object(builder, "load"));
+    g_signal_connect(load, "activate", G_CALLBACK(on_load_activate), &data);
+    g_signal_connect(load, "activate", G_CALLBACK(reset), &data);
 
     GtkWidget *container_window = GTK_WIDGET(gtk_builder_get_object(builder,
             "CONTAINER_WINDOW"));
@@ -111,6 +117,7 @@ int main (int argc, char *argv[]) {
 
     GtkWidget *console_button = GTK_WIDGET(gtk_builder_get_object(builder, "Console"));
     g_signal_connect(console_button, "clicked", G_CALLBACK(change_to_console), stack); 
+
 
     GtkWidget *gui_button = GTK_WIDGET(gtk_builder_get_object(builder, "GUI"));
     g_signal_connect(gui_button, "clicked", G_CALLBACK(change_to_gui), stack);

@@ -115,3 +115,9 @@ void on_save_assembled_activate( GtkMenuItem *m, GtkTextView *ct )
     gtk_widget_destroy(dialog);
 }
 
+void on_link_activate( GtkMenuItem *m ) 
+{
+    fprintf(stdout, "implement linking");
+    fflush(stdout);
+}
+

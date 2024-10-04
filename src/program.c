@@ -1,13 +1,5 @@
 
 #include "program.h"
-#include "architecture.h"
-#include "global.h"
-#include <string.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <inttypes.h>
-#include <assert.h>
-#include <gtk/gtk.h>
 
 #ifdef DEBUG_PRINT
     #define debug_print(fmt, ...) \
@@ -24,6 +16,18 @@ enum sections_t {
     RODATA = 3,
     number_of_sections
 };
+
+void on_load_activate ( GtkMenuItem *m )
+{
+    load_program();
+}
+
+void update_gui( GtkWidget *w, gpointer data )
+{
+    user_data_t *user_data_t = data;
+    update_inst_pc( user_data_t->builder, memory[program_counter] );
+    update_memory_tree(user_data_t);
+}
 
 void load_program() {
 
