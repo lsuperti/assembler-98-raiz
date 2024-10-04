@@ -756,10 +756,6 @@
         <property name="height-request">80</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <items>
-          <item translatable="yes">sfas</item>
-          <item translatable="yes">asfasfsafa</item>
-        </items>
       </object>
       <packing>
         <property name="x">647</property>

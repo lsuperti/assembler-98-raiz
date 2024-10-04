@@ -121,6 +121,10 @@ int main (int argc, char *argv[]) {
 
     set_combo_box_ellipsize(combo_box);
     paths p = { NULL, combo_box };
+
+    GtkWidget *link = 
+        GTK_WIDGET(gtk_builder_get_object(builder, "link"));
+    g_signal_connect(link, "activate", G_CALLBACK(on_link_activate), &p);
     
     GtkWidget *add    = GTK_WIDGET(gtk_builder_get_object(builder, "add"));
     GtkWidget *remove = GTK_WIDGET(gtk_builder_get_object(builder, "remove"));

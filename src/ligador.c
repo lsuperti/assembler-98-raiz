@@ -1,6 +1,11 @@
 
 #include "ligador.h"
 
+modulo *read_modulo( char *src )
+{
+    return NULL;
+}
+
 Vector find_all_identifier_pos( program_t *p, token_t *tok )
 {
     Vector *rt = malloc(sizeof(Vector));
@@ -115,10 +120,16 @@ void on_save_assembled_activate( GtkMenuItem *m, GtkTextView *ct )
     gtk_widget_destroy(dialog);
 }
 
-void on_link_activate( GtkMenuItem *m ) 
+void on_link_activate( GtkMenuItem *m, gpointer data ) 
 {
-    fprintf(stdout, "implement linking");
-    fflush(stdout);
+    paths *p = data;
+    
+    for ( GList *l = p->file_paths; l != NULL; l = l->next ) 
+    {
+
+    }
+
+    on_load_activate(NULL);
 }
 
 void on_addmod_activate( GtkMenuItem *m, gpointer data )

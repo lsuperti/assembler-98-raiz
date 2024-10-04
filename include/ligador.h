@@ -3,6 +3,7 @@
 
 #include "data_structures.h"
 #include "montador_types.h"
+#include "program.h"
 
 typedef struct global
 {
@@ -32,8 +33,9 @@ typedef struct paths
 } paths;
 
 Vector find_all_identifier_pos( program_t *p, token_t *tok );
-modulo *read_modulo( FILE *f );
+modulo *read_modulo( char *src );
 void on_addmod_activate( GtkMenuItem *m, gpointer data );
 void on_removemod_activate( GtkMenuItem *m, gpointer data );
+void on_link_activate( GtkMenuItem *m, gpointer data ); 
 
 #endif // LIGADOR_H
