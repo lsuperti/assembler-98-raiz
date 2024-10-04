@@ -10,7 +10,7 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # ----------------------- || -------------
 
-set(CMAKE_C_FLAGS_DEBUG "-g")
+set(CMAKE_C_FLAGS_DEBUG "-g -rdynamic")
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${GTK3_INCLUDE_DIRS}) 

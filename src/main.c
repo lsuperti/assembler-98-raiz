@@ -97,6 +97,9 @@ int main (int argc, char *argv[]) {
     GtkWidget *window_fixed_mop3 =
         GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP3"));
 
+    GtkWidget *save_assembled = 
+        GTK_WIDGET(gtk_builder_get_object(builder, "save_assembled"));
+
     gtk_stack_add_titled(stack, start_window_fixed,
             "WINDOW_FIXED_START", "Main window"); 
     gtk_stack_add_titled(stack, window_fixed_mop0,
