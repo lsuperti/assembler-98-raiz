@@ -29,5 +29,6 @@ int is_copy(int inst);
 int is_empty_line(const char *line);
 unsigned long hash(unsigned char *str);
 token_t * tokdup( token_t *t );
+void set_combo_box_ellipsize(GtkComboBoxText *combo_box); 
 
 #endif // HELPER_H

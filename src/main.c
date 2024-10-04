@@ -8,6 +8,7 @@
 #include "screens.h"
 #include "program.h"
 #include "montador.h"
+#include "ligador.h"
 #include "program.h"
 
 #define NDEBUG
@@ -103,9 +104,6 @@ int main (int argc, char *argv[]) {
     GtkWidget *window_fixed_mop3 =
         GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_MOP3"));
 
-    GtkWidget *save_assembled = 
-        GTK_WIDGET(gtk_builder_get_object(builder, "save_assembled"));
-
     gtk_stack_add_titled(stack, start_window_fixed,
             "WINDOW_FIXED_START", "Main window"); 
     gtk_stack_add_titled(stack, window_fixed_mop0,
@@ -115,9 +113,20 @@ int main (int argc, char *argv[]) {
     gtk_stack_add_titled(stack, window_fixed_mop3,
             "WINDOW_FIXED_MOP3", "FILE_GUI");
 
-    GtkWidget *console_button = GTK_WIDGET(gtk_builder_get_object(builder, "Console"));
+    GtkWidget *console_button =
+        GTK_WIDGET(gtk_builder_get_object(builder, "Console"));
     g_signal_connect(console_button, "clicked", G_CALLBACK(change_to_console), stack); 
+    GtkComboBoxText *combo_box =
+        GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "combo_box"));
 
+    set_combo_box_ellipsize(combo_box);
+    paths p = { NULL, combo_box };
+    
+    GtkWidget *add    = GTK_WIDGET(gtk_builder_get_object(builder, "add"));
+    GtkWidget *remove = GTK_WIDGET(gtk_builder_get_object(builder, "remove"));
+
+    g_signal_connect(add, "activate", G_CALLBACK(on_addmod_activate), &p );
+    g_signal_connect(remove, "activate", G_CALLBACK(on_removemod_activate), &p );
 
     GtkWidget *gui_button = GTK_WIDGET(gtk_builder_get_object(builder, "GUI"));
     g_signal_connect(gui_button, "clicked", G_CALLBACK(change_to_gui), stack);

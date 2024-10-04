@@ -121,3 +121,46 @@ void on_link_activate( GtkMenuItem *m )
     fflush(stdout);
 }
 
+void on_addmod_activate( GtkMenuItem *m, gpointer data )
+{
+    paths *p = data;
+
+    GtkWidget *dialog = gtk_file_chooser_dialog_new("Select a File",
+                                                    NULL,
+                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
+                                                    "_Cancel", GTK_RESPONSE_CANCEL,
+                                                    "_Open", GTK_RESPONSE_ACCEPT,
+                                                    NULL);
+
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+
+        char *file_path = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+
+        p->file_paths = g_list_append(p->file_paths, file_path);
+
+        gtk_combo_box_text_append_text(p->combo_box,
+                g_path_get_basename(file_path));
+
+        gtk_combo_box_set_active(GTK_COMBO_BOX(p->combo_box),
+                                 g_list_length(p->file_paths) - 1);
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+void on_removemod_activate( GtkMenuItem *m, gpointer data )
+{
+    paths *p = data;
+
+    int active_index = gtk_combo_box_get_active(GTK_COMBO_BOX(p->combo_box));
+    if (active_index != -1) {
+
+        GList *item = g_list_nth(p->file_paths, active_index);
+        if (item) {
+            g_free(item->data);
+            p->file_paths = g_list_delete_link(p->file_paths, item);
+
+            gtk_combo_box_text_remove(p->combo_box, active_index);
+        }
+    }
+}

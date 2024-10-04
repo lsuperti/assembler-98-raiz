@@ -1,11 +1,17 @@
 7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
 
 section .text
-
+51 30 6 767 78 266 51 30 
+7 767 79 0 11 
 section .data
-
+0 
 section .rodata
 
 global
+	main 256
+	loop 268
+	max_ 767
 
 extern
+	SHIFTL 11 
+	SHIFTR 

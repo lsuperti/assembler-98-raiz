@@ -440,7 +440,7 @@
       </object>
       <packing>
         <property name="x">63</property>
-        <property name="y">109</property>
+        <property name="y">95</property>
       </packing>
     </child>
     <child>
@@ -453,8 +453,8 @@
         <property name="receives-default">True</property>
       </object>
       <packing>
-        <property name="x">687</property>
-        <property name="y">14</property>
+        <property name="x">29</property>
+        <property name="y">687</property>
       </packing>
     </child>
     <child>
@@ -614,15 +614,16 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkMenuItem">
+                  <object class="GtkMenuItem" id="link">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Link</property>
                     <property name="use-underline">True</property>
+                    <signal name="activate" handler="on_link_activate" swapped="no"/>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkMenuItem">
+                  <object class="GtkMenuItem" id="load">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Load</property>
@@ -714,22 +715,29 @@
           </object>
         </child>
         <child>
-          <object class="GtkMenuItem" id="Help">
+          <object class="GtkMenuItem" id="Dependencies">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">_Help</property>
+            <property name="label" translatable="yes">_Mod</property>
             <property name="use-underline">True</property>
             <child type="submenu">
               <object class="GtkMenu">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>
-                  <object class="GtkImageMenuItem">
-                    <property name="label">gtk-about</property>
+                  <object class="GtkMenuItem" id="add">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Adicionar</property>
                     <property name="use-underline">True</property>
-                    <property name="use-stock">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuItem" id="remove">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Remover Selecionado</property>
+                    <property name="use-underline">True</property>
                   </object>
                 </child>
               </object>
@@ -739,7 +747,23 @@
       </object>
       <packing>
         <property name="x">463</property>
-        <property name="y">109</property>
+        <property name="y">95</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkComboBoxText" id="combo_box">
+        <property name="width-request">100</property>
+        <property name="height-request">80</property>
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <items>
+          <item translatable="yes">sfas</item>
+          <item translatable="yes">asfasfsafa</item>
+        </items>
+      </object>
+      <packing>
+        <property name="x">647</property>
+        <property name="y">97</property>
       </packing>
     </child>
   </object>
