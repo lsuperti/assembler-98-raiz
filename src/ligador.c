@@ -26,7 +26,6 @@ modulo *read_modulo( char *src )
         fprintf(stderr, "Erro de alocação de memória\n");
         return NULL;
     }
-    mod->id = 1;
 
     vector_init(&mod->dot_text, 10);
     vector_init(&mod->dot_data, 10);
