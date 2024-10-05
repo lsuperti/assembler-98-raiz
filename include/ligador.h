@@ -45,6 +45,7 @@ typedef struct paths
 
 Vector find_all_identifier_pos( program_t *p, token_t *tok );
 modulo *read_modulo( char *src );
+void print_modulo( modulo *mod );
 void on_addmod_activate( GtkMenuItem *m, gpointer data );
 void on_removemod_activate( GtkMenuItem *m, gpointer data );
 void on_link_activate( GtkMenuItem *m, gpointer data ); 

@@ -87,6 +87,28 @@ modulo *read_modulo( char *src )
     return mod;
 }
 
+void print_modulo(modulo *mod) {
+    printf("Modulo ID: %d\n", mod->id);
+
+    printf(".text: ");
+    for (size_t i = 0; i < mod->dot_text.used; i++) {
+        printf("%u ", mod->dot_text.array[i]);
+    }
+    printf("\n");
+
+    printf(".data: ");
+    for (size_t i = 0; i < mod->dot_data.used; i++) {
+        printf("%u ", mod->dot_data.array[i]);
+    }
+    printf("\n");
+
+    printf(".rodata: ");
+    for (size_t i = 0; i < mod->dot_rodata.used; i++) {
+        printf("%u ", mod->dot_rodata.array[i]);
+    }
+    printf("\n");
+}
+
 Vector find_all_identifier_pos( program_t *p, token_t *tok )
 {
     Vector *rt = malloc(sizeof(Vector));

@@ -145,6 +145,10 @@ int main (int argc, char *argv[]) {
         "SHIFTR\n";
 
     modulo *mod = read_modulo(src);
+
+    if (mod != NULL) {
+        print_modulo(mod);
+    }
     
     GtkWidget *add    = GTK_WIDGET(gtk_builder_get_object(builder, "add"));
     GtkWidget *remove = GTK_WIDGET(gtk_builder_get_object(builder, "remove"));
