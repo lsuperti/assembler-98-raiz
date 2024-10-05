@@ -1,9 +1,38 @@
 
 #include "ligador.h"
 
+void vector_init(Vector *v, size_t initial_size) {
+    v->array = (word_t *)malloc(initial_size * sizeof(word_t));
+    if (v->array == NULL) {
+        fprintf(stderr, "Erro ao alocar memória para o vetor\n");
+        exit(1);
+    }
+    v->used = 0;
+    v->size = initial_size;
+}
+
+void vector_add(Vector *v, word_t value) {
+    if (v->used == v->size) {
+        v->size *= 2;
+        v->array = (word_t *)realloc(v->array, v->size * sizeof(word_t));
+    }
+    v->array[v->used++] = value;
+}
+
 modulo *read_modulo( char *src )
 {
-    return NULL;
+    modulo *mod = (modulo *)malloc(sizeof(modulo));
+    if (!mod) {
+        fprintf(stderr, "Erro de alocação de memória\n");
+        return NULL;
+    }
+    mod->id = 1;
+
+    vector_init(&mod->dot_text, 10);
+    vector_init(&mod->dot_data, 10);
+    vector_init(&mod->dot_rodata, 10);
+
+    return mod;
 }
 
 Vector find_all_identifier_pos( program_t *p, token_t *tok )
