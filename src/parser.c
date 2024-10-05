@@ -28,7 +28,8 @@ int parseGLOBAL( program_t *program, token_t *c_tok )
                 token_t *t2;
                 HASH_FIND_STR( program->globals, peeked_1->token, t2 );
                 
-                peeked_1->value = t->value;
+                peeked_1->value  = t->value;
+                peeked_1->data_l = t->data_l;
                 if ( t2 == NULL )
                     HASH_ADD_STR( program->globals, token, peeked_1 );
                 else

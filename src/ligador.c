@@ -120,14 +120,85 @@ void on_save_assembled_activate( GtkMenuItem *m, GtkTextView *ct )
     gtk_widget_destroy(dialog);
 }
 
+/* 
+ * Página 180 do livro do koliver 
+ * na primeira passagem é gerado a tabela de todos 
+ * os simbolos globais ( global ) e somado com a
+ * determinada distância relativa.
+ *
+ * Somando o tamanho dos dados até o modulo presente se
+ * data_l = true ou somando o tamanho do código até o presente
+ * se data_l = false
+*/
+int first_pass( paths *p, modulo *mds )
+{
+    int *err;
+    size_t *f_size;
+    int idx = 1;
+    
+    modulo *f_m;
+    HASH_FIND_INT(mds, "1", f_m);
+    if ( f_m == NULL )
+        return -1;
+
+    int s_data_size = f_m->dot_data.used;
+    int s_text_size = f_m->dot_text.used;
+
+    for ( GList *l = p->file_paths; l != NULL; l = l->next ) 
+    {
+        char *src = c_read_file( (const char*) l->data, err, f_size);
+        if ( err != FILE_OK ) 
+             return *err;
+        modulo *m = read_modulo(src);
+        m->id = idx++;
+        
+        HASH_ADD_INT(mds, id, m);
+
+
+
+
+    }
+}
+
 void on_link_activate( GtkMenuItem *m, gpointer data ) 
 {
     paths *p = data;
-    
-    for ( GList *l = p->file_paths; l != NULL; l = l->next ) 
-    {
+    int rv;
+    modulo *mds = NULL;
+    tlb_g  *gs  = NULL;
 
+    GtkTextView *tv   =
+        GTK_TEXT_VIEW(gtk_builder_get_object(p->builder, "consoleAssembledFiles")); 
+    GtkTextBuffer *tb = gtk_text_view_get_buffer(tv);
+    GtkTextIter start, end;
+    gtk_text_buffer_get_start_iter(tb, &start);
+    gtk_text_buffer_get_end_iter(tb, &end);
+    gchar *text = gtk_text_buffer_get_text(tb, &start, &end, FALSE);
+    modulo *f_m = read_modulo(text);
+    f_m->id = 1;
+    HASH_ADD_INT(mds, id, f_m);
+
+    global *el, *tmp;
+    HASH_ITER(hh, f_m->gls, el, tmp) 
+    {
+        global *t; 
+        HASH_FIND_STR(gs->gls, el->name, t);
+        if ( t == NULL )
+        {
+            HASH_ADD_STR(gs->gls, name, el);
+        }
+        else
+        {
+            // Error multiple defined linked
+            // libraries
+            return;
+        }
+        
     }
+
+    rv = first_pass(p, mds); 
+    if (rv) 
+      return;
 
     on_load_activate(NULL);
 }

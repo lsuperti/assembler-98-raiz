@@ -120,7 +120,7 @@ int main (int argc, char *argv[]) {
         GTK_COMBO_BOX_TEXT(gtk_builder_get_object(builder, "combo_box"));
 
     set_combo_box_ellipsize(combo_box);
-    paths p = { NULL, combo_box };
+    paths p = { NULL, combo_box, builder };
 
     GtkWidget *link = 
         GTK_WIDGET(gtk_builder_get_object(builder, "link"));

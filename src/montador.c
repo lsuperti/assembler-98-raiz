@@ -52,8 +52,17 @@ void generateOutput( program_t *program, FILE *output )
    token_t *el, *tmp;
    HASH_ITER(hh, program->globals, el, tmp )
    {
-     fprintf( output, "\t%s %d\n", el->token,
-             el->value );
+     if ( el->data_l == true )
+     {
+         fprintf( output, "\t%s& %d\n", el->token,
+                 el->value );
+     }
+     else
+     {
+         fprintf( output, "\t%s %d\n", el->token,
+                 el->value );
+     }
+     fflush(stdout);
    }
 
    fprintf( output, "\nextern\n" );
@@ -66,7 +75,6 @@ void generateOutput( program_t *program, FILE *output )
             fprintf( output, "%d ", el->pos.array[i] );
      }
      fprintf( output, "\n" );
-
    }
 }
 
@@ -1195,12 +1203,14 @@ int resolveIdentifiers( program_t *program )
         switch( tok->type ) 
         {
             case TOK_LABEL: {
+
                 char *str;
                 str = malloc ( strlen ( tok->token ) + 1 );
                 strcpy (str, tok->token);
                 cut_last(str);
 
                 n_tok = malloc( sizeof( token_t ) );
+                n_tok->data_l = false;
                 u_tok = peek_token( program );
                 if ( u_tok->type == TOK_WORD ||
                      u_tok->type == TOK_SPACE ) 
@@ -1212,6 +1222,7 @@ int resolveIdentifiers( program_t *program )
                     cut_last( n_tok->token );
 
                     n_tok->defined = true;
+                    n_tok->data_l  = true;
                     n_tok->type    = TOK_IDENTIFIER;
                 }else if ( u_tok->type == TOK_ASCIIZ ) 
                 {

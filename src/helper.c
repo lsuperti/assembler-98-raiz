@@ -212,3 +212,4 @@ void set_combo_box_ellipsize(GtkComboBoxText *combo_box) {
         gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(combo_box))->data;
     g_object_set(renderer, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
 }
+
