@@ -125,6 +125,26 @@ int main (int argc, char *argv[]) {
     GtkWidget *link = 
         GTK_WIDGET(gtk_builder_get_object(builder, "link"));
     g_signal_connect(link, "activate", G_CALLBACK(on_link_activate), &p);
+
+    char *src = 
+        "7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00\n"
+        "section .text\n"
+        "51 30 6 767 78 266 51 30\n"
+        "7 767 79 0 11\n"
+        "section .data\n"
+        "0\n"
+        "section .rodata\n"
+        "\n"
+        "global\n"
+        "main 256\n"
+        "loop 268\n"
+        "max_ 767\n"
+        "\n"
+        "extern\n"
+        "SHIFTL 11\n"
+        "SHIFTR\n";
+
+    modulo *mod = read_modulo(src);
     
     GtkWidget *add    = GTK_WIDGET(gtk_builder_get_object(builder, "add"));
     GtkWidget *remove = GTK_WIDGET(gtk_builder_get_object(builder, "remove"));
