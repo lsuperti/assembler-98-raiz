@@ -1642,7 +1642,6 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     program_t *program = createProgram(file); 
     fclose(file);
     tokenize(program);
-    printTokens(program);
 
     gtk_text_buffer_set_text(buffer, program->source, -1);
     for( int i=0; i < program->n_tokens - 1; i++ )

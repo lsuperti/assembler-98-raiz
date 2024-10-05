@@ -161,5 +161,7 @@ typedef struct _program_t{
 } program_t;
 
 token_t*        getNextToken( program_t *program );
+program_t*      createProgram( FILE *input );
+void            freeProgram( program_t *program );
 
 #endif //MONTADOR_TYPES_H

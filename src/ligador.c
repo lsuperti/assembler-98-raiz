@@ -130,7 +130,7 @@ void on_save_assembled_activate( GtkMenuItem *m, GtkTextView *ct )
  * data_l = true ou somando o tamanho do código até o presente
  * se data_l = false
 */
-int first_pass( paths *p, modulo *mds )
+int first_pass( paths *p, modulo *mds, tlb_g *gs )
 {
     int *err;
     size_t *f_size;
@@ -150,14 +150,47 @@ int first_pass( paths *p, modulo *mds )
         if ( err != FILE_OK ) 
              return *err;
         modulo *m = read_modulo(src);
-        m->id = idx++;
         
-        HASH_ADD_INT(mds, id, m);
+        if ( m != NULL )
+        {
+            m->id = idx++;
+            HASH_ADD_INT(mds, id, m);
+        }
 
+        global *el, *tmp;
+        HASH_ITER(hh, m->gls, el, tmp) 
+        {
+            if ( el->data_l == true )
+                 el->value += s_data_size;
+            else 
+                 el->value += s_text_size;
 
-
+            global *t; 
+            HASH_FIND_STR(gs->gls, el->name, t);
+            if ( t == NULL )
+            {
+                HASH_ADD_STR(gs->gls, name, el);
+            }
+            else
+            {
+                // linker error :
+                // Error multiple defined identifiers
+                return -1;
+            }
+            
+        }
+                 
+        s_data_size += m->dot_data.used;
+        s_text_size += m->dot_text.used;
 
     }
+
+    return EXIT_SUCCESS;
+}
+
+int second_pass()
+{
+    return EXIT_SUCCESS;
 }
 
 void on_link_activate( GtkMenuItem *m, gpointer data ) 
@@ -167,6 +200,9 @@ void on_link_activate( GtkMenuItem *m, gpointer data )
     modulo *mds = NULL;
     tlb_g  *gs  = NULL;
 
+    // O primeiro modulo é sempre o 
+    // que está no buffer sendo mostrado.
+    
     GtkTextView *tv   =
         GTK_TEXT_VIEW(gtk_builder_get_object(p->builder, "consoleAssembledFiles")); 
     GtkTextBuffer *tb = gtk_text_view_get_buffer(tv);
@@ -175,29 +211,39 @@ void on_link_activate( GtkMenuItem *m, gpointer data )
     gtk_text_buffer_get_end_iter(tb, &end);
     gchar *text = gtk_text_buffer_get_text(tb, &start, &end, FALSE);
     modulo *f_m = read_modulo(text);
-    f_m->id = 1;
-    HASH_ADD_INT(mds, id, f_m);
 
-    global *el, *tmp;
-    HASH_ITER(hh, f_m->gls, el, tmp) 
+    if ( f_m != NULL )
     {
-        global *t; 
-        HASH_FIND_STR(gs->gls, el->name, t);
-        if ( t == NULL )
+        f_m->id = 1;
+        HASH_ADD_INT(mds, id, f_m);
+
+        global *el, *tmp;
+        HASH_ITER(hh, f_m->gls, el, tmp) 
         {
-            HASH_ADD_STR(gs->gls, name, el);
+            global *t; 
+            HASH_FIND_STR(gs->gls, el->name, t);
+            if ( t == NULL )
+            {
+                HASH_ADD_STR(gs->gls, name, el);
+            }
+            else
+            {
+                // Error multiple defined linked
+                // libraries
+                return;
+            }
+            
         }
-        else
-        {
-            // Error multiple defined linked
-            // libraries
-            return;
-        }
-        
     }
 
-    rv = first_pass(p, mds); 
+    // Depois da primeira passagem todos os simbolos
+    // com os endereços corretos estão em gs.
+    rv = first_pass(p, mds, gs); 
     if (rv) 
+      return;
+
+    rv = second_pass();
+    if (rv)
       return;
 
     on_load_activate(NULL);

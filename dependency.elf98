@@ -17,3 +17,5 @@ global
 	SHIFTR 281
 
 extern
+
+local_text_labels

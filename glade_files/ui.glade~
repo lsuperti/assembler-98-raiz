@@ -619,7 +619,6 @@
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Link</property>
                     <property name="use-underline">True</property>
-                    <signal name="activate" handler="on_link_activate" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -695,7 +694,15 @@
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <child>
-                  <object class="GtkMenuItem">
+                  <object class="GtkMenuItem" id="s_ligador">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="label" translatable="yes">Saída do ligador</property>
+                    <property name="use-underline">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuItem" id="s_macros">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Processador de Macros</property>
@@ -703,11 +710,12 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkMenuItem">
+                  <object class="GtkMenuItem" id="s_montador">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">Objeto</property>
+                    <property name="label" translatable="yes">Saída do montador</property>
                     <property name="use-underline">True</property>
+                    <signal name="activate" handler="on_sMontador_activate" object="consoleAssembledFiles" swapped="no"/>
                   </object>
                 </child>
               </object>

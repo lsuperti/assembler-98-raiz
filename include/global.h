@@ -15,5 +15,7 @@ extern char *current_binary;
 extern char *current_parser_error;
 extern GtkBuilder *p_builder;
 extern GtkTextBuffer *cpe;
+extern char *current_macro_out;
+extern char *current_linker_out;
 
 #endif // GLOBAL_H

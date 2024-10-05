@@ -75,19 +75,7 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
         GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,
                    "consoleAssembledFiles"));
 
-    int err;
-    size_t f_size;
-    char * f_data;
-    f_data = c_read_file(current_binary, &err, &f_size);
-
-    if (err) {}
-    else {
-        gtk_text_buffer_set_text( 
-        gtk_text_view_get_buffer(GTK_TEXT_VIEW(console_assembled_files)),
-        f_data, -1);
-        free(f_data);
-    }
-
+    on_sMontador_activate(NULL, GTK_TEXT_VIEW(console_assembled_files));
     g_free(source);
 }
 

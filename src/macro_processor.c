@@ -11,7 +11,7 @@ void resetIdentifiers_Macros( program_t *p )
     p->table->num_s = 0;
 }
 
-error_rv printMacros( program_t *p ) 
+error_rv printMacros( program_t *p, FILE *f ) 
 {
     MACRO_T *entry, *tmp; 
 
@@ -23,13 +23,13 @@ error_rv printMacros( program_t *p )
     {
         if (entry)
         {
-            fprintf(stdout,
+            fprintf(f,
             "\nMACRO : %s, NUM_TOKENS : %lu, NUM_PARAMS : %lu, NUM_LOCAL_MACROS : %lu\n",  entry->name,
             entry->n_tokens, entry->n_params, entry->n_local_macros   );
             for ( int i=0; i < entry->n_params; i++ )
             {
             }
-            fflush(stdout);
+            fflush(f);
             dirty_hack->tokens   = entry->tokens;
             dirty_hack->n_tokens = entry->n_tokens;
             printTokens( dirty_hack );
@@ -38,6 +38,23 @@ error_rv printMacros( program_t *p )
 
     free(dirty_hack);
     return EXIT_SUCCESS;
+}
+
+void tokens_out( program_t *p, FILE *f ) 
+{
+    if ( p->tokens == NULL )
+        return;
+
+    for ( int i=0; i < p->n_tokens; i++ )
+    {
+        token_t t = p->tokens[i];
+        if ( t.token != NULL 
+             && t.type != TOK_NEWLINE )
+        {
+            fprintf( f, "%s ", p->tokens[i].token );
+            fflush(f);
+        }
+    }
 }
 
 error_rv addToken( token_t **tokens, int *capacity, int *idx, token_t tok )
@@ -534,6 +551,13 @@ void process_macros( program_t *program )
         program->token_idx++;
     }
     program->token_idx = state;
+
+    FILE *f;
+    if ( (f = fopen(current_macro_out, "w")) == NULL )
+        return;
+
+    tokens_out(program, f);
+    fclose(f);
 }
 
 void add_macro( program_t *program, MACRO_T *macro ) 

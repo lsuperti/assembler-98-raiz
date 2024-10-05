@@ -23,6 +23,42 @@ hash(unsigned char *str)
     return hash;
 }
 
+void on_sMacros_activate( GtkMenuItem *m, GtkTextView *s )
+{
+    FILE *file;
+    if ( (file = fopen(current_macro_out, "rb")) == NULL )
+        return;
+
+    program_t *p;
+    if ( (p = createProgram(file)) == NULL )
+        return;
+    fclose(file);
+
+    gtk_text_buffer_set_text( 
+    gtk_text_view_get_buffer(GTK_TEXT_VIEW(s)),
+    p->source, -1);
+
+    freeProgram(p);
+}
+
+void on_sMontador_activate( GtkMenuItem *m, GtkTextView *s )
+{
+    int err;
+    size_t f_size;
+    char *f_data = c_read_file(current_binary, &err, &f_size);
+    if (err)
+    {
+        fprintf(stderr, "Couldn't show output from assembler");
+        return;
+    }
+    else {
+        gtk_text_buffer_set_text( 
+        gtk_text_view_get_buffer(GTK_TEXT_VIEW(s)),
+        f_data, -1);
+        free(f_data);
+    }
+}
+
 void append_text_to_text_view(GtkTextView *text_view, const char *text){
     GtkTextBuffer *buffer;
     GtkTextIter end;

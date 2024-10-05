@@ -17,3 +17,5 @@ global
 	main 256
 
 extern
+
+local_text_labels

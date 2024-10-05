@@ -30,5 +30,6 @@ int is_empty_line(const char *line);
 unsigned long hash(unsigned char *str);
 token_t * tokdup( token_t *t );
 void set_combo_box_ellipsize(GtkComboBoxText *combo_box); 
+void on_sMontador_activate( GtkMenuItem *m, GtkTextView *s );
 
 #endif // HELPER_H

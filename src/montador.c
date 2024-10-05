@@ -76,6 +76,9 @@ void generateOutput( program_t *program, FILE *output )
      }
      fprintf( output, "\n" );
    }
+
+   fprintf( output, "\nlocal_text_labels\n" );
+    
 }
 
 // Função que recebe dois caminhos de arquivo 
