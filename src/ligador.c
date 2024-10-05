@@ -32,6 +32,58 @@ modulo *read_modulo( char *src )
     vector_init(&mod->dot_data, 10);
     vector_init(&mod->dot_rodata, 10);
 
+    char *src_copy = strdup(src);
+    if (src_copy == NULL) {
+        fprintf(stderr, "Erro ao copiar a string src\n");
+        exit(1);
+    }
+
+    char *section = strtok(src_copy, "\n");
+    while (section != NULL) {
+        if (strstr(section, "section .text") != NULL) {
+
+            section = strtok(NULL, "\n");
+            while (section && strstr(section, "section") == NULL) {
+                word_t value;
+                char *token = strtok(section, " ");
+                while (token) {
+                    sscanf(token, "%u", &value);
+                    vector_add(&mod->dot_text, value);
+                    token = strtok(NULL, " ");
+                }
+                section = strtok(NULL, "\n");
+            }
+
+            continue;
+        }
+        
+        if (strstr(section, "section .data") != NULL) {
+            section = strtok(NULL, "\n");
+            while (section && strstr(section, "section") == NULL) {
+                word_t value;
+                sscanf(section, "%u", &value);
+                vector_add(&mod->dot_data, value);
+                section = strtok(NULL, "\n");
+            }
+
+            continue;
+        }
+        
+        if (strstr(section, "section .rodata") != NULL) {
+            section = strtok(NULL, "\n");
+            while (section && strstr(section, "section") == NULL) {
+                word_t value;
+                sscanf(section, "%u", &value);
+                vector_add(&mod->dot_rodata, value);
+                section = strtok(NULL, "\n");
+            }
+
+            continue;
+        }
+
+        section = strtok(NULL, "\n");
+    }
+
     return mod;
 }
 
