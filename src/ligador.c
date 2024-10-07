@@ -1,22 +1,28 @@
 
 #include "ligador.h"
 
-void vector_init(Vector *v, size_t initial_size) {
-    v->array = (word_t *)malloc(initial_size * sizeof(word_t));
-    if (v->array == NULL) {
-        fprintf(stderr, "Erro ao alocar memória para o vetor\n");
-        exit(1);
-    }
-    v->used = 0;
-    v->size = initial_size;
-}
+void process_section( char *section, Vector *vector )
+{
+    word_t value;
+    char *line_copy = strdup(section);
+    char *current = line_copy;
+    char *next_space;
 
-void vector_add(Vector *v, word_t value) {
-    if (v->used == v->size) {
-        v->size *= 2;
-        v->array = (word_t *)realloc(v->array, v->size * sizeof(word_t));
+    while (*current) {
+        next_space = strchr(current, ' ');
+
+        if (next_space == NULL) {
+            next_space = current + strlen(current);
+        }
+
+        *next_space = '\0';
+
+        if (sscanf(current, "%u", &value) == 1) {
+            insert(vector, value);
+        }
+
+        current = next_space + 1;
     }
-    v->array[v->used++] = value;
 }
 
 modulo *read_modulo( char *src )
@@ -27,9 +33,13 @@ modulo *read_modulo( char *src )
         return NULL;
     }
 
-    vector_init(&mod->dot_text, 10);
-    vector_init(&mod->dot_data, 10);
-    vector_init(&mod->dot_rodata, 10);
+    initVector(&mod->dot_text, 10);
+    initVector(&mod->dot_data, 10);
+    initVector(&mod->dot_rodata, 10);
+
+    bool save_text = false;
+    bool save_data = false;
+    bool save_rodata = false;
 
     char *src_copy = strdup(src);
     if (src_copy == NULL) {
@@ -39,45 +49,41 @@ modulo *read_modulo( char *src )
 
     char *section = strtok(src_copy, "\n");
     while (section != NULL) {
+
         if (strstr(section, "section .text") != NULL) {
+            save_text = true;
 
-            section = strtok(NULL, "\n");
-            while (section && strstr(section, "section") == NULL) {
-                word_t value;
-                char *token = strtok(section, " ");
-                while (token) {
-                    sscanf(token, "%u", &value);
-                    vector_add(&mod->dot_text, value);
-                    token = strtok(NULL, " ");
-                }
-                section = strtok(NULL, "\n");
+            save_data = false;
+            save_rodata = false;
+        } else if (strstr(section, "section .data") != NULL) {
+            save_data = true;
+
+            save_text = false;
+            save_rodata = false;
+        } else if (strstr(section, "section .rodata") != NULL) {
+            save_rodata = true;
+
+            save_text = false;
+            save_data = false;
+        } else if (strstr(section, "global") != NULL) {
+
+            save_rodata = false;
+            save_text = false;
+            save_data = false;
+        } else if (strstr(section, "extern") != NULL) {
+
+            save_rodata = false;
+            save_text = false;
+            save_data = false;
+        } else {
+
+            if (save_text) {
+                process_section(section, &mod->dot_text);
+            } else if (save_data) {
+                process_section(section, &mod->dot_data);
+            } else if (save_rodata) {
+                process_section(section, &mod->dot_rodata);
             }
-
-            continue;
-        }
-        
-        if (strstr(section, "section .data") != NULL) {
-            section = strtok(NULL, "\n");
-            while (section && strstr(section, "section") == NULL) {
-                word_t value;
-                sscanf(section, "%u", &value);
-                vector_add(&mod->dot_data, value);
-                section = strtok(NULL, "\n");
-            }
-
-            continue;
-        }
-        
-        if (strstr(section, "section .rodata") != NULL) {
-            section = strtok(NULL, "\n");
-            while (section && strstr(section, "section") == NULL) {
-                word_t value;
-                sscanf(section, "%u", &value);
-                vector_add(&mod->dot_rodata, value);
-                section = strtok(NULL, "\n");
-            }
-
-            continue;
         }
 
         section = strtok(NULL, "\n");
@@ -87,7 +93,7 @@ modulo *read_modulo( char *src )
 }
 
 void print_modulo(modulo *mod) {
-    printf("Modulo ID: %d\n", mod->id);
+    printf("\nModulo ID: %d\n", mod->id);
 
     printf(".text: ");
     for (size_t i = 0; i < mod->dot_text.used; i++) {
