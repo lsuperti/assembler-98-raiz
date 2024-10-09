@@ -32,6 +32,7 @@ typedef struct modulo
     Vector    dot_data;
     Vector    dot_rodata;
     global    *gls;
+    int num_gls;
     extern_t  *exts;
     UT_hash_handle hh;
 } modulo;

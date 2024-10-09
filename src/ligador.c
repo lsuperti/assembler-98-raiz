@@ -25,6 +25,30 @@ void process_section( char *section, Vector *vector )
     }
 }
 
+void process_global( char *section, global *gls )
+{
+    word_t value;
+    char *line_copy = strdup(section);
+    char *current = line_copy;
+    char *next_space;
+
+    while (*current) {
+        next_space = strchr(current, ' ');
+
+        if (next_space == NULL) {
+            next_space = current + strlen(current);
+        }
+
+        *next_space = '\0';
+
+        // if (sscanf(current, "%u", &value) == 1) {
+        //     insert(vector, value);
+        // }
+
+        current = next_space + 1;
+    }
+}
+
 modulo *read_modulo( char *src )
 {
     modulo *mod = (modulo *)malloc(sizeof(modulo));
@@ -36,10 +60,14 @@ modulo *read_modulo( char *src )
     initVector(&mod->dot_text, 10);
     initVector(&mod->dot_data, 10);
     initVector(&mod->dot_rodata, 10);
+    mod->gls = NULL;
+    mod->num_gls = 0;
 
     bool save_text = false;
     bool save_data = false;
     bool save_rodata = false;
+    bool save_global = false;
+    bool save_extern = false;
 
     char *src_copy = strdup(src);
     if (src_copy == NULL) {
@@ -55,26 +83,36 @@ modulo *read_modulo( char *src )
 
             save_data = false;
             save_rodata = false;
+            save_global = false;
+            save_extern = false;
         } else if (strstr(section, "section .data") != NULL) {
             save_data = true;
 
             save_text = false;
             save_rodata = false;
+            save_global = false;
+            save_extern = false;
         } else if (strstr(section, "section .rodata") != NULL) {
             save_rodata = true;
 
             save_text = false;
             save_data = false;
+            save_global = false;
+            save_extern = false;
         } else if (strstr(section, "global") != NULL) {
+            save_global = true;
 
             save_rodata = false;
             save_text = false;
             save_data = false;
+            save_extern = false;
         } else if (strstr(section, "extern") != NULL) {
+            save_extern = true;
 
             save_rodata = false;
             save_text = false;
             save_data = false;
+            save_global = false;
         } else {
 
             if (save_text) {
@@ -83,6 +121,8 @@ modulo *read_modulo( char *src )
                 process_section(section, &mod->dot_data);
             } else if (save_rodata) {
                 process_section(section, &mod->dot_rodata);
+            } else if (save_global) {
+                process_global(section, mod->gls);
             }
         }
 
