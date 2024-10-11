@@ -34,6 +34,7 @@ typedef struct modulo
     global    *gls;
     int num_gls;
     extern_t  *exts;
+    int num_exts;
     UT_hash_handle hh;
 } modulo;
 

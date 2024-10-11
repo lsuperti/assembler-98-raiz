@@ -65,6 +65,59 @@ void process_global(char *section, global **gls, int *num_gls) {
     free(current);
 }
 
+void process_extern(char *section, extern_t **exts, int *num_exts) {
+    char *current = strdup(section);
+    char *key;
+    char *next_space;
+
+    next_space = strchr(current, ' ');
+    if (next_space == NULL) {
+        next_space = strchr(current, '\t');
+    }
+
+    if (next_space == NULL) {
+        next_space = current + strlen(current);
+    }
+
+    if (next_space != NULL) {
+        *next_space = '\0';
+        key = strdup(current);
+
+        *exts = realloc(*exts, (*num_exts + 1) * sizeof(extern_t));
+        if (*exts == NULL) {
+            fprintf(stderr, "Erro ao realocar memória\n");
+            exit(1);
+        }
+
+        (*exts)[*num_exts].name = key;
+
+        initVector(&(*exts)[*num_exts].ps, 10);
+
+        current = next_space + 1;
+
+        word_t value;
+        while (*current) {
+            next_space = strchr(current, ' ');
+
+            if (next_space == NULL) {
+                next_space = current + strlen(current);
+            }
+
+            *next_space = '\0';
+
+            if (strlen(current) > 0 && sscanf(current, "%u", &value) == 1) {
+                insert(&(*exts)[*num_exts].ps, value);
+            }
+
+            current = next_space + 1;
+        }
+
+        (*num_exts)++;
+    } else {
+        fprintf(stderr, "Formato de linha inválido\n");
+    }
+}
+
 modulo *read_modulo( char *src )
 {
     modulo *mod = (modulo *)malloc(sizeof(modulo));
@@ -76,8 +129,12 @@ modulo *read_modulo( char *src )
     initVector(&mod->dot_text, 10);
     initVector(&mod->dot_data, 10);
     initVector(&mod->dot_rodata, 10);
+
     mod->gls = NULL;
     mod->num_gls = 0;
+    
+    mod->exts = NULL;
+    mod->num_exts = 0;
 
     bool save_text = false;
     bool save_data = false;
@@ -139,6 +196,8 @@ modulo *read_modulo( char *src )
                 process_section(section, &mod->dot_rodata);
             } else if (save_global) {
                 process_global(section, &mod->gls, &mod->num_gls);
+            } else if (save_extern) {
+                process_extern(section, &mod->exts, &mod->num_exts);
             }
         }
 
@@ -172,6 +231,16 @@ void print_modulo(modulo *mod) {
     printf(".global: ");
     for (size_t i = 0; i < mod->num_gls; i++) {
         printf("\n%s: %i", mod->gls[i].name, mod->gls[i].value);
+    }
+    printf("\n");
+
+    printf(".extern: ");
+    printf("%i", mod->num_exts);
+    for (size_t i = 0; i < mod->num_exts; i++) {
+        printf("\n%s", mod->exts[i].name);
+        for (size_t j = 0; j < mod->exts[i].ps.used; j++) {
+            printf(" %i", mod->exts[i].ps.array[j]);
+        }
     }
     printf("\n");
 }
