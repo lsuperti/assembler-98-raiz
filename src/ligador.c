@@ -25,28 +25,44 @@ void process_section( char *section, Vector *vector )
     }
 }
 
-void process_global( char *section, global *gls )
-{
-    word_t value;
-    char *line_copy = strdup(section);
-    char *current = line_copy;
+void process_global(char *section, global **gls, int *num_gls) {
+    char *current = strdup(section);
+    char *key, *value_str;
     char *next_space;
 
-    while (*current) {
-        next_space = strchr(current, ' ');
+    next_space = strchr(current, ' ');
+    if (next_space == NULL) {
+        next_space = strchr(current, '\t');
+    }
 
-        if (next_space == NULL) {
-            next_space = current + strlen(current);
+    if (next_space != NULL) {
+        *next_space = '\0';
+        key = strdup(current);
+        value_str = strdup(next_space + 1);
+
+        if (value_str == NULL) {
+            fprintf(stderr, "Formato de linha inválido\n");
+            free(current);
+            return;
         }
 
-        *next_space = '\0';
+        *gls = realloc(*gls, (*num_gls + 1) * sizeof(global));
+        if (*gls == NULL) {
+            fprintf(stderr, "Erro ao realocar memória\n");
+            exit(1);
+        }
 
-        // if (sscanf(current, "%u", &value) == 1) {
-        //     insert(vector, value);
-        // }
+        (*gls)[*num_gls].name = key;
+        (*gls)[*num_gls].value = (int)strtol(value_str, NULL, 0);
+        (*gls)[*num_gls].data_l = key[strlen(key) - 1] == '@';
 
-        current = next_space + 1;
+        (*num_gls)++;
+    } else {
+        fprintf(stderr, "Formato de linha inválido\n");
     }
+
+    free(value_str);
+    free(current);
 }
 
 modulo *read_modulo( char *src )
@@ -122,7 +138,7 @@ modulo *read_modulo( char *src )
             } else if (save_rodata) {
                 process_section(section, &mod->dot_rodata);
             } else if (save_global) {
-                process_global(section, mod->gls);
+                process_global(section, &mod->gls, &mod->num_gls);
             }
         }
 
@@ -150,6 +166,12 @@ void print_modulo(modulo *mod) {
     printf(".rodata: ");
     for (size_t i = 0; i < mod->dot_rodata.used; i++) {
         printf("%u ", mod->dot_rodata.array[i]);
+    }
+    printf("\n");
+
+    printf(".global: ");
+    for (size_t i = 0; i < mod->num_gls; i++) {
+        printf("\n%s: %i", mod->gls[i].name, mod->gls[i].value);
     }
     printf("\n");
 }

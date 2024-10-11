@@ -12,7 +12,7 @@ typedef struct global
     word_t value;
     bool   data_l;
     UT_hash_handle hh;
-}global;
+} global;
 
 typedef struct tlb_g {
     global *gls;
@@ -23,7 +23,7 @@ typedef struct extern_t
     char* name;
     Vector ps;
     UT_hash_handle hh;
-}extern_t;
+} extern_t;
 
 typedef struct modulo
 {
