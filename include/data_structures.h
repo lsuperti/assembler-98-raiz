@@ -19,8 +19,9 @@ typedef struct _GenericVector{
     size_t size;
 } GenericVector;
 
+void    concatenate( Vector *a, Vector *b );
 void    initVector( Vector *a, size_t initialSize );
-void    insert    ( Vector *a, int element );
+void    insert    ( Vector *a, word_t element );
 void    freeVector( Vector *a );
 Vector *dupVector ( Vector *a );
 

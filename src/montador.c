@@ -68,13 +68,15 @@ void generateOutput( program_t *program, FILE *output )
    fprintf( output, "\nextern\n" );
    HASH_ITER(hh, program->externs, el, tmp )
    {
-     fprintf( output, "\t%s ", el->token );
+     if ( el->pos.used > 0 )
+         fprintf( output, "\t%s ", el->token );
      for ( int i=0; i < el->pos.used; i++ ) 
      {
          if ( el->pos.array != NULL )
             fprintf( output, "%d ", el->pos.array[i] );
      }
-     fprintf( output, "\n" );
+     if ( el->pos.used > 0 )
+         fprintf( output, "\n" );
    }
 
    fprintf( output, "\nlocal_text_labels\n" );
@@ -142,40 +144,59 @@ program_t* createProgram( FILE *file )
     return program;
 }
 
+void freeToken( token_t *t )
+{
+    if ( t != NULL )
+    {
+        if ( t->token != NULL )
+        {
+            free(t->token);
+            t->token = NULL;
+        }
+        if ( t->formal != NULL )
+        {
+            free(t->formal);
+            t->formal = NULL;
+        }
+
+        t->type = t->defined 
+        = t->value = t->offset 
+        = t->line = t->column
+        = t->data_l = 0;
+
+        free(t);
+        t = NULL;
+    }
+}
+
 /*
  * Libera a memoria da struct program_t.
 */
 void freeProgram( program_t *program )
 {
-   if ( !program ) return;
-   if ( !program->source )
-   {
-       free(program->source);
-       program->source = NULL;
-   }
-   if ( !program->sections ) {
-       free(program->sections);
-       program->sections = NULL;
-   }
-   if ( !program->table ) {
-       free(program->table);
-       program->table = NULL;
-   }
-   if ( !program->tokens ) {
-       free(program->tokens);
-       program->tokens = NULL;
-   }
-   if ( !program->globals ) {
-       free(program->globals);
-       program->globals = NULL;
-   }
-   if ( !program->externs ) {
-       free(program->externs);
-       program->externs = NULL;
-   }
-   if ( !program ) {
-       free(program);
-       program = NULL;
+   if ( program != NULL ) {
+        resetIdentifiers_Macros(program);
+        if ( program->source != NULL )
+        {
+            free(program->source);
+            program->source = NULL;
+        }
+        if ( program->sections != NULL )
+        {
+            freeVector(program->sections->dot_text);
+            freeVector(program->sections->dot_data);
+            freeVector(program->sections->dot_rodata);
+            free(program->sections);
+            program->sections = NULL;
+        }
+
+        program->n_tokens = program->token_idx
+        = program->n_symbols = program->HEAD =
+        program->program_size = program->c_row
+        = program->c_col = 0;
+
+        free(program);
+        program = NULL;
    }
 }
 
@@ -349,19 +370,22 @@ token_t nextToken( program_t *program ) {
     token_n->defined = true;
     token_n->value   = -1;
     token_n->type    = TOK_UNKNOWN;
+    token_n->formal  = NULL;
 
     bool LOCAL_LABEL = false;
 
     // Pula espaços em branco e conta a numeração da linha
+    // Removi tokenização de newlines, não tem necessidade 
+    // por agora, mas deixei comentado.
     while ( program->HEAD < program->program_size )
     {
         switch (program->source[program->HEAD])
         {
             case '\r':
-                token_n->token   = "\\n";
-                token_n->defined = true;
-                token_n->value   = -1;
-                token_n->type    = TOK_NEWLINE;
+               // token_n->token   = "\\n";
+               // token_n->defined = true;
+               // token_n->value   = -1;
+               // token_n->type    = TOK_NEWLINE;
                 
                 // CRLF
                 if ( peek(program->source, program->HEAD) == '\n' )
@@ -369,13 +393,14 @@ token_t nextToken( program_t *program ) {
                     program->HEAD += 2;
                     program->c_row++;
                     program->c_col = 1;
-                    return *token_n;
+                //    return *token_n;
                 // CR
                 } else
                 {
                     program->HEAD++;
+                    program->c_row++;
                     program->c_col = 1;
-                    return *token_n;
+                //   return *token_n;
                 }
                 break;
             // LF
@@ -384,12 +409,12 @@ token_t nextToken( program_t *program ) {
                 program->c_row++;
                 program->c_col = 1;
 
-                token_n->token   = "\\n";
-                token_n->defined = true;
-                token_n->value   = -1;
-                token_n->type    = TOK_NEWLINE;
+              //  token_n->token   = "\\n";
+              //  token_n->defined = true;
+              //  token_n->value   = -1;
+              //  token_n->type    = TOK_NEWLINE;
 
-                return *token_n;
+                //return *token_n;
 
                 break;
             case '\t':
@@ -417,18 +442,20 @@ token_t nextToken( program_t *program ) {
         token_n->offset  = program->HEAD;
         token_n->line    = program->c_row + 1;
         token_n->column  = tok_col;
+        token_n->formal  = NULL;
         return *token_n;
     }
-
 
     *token_n = hex_digit(program);
     if ( token_n->type != TOK_UNKNOWN ) {
         token_n->column = tok_col;
+        token_n->formal = NULL;
         return *token_n;
     }
     *token_n = digit(program);
     if ( token_n->type != TOK_UNKNOWN )  {
         token_n->column = tok_col;
+        token_n->formal = NULL;
         return *token_n;
     }
 
@@ -1106,6 +1133,7 @@ token_t nextToken( program_t *program ) {
 
     token_n->line    = program->c_row + 1;
     token_n->column  = tok_col;
+    token_n->formal  = NULL;
     return *token_n;
 }
 
@@ -1180,9 +1208,10 @@ token_t *peek_token( program_t *program )
 // string. 
 void cut_last ( char *str ) 
 {
-    if ( 0 < strlen( str ) ) 
+    size_t len = strlen(str);
+    if ( len > 0 ) 
     {
-        str[ strlen( str ) - 1 ] = '\0'; 
+        str[ len - 1 ] = '\0'; 
     }else
     {
         return;
@@ -1201,16 +1230,12 @@ int resolveIdentifiers( program_t *program )
     int rv;
     int pc = 0;
     int dr_idx = 0;
+
     while ( program->token_idx < program->n_tokens ) 
     {
         switch( tok->type ) 
         {
             case TOK_LABEL: {
-
-                char *str;
-                str = malloc ( strlen ( tok->token ) + 1 );
-                strcpy (str, tok->token);
-                cut_last(str);
 
                 n_tok = malloc( sizeof( token_t ) );
                 n_tok->data_l = false;
@@ -1220,7 +1245,7 @@ int resolveIdentifiers( program_t *program )
                 {
                     n_tok->value = data_reg + (dr_idx++);
 
-                    n_tok->token = malloc( strlen( tok->token ) );
+                    n_tok->token = malloc( strlen( tok->token ) + 1 );
                     strcpy( n_tok->token, tok->token);
                     cut_last( n_tok->token );
 
@@ -1232,7 +1257,7 @@ int resolveIdentifiers( program_t *program )
                 }else
                 {
                     n_tok->value = pc + TEXT_SEGMENT_START;
-                    n_tok->token = malloc( strlen( tok->token ) );
+                    n_tok->token = malloc( strlen( tok->token ) + 1 );
                     n_tok->token = strcpy( n_tok->token, tok->token );
                     cut_last( n_tok->token );
                     n_tok->defined = true;
@@ -1286,6 +1311,7 @@ int resolveIdentifiers( program_t *program )
         }
         tok = getNextToken(program);
     }
+
     return EXIT_SUCCESS;
 
 }
@@ -1317,7 +1343,7 @@ void parse( program_t *program )
         gtk_text_view_get_buffer( console_errors );
 
     cpe = console_ebuffer;
-    int rv;
+    int rv = EXIT_SUCCESS;
 
     program->sections->dot_data   = dot_data;
     program->sections->dot_text   = dot_text;

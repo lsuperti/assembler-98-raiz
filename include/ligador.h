@@ -6,6 +6,8 @@
 #include "program.h"
 #include "helper.h"
 
+#define OUTPUT_ID 100
+
 typedef struct global
 {
     char*  name;
@@ -32,9 +34,9 @@ typedef struct modulo
     Vector    dot_data;
     Vector    dot_rodata;
     global    *gls;
-    int num_gls;
+    int       num_gls;
     extern_t  *exts;
-    int num_exts;
+    int       num_exts;
     UT_hash_handle hh;
 } modulo;
 

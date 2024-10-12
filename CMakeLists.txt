@@ -5,6 +5,7 @@ project(SO78044813 LANGUAGES C)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(PkgConfig REQUIRED)
+find_package(Fontconfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -13,6 +14,7 @@ list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_C_FLAGS_DEBUG "-g -rdynamic")
 set(CMAKE_BUILD_TYPE Debug)
 
+include_directories(${Fontconfig_INCLUDE_DIRS})
 include_directories(${GTK3_INCLUDE_DIRS}) 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
@@ -23,4 +25,5 @@ file(GLOB SOURCES "src/*.c")
 
 add_executable(A9R ${SOURCES})
 target_link_libraries(A9R ${GTK3_LIBRARIES})
+target_link_libraries(A9R ${Fontconfig_LIBRARIES})
 

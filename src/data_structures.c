@@ -8,7 +8,7 @@ void initVector ( Vector *a, size_t initialSize )
     a->size = initialSize;
 }
 
-void insert( Vector *a, int element ) 
+void insert( Vector *a, word_t element ) 
 {
     if ( a->used == a->size )
     {
@@ -18,16 +18,27 @@ void insert( Vector *a, int element )
     a->array[a->used++] = element;
 }
 
+void concatenate( Vector *a, Vector *b ) 
+{
+    for ( int i=0; i < b->used; i++ )
+    {
+        insert(a, b->array[i]);
+    }
+}
+
 void freeVector( Vector *a )
 {
-    if ( a->array ) 
+    if ( a != NULL )
     {
-        free(a->array);
-        a->array = NULL;
-        a->used = a->size = 0;
+        if ( a->array != NULL ) 
+        {
+            free(a->array);
+            a->array = NULL;
+            a->used = a->size = 0;
+        }
+        free(a);
+        a = NULL;
     }
-    free(a);
-    a = NULL;
 }
 
 Vector *dupVector ( Vector *a )

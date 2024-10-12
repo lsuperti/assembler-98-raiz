@@ -8,20 +8,19 @@ void process_section( char *section, Vector *vector )
     char *current = line_copy;
     char *next_space;
 
-    while (*current) {
-        next_space = strchr(current, ' ');
-
-        if (next_space == NULL) {
-            next_space = current + strlen(current);
-        }
+    while ( (next_space = strchr(current, ' ')) != NULL ) {
 
         *next_space = '\0';
 
-        if (sscanf(current, "%u", &value) == 1) {
+        if (sscanf(current, "%hd", &value) == 1) {
             insert(vector, value);
         }
 
         current = next_space + 1;
+    }
+
+    if (sscanf(current, "%hd", &value) == 1) {
+        insert(vector, value);
     }
 }
 
@@ -52,9 +51,12 @@ void process_global(char *section, global **gls, int *num_gls) {
             exit(1);
         }
 
-        (*gls)[*num_gls].name = key;
         (*gls)[*num_gls].value = (int)strtol(value_str, NULL, 0);
-        (*gls)[*num_gls].data_l = key[strlen(key) - 1] == '@';
+        (*gls)[*num_gls].data_l = key[strlen(key) - 1] == '&';
+    
+        if ( (*gls)[*num_gls].data_l == true )
+            key[strlen(key) - 1] = '\0';
+        (*gls)[*num_gls].name = key;
 
         (*num_gls)++;
     } else {
@@ -66,6 +68,7 @@ void process_global(char *section, global **gls, int *num_gls) {
 }
 
 void process_extern(char *section, extern_t **exts, int *num_exts) {
+
     char *current = strdup(section);
     char *key;
     char *next_space;
@@ -79,7 +82,7 @@ void process_extern(char *section, extern_t **exts, int *num_exts) {
         next_space = current + strlen(current);
     }
 
-    if (next_space != NULL) {
+    if (*next_space != '\0') {
         *next_space = '\0';
         key = strdup(current);
 
@@ -96,26 +99,26 @@ void process_extern(char *section, extern_t **exts, int *num_exts) {
         current = next_space + 1;
 
         word_t value;
-        while (*current) {
-            next_space = strchr(current, ' ');
-
-            if (next_space == NULL) {
-                next_space = current + strlen(current);
-            }
+        while ( (next_space = strchr(current, ' ')) != NULL ) {
 
             *next_space = '\0';
 
-            if (strlen(current) > 0 && sscanf(current, "%u", &value) == 1) {
+            if (strlen(current) > 0 && sscanf(current, "%hu", &value) == 1) {
                 insert(&(*exts)[*num_exts].ps, value);
             }
 
             current = next_space + 1;
         }
 
+        if (strlen(current) > 0 && sscanf(current, "%hu", &value) == 1) {
+            insert(&(*exts)[*num_exts].ps, value);
+        }
+
         (*num_exts)++;
     } else {
         fprintf(stderr, "Formato de linha inválido\n");
     }
+
 }
 
 modulo *read_modulo( char *src )
@@ -126,9 +129,18 @@ modulo *read_modulo( char *src )
         return NULL;
     }
 
-    initVector(&mod->dot_text, 10);
-    initVector(&mod->dot_data, 10);
-    initVector(&mod->dot_rodata, 10);
+    Vector *dot_text = malloc(sizeof(Vector)); 
+    initVector(dot_text, 10);
+
+    Vector *dot_data = malloc(sizeof(Vector)); 
+    initVector(dot_data, 10);
+
+    Vector *dot_rodata = malloc(sizeof(Vector)); 
+    initVector(dot_rodata, 10);
+
+    mod->dot_text  = *dot_text;
+    mod->dot_data  = *dot_data;
+    mod->dot_rodata= *dot_rodata;
 
     mod->gls = NULL;
     mod->num_gls = 0;
@@ -199,6 +211,7 @@ modulo *read_modulo( char *src )
             } else if (save_extern) {
                 process_extern(section, &mod->exts, &mod->num_exts);
             }
+
         }
 
         section = strtok(NULL, "\n");
@@ -235,7 +248,6 @@ void print_modulo(modulo *mod) {
     printf("\n");
 
     printf(".extern: ");
-    printf("%i", mod->num_exts);
     for (size_t i = 0; i < mod->num_exts; i++) {
         printf("\n%s", mod->exts[i].name);
         for (size_t j = 0; j < mod->exts[i].ps.used; j++) {
@@ -369,56 +381,61 @@ void on_save_assembled_activate( GtkMenuItem *m, GtkTextView *ct )
  * data_l = true ou somando o tamanho do código até o presente
  * se data_l = false
 */
-int first_pass( paths *p, modulo *mds, tlb_g *gs )
+int first_pass( paths *p, modulo *mds, tlb_g *gs, int *t_idx )
 {
-    int *err;
-    size_t *f_size;
-    int idx = 1;
+    int    err = 0;
+    size_t f_size = 0;
+    int    idx = *t_idx;
     
     modulo *f_m;
-    HASH_FIND_INT(mds, "1", f_m);
+    HASH_FIND_INT(mds, &idx, f_m);
     if ( f_m == NULL )
         return -1;
 
     int s_data_size = f_m->dot_data.used;
     int s_text_size = f_m->dot_text.used;
+    char *src = NULL;
 
     for ( GList *l = p->file_paths; l != NULL; l = l->next ) 
     {
-        char *src = c_read_file( (const char*) l->data, err, f_size);
-        if ( err != FILE_OK ) 
-             return *err;
+        src = c_read_file( (const char *) l->data, &err, &f_size);
+        if ( err ) 
+             return err;
         modulo *m = read_modulo(src);
         
         if ( m != NULL )
         {
-            m->id = idx++;
-            HASH_ADD_INT(mds, id, m);
-        }
 
-        global *el, *tmp;
-        HASH_ITER(hh, m->gls, el, tmp) 
-        {
-            if ( el->data_l == true )
-                 el->value += s_data_size;
-            else 
-                 el->value += s_text_size;
+            for( int i=0; i < m->num_gls; i++ )
+            {
+                global *el = &m->gls[i];
+                if ( el->data_l == true )
+                     el->value += s_data_size;
+                else 
+                     el->value += s_text_size;
 
-            global *t; 
-            HASH_FIND_STR(gs->gls, el->name, t);
-            if ( t == NULL )
-            {
-                HASH_ADD_STR(gs->gls, name, el);
+                global *t; 
+                HASH_FIND_STR(gs->gls, el->name, t);
+                if ( t == NULL )
+                {
+                    HASH_ADD_STR(gs->gls, name, el);
+                }
+                else
+                {
+                    // linker error :
+                    // Error multiple defined identifiers
+                    return -1;
+                }
             }
-            else
-            {
-                // linker error :
-                // Error multiple defined identifiers
-                return -1;
-            }
-            
-        }
-                 
+
+            m->id = ++idx;
+            HASH_ADD_INT(mds, id, m); 
+
+            *t_idx = idx;
+            print_modulo(m);
+
+        } 
+
         s_data_size += m->dot_data.used;
         s_text_size += m->dot_text.used;
 
@@ -427,17 +444,107 @@ int first_pass( paths *p, modulo *mds, tlb_g *gs )
     return EXIT_SUCCESS;
 }
 
-int second_pass()
+void on_sligador_activate(GtkMenuItem *m, GtkTextView *s)
 {
+    int err;
+    size_t size;
+    char *bin = c_read_file(current_linker_out, &err, &size);
+    if ( err )
+    {
+        return;
+    }
+        
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(s));
+    gtk_text_buffer_set_text( buffer,
+    bin, -1);
+    free(bin);
+}
+
+void print_after( modulo *mod, FILE *f ) 
+{
+    fprintf(f,  magic );  
+    fprintf(f, "\nModulo ID: %d\n", mod->id);
+
+    fprintf(f, "section .text\n");
+    for (size_t i = 0; i < mod->dot_text.used; i++) {
+        fprintf(f, "%u ", mod->dot_text.array[i]);
+    }
+    fprintf(f, "\n");
+
+    fprintf(f, "section .data\n");
+    for (size_t i = 0; i < mod->dot_data.used; i++) {
+        fprintf(f, "%u ", mod->dot_data.array[i]);
+    }
+    fprintf(f, "\n");
+
+    fprintf(f, "section .rodata\n");
+    for (size_t i = 0; i < mod->dot_rodata.used; i++) {
+        fprintf(f, "%u ", mod->dot_rodata.array[i]);
+    }
+    fprintf(f, "\n");
+    fflush(f);
+}
+
+int second_pass( modulo *mds, tlb_g *gs, int idx )
+{
+    modulo *el, *tmp, *glb;
+    if ( (glb = (modulo *) malloc( sizeof(modulo) )) == NULL )
+        return ENOMEM;
+    
+    glb->id = OUTPUT_ID;
+
+    initVector(&glb->dot_text,   10); 
+    initVector(&glb->dot_data,   10); 
+    initVector(&glb->dot_rodata, 10); 
+
+    fprintf(stdout, "\n\nsecond pass:\n");
+    fflush(stdout);
+    for ( size_t k=0; k < HASH_COUNT(mds); k++ )
+    {
+        
+       modulo *el;
+       HASH_FIND_INT(mds, &k, el);
+       for( size_t i=0; i < el->num_exts; i++ )
+       {
+           for( size_t j=0; j < el->exts[i].ps.used; j++ ) 
+           {
+               word_t addr = el->exts[i].ps.array[j];
+               global *rpl;
+               HASH_FIND_STR( gs->gls, el->exts[i].name, rpl);
+
+               if ( rpl != NULL && addr < el->dot_text.used )
+                   el->dot_text.array[addr] = rpl->value;
+           }
+       }
+       concatenate( &glb->dot_text,   &el->dot_text ); 
+       concatenate( &glb->dot_data,   &el->dot_data ); 
+       concatenate( &glb->dot_rodata, &el->dot_rodata); 
+    }
+    
+    FILE *f;
+    if ( (f = fopen(current_linker_out, "w")) == NULL )
+        return -1;
+    print_after(glb, f);
+    fclose(f);
+
+    fprintf(stdout, "finish second pass");
+    fflush(stdout);
+
     return EXIT_SUCCESS;
 }
 
 void on_link_activate( GtkMenuItem *m, gpointer data ) 
 {
     paths *p = data;
-    int rv;
+    int rv = 0;
     modulo *mds = NULL;
-    tlb_g  *gs  = NULL;
+    tlb_g  *gs  = NULL; 
+    int idx = 0;
+
+    if ( (gs = malloc(sizeof(tlb_g))) == NULL )
+          return;
+
+    gs->gls     = NULL;
 
     // O primeiro modulo é sempre o 
     // que está no buffer sendo mostrado.
@@ -453,53 +560,49 @@ void on_link_activate( GtkMenuItem *m, gpointer data )
 
     if ( f_m != NULL )
     {
-        f_m->id = 1;
-        HASH_ADD_INT(mds, id, f_m);
-
-        global *el, *tmp;
-        HASH_ITER(hh, f_m->gls, el, tmp) 
+        for( int i=0; i < f_m->num_gls; i++ )
         {
-            global *t; 
-            HASH_FIND_STR(gs->gls, el->name, t);
-            if ( t == NULL )
-            {
-                HASH_ADD_STR(gs->gls, name, el);
-            }
-            else
-            {
-                // Error multiple defined linked
-                // libraries
-                return;
-            }
-            
+          global *t;
+          HASH_FIND_STR(gs->gls, f_m->gls[i].name, t);
+          if ( t == NULL )
+          {
+              HASH_ADD_STR(gs->gls, name, &f_m->gls[i]);
+          }
+          else 
+          {
+              return;
+          }
+
         }
+
+        f_m->id   = idx;
+        HASH_ADD_INT(mds, id, f_m);
+        print_modulo(f_m);
     }
 
     // Depois da primeira passagem todos os simbolos
     // com os endereços corretos estão em gs.
-    rv = first_pass(p, mds, gs); 
+    rv = first_pass(p, mds, gs, &idx); 
     if (rv) 
       return;
 
-    rv = second_pass();
+    rv = second_pass(mds, gs, idx);
     if (rv)
       return;
-
-    on_load_activate(NULL);
 }
 
 void on_addmod_activate( GtkMenuItem *m, gpointer data )
 {
     paths *p = data;
 
-    GtkWidget *dialog = gtk_file_chooser_dialog_new("Select a File",
+    GtkDialog *dialog = GTK_DIALOG( gtk_file_chooser_dialog_new("Select a File",
                                                     NULL,
                                                     GTK_FILE_CHOOSER_ACTION_OPEN,
                                                     "_Cancel", GTK_RESPONSE_CANCEL,
                                                     "_Open", GTK_RESPONSE_ACCEPT,
-                                                    NULL);
-
-    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+                                                    NULL) );
+    
+    if (gtk_dialog_run(dialog) == GTK_RESPONSE_ACCEPT) {
 
         char *file_path = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 
@@ -512,7 +615,7 @@ void on_addmod_activate( GtkMenuItem *m, gpointer data )
                                  g_list_length(p->file_paths) - 1);
     }
 
-    gtk_widget_destroy(dialog);
+    gtk_widget_destroy(GTK_WIDGET(dialog));
 }
 
 void on_removemod_activate( GtkMenuItem *m, gpointer data )

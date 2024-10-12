@@ -1,11 +1,15 @@
 
 global SHIFTL
 global SHIFTR
+global SHIFT_TIMES
+
+-- Shifts left or right by shift_times amount.
+-- the value that is in the accumulator at the moment of calling.
 
 section .text
 SHIFTL:
     STORE   TEMP3
-    LOAD    SHIFT_VALUE
+    LOAD    SHIFT_TIMES
     SUB     1
     STORE   TEMP4
     shiftl_loop:
@@ -20,7 +24,7 @@ SHIFTL:
     RET
 SHIFTR:
     STORE   TEMP3
-    LOAD    SHIFT_VALUE
+    LOAD    SHIFT_TIMES
     STORE   TEMP4
     shiftr_loop:
     LOAD    TEMP3
@@ -34,6 +38,6 @@ SHIFTR:
     RET
 
 section .data
-    TEMP3:       .space
-    TEMP4:       .space
-    SHIFT_VALUE: .space
+    TEMP3: .space
+    TEMP4: .space
+    SHIFT_TIMES: .space

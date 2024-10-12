@@ -15,6 +15,7 @@ global
 
 extern
 	SHIFTL 17 
+	SHIFTR 
 	SHIFT_TIMES 13 
 	FACTORIAL 23 
 

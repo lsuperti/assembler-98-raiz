@@ -6,12 +6,20 @@
 #include "maquina.h"
 #include "types.h"
 #include "screens.h"
+#include <fontconfig/fontconfig.h>
 #include "program.h"
 #include "montador.h"
 #include "ligador.h"
 #include "program.h"
 
 #define NDEBUG
+
+void cleanup() 
+{
+    FcFini();
+    g_print("Application cleanup complete.\n");
+    gtk_main_quit();
+}
 
 int main (int argc, char *argv[]) {
 
@@ -22,7 +30,8 @@ int main (int argc, char *argv[]) {
     GtkCssProvider *provider = gtk_css_provider_new();
     GdkDisplay *display = gdk_display_get_default();
     GdkScreen *screen = gdk_display_get_default_screen(display);
-    GtkWidget *memory_tree = GTK_WIDGET(gtk_builder_get_object(builder, "memory_tree"));
+    GtkWidget *memory_tree =
+        GTK_WIDGET(gtk_builder_get_object(builder, "memory_tree"));
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
     GtkListStore *store;
@@ -76,7 +85,7 @@ int main (int argc, char *argv[]) {
     gtk_builder_connect_signals(builder, NULL);
     // -- // 
     
-    gtk_style_context_add_provider_for_screen(screen,
+     gtk_style_context_add_provider_for_screen(screen,
             GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     ri = memory[program_counter];
@@ -125,31 +134,6 @@ int main (int argc, char *argv[]) {
     GtkWidget *link = 
         GTK_WIDGET(gtk_builder_get_object(builder, "link"));
     g_signal_connect(link, "activate", G_CALLBACK(on_link_activate), &p);
-
-    char *src = 
-        "7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00\n"
-        "section .text\n"
-        "51 30 6 767 78 266 51 30\n"
-        "7 767 79 0 11\n"
-        "section .data\n"
-        "25 35\n"
-        "section .rodata\n"
-        "45 25 12\n"
-        "\n"
-        "global\n"
-        "main 256\n"
-        "loop 268\n"
-        "max_ 767\n"
-        "\n"
-        "extern\n"
-        "SHIFTL 11\n"
-        "SHIFTR\n";
-
-    modulo *mod = read_modulo(src);
-
-    if (mod != NULL) {
-        print_modulo(mod);
-    }
     
     GtkWidget *add    = GTK_WIDGET(gtk_builder_get_object(builder, "add"));
     GtkWidget *remove = GTK_WIDGET(gtk_builder_get_object(builder, "remove"));
@@ -171,11 +155,10 @@ int main (int argc, char *argv[]) {
     GtkWidget *back2_button = GTK_WIDGET(gtk_builder_get_object(builder, "back2"));
     g_signal_connect(back2_button, "clicked", G_CALLBACK(change_to_main), stack);
 
-    g_signal_connect(container_window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(container_window, "destroy", G_CALLBACK(cleanup), NULL);
     gtk_widget_show_all(container_window);
     gtk_main();
 
     return EXIT_SUCCESS;
-
 }
 

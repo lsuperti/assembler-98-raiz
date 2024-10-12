@@ -23,6 +23,19 @@ hash(unsigned char *str)
     return hash;
 }
 
+void colorize_token(GtkTextBuffer *buffer,
+        int token_start, int token_end, const char *color) {
+    GtkTextIter start_iter, end_iter;
+
+    gtk_text_buffer_get_iter_at_offset(buffer, &start_iter, token_start);
+    gtk_text_buffer_get_iter_at_offset(buffer, &end_iter, token_end);
+
+    GtkTextTag *tag =
+        gtk_text_buffer_create_tag(buffer, NULL, "foreground", color, NULL);
+
+    gtk_text_buffer_apply_tag(buffer, tag, &start_iter, &end_iter);
+}
+
 void on_sMacros_activate( GtkMenuItem *m, GtkTextView *s )
 {
     FILE *file;
@@ -34,9 +47,33 @@ void on_sMacros_activate( GtkMenuItem *m, GtkTextView *s )
         return;
     fclose(file);
 
-    gtk_text_buffer_set_text( 
-    gtk_text_view_get_buffer(GTK_TEXT_VIEW(s)),
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(s));
+
+    gtk_text_buffer_set_text( buffer,
     p->source, -1);
+    tokenize(p);
+
+    for( int i=0; i < p->n_tokens - 1; i++ )
+    {
+        int type = p->tokens[i].type;
+        const char *color = tok_colors[type];
+
+        if ( color != NULL )
+        {
+            // Offset coloring is broken currently
+            // idk why, a fix is to subtract one from the first argument
+            // p->tokens[i].offset - 1
+            // but that is not wanted.
+            if ( p->tokens[i].offset - 1 > 0 )
+                colorize_token( buffer, p->tokens[i].offset - 1, 
+                        p->tokens[i].offset + strlen(p->tokens[i].token),
+                        color );
+            else 
+                colorize_token( buffer, p->tokens[i].offset, 
+                        p->tokens[i].offset + strlen(p->tokens[i].token),
+                        color );
+        }
+    }
 
     freeProgram(p);
 }
@@ -244,8 +281,13 @@ token_t * tokdup( token_t *t )
 }
 
 void set_combo_box_ellipsize(GtkComboBoxText *combo_box) {
-    GtkCellRenderer *renderer =
-        gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(combo_box))->data;
-    g_object_set(renderer, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+    GList *renderers =
+        gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(combo_box));
+    if ( renderers != NULL )
+    {
+        GtkCellRenderer *renderer = GTK_CELL_RENDERER(renderers->data);
+        g_object_set(renderer, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
+        g_list_free(renderers);
+    }
 }
 

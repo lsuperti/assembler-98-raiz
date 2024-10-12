@@ -19,7 +19,25 @@ enum sections_t {
 
 void on_load_activate ( GtkMenuItem *m )
 {
-    load_program();
+    GtkDialog *dialog = GTK_DIALOG( gtk_file_chooser_dialog_new("Select a File",
+                                                    NULL,
+                                                    GTK_FILE_CHOOSER_ACTION_OPEN,
+                                                    "_Cancel", GTK_RESPONSE_CANCEL,
+                                                    "_Open", GTK_RESPONSE_ACCEPT,
+                                                    NULL) );
+    
+    if (gtk_dialog_run(dialog) == GTK_RESPONSE_ACCEPT) {
+
+        char *file_path = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        current_binary = strdup(file_path);
+        free(file_path);
+        file_path = NULL;
+
+        load_program();
+    }
+
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+    
 }
 
 void update_gui( GtkWidget *w, gpointer data )
