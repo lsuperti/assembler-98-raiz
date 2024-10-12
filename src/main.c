@@ -37,6 +37,7 @@ int main (int argc, char *argv[]) {
     GtkListStore *store;
     GtkTreeIter iter;
 
+
     GError *error = NULL;
     gtk_css_provider_load_from_path(provider, "../styles/global.css", &error);
     if (error) {
@@ -44,6 +45,7 @@ int main (int argc, char *argv[]) {
         g_clear_error(&error);
     }
 
+    GMainContext *main_thread = g_main_context_new();
     // ------------------------------------------ //
 
     setup_tree_view(memory_tree, renderer, column);
@@ -154,6 +156,15 @@ int main (int argc, char *argv[]) {
     g_signal_connect(back1_button, "clicked", G_CALLBACK(change_to_main), stack);
     GtkWidget *back2_button = GTK_WIDGET(gtk_builder_get_object(builder, "back2"));
     g_signal_connect(back2_button, "clicked", G_CALLBACK(change_to_main), stack);
+
+    GtkTextView *console2 = GTK_TEXT_VIEW(gtk_builder_get_object(builder, "console2"));
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(console2));
+
+    gulong changed_handler_id;
+
+    changed_handler_id =
+        g_signal_connect(buffer,
+                "changed", G_CALLBACK(on_buffer_changed), &changed_handler_id);
 
     g_signal_connect(container_window, "destroy", G_CALLBACK(cleanup), NULL);
     gtk_widget_show_all(container_window);

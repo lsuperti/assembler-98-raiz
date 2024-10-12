@@ -3,6 +3,92 @@
 
 #define WHITESPACES " \n\t\r"
 
+typedef struct {
+    GtkTextBuffer *buffer;
+    program_t     *program;
+    gulong        *id;
+} update_pass;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond   = PTHREAD_COND_INITIALIZER;
+gboolean update_done  = FALSE;
+guint update_timeout_id = 0;
+
+gboolean update_text( gpointer data )
+{
+    update_pass *p = data;
+
+    g_signal_handler_block(p->buffer, *p->id);
+
+    gtk_text_buffer_set_text(p->buffer, p->program->source, -1);
+    for( int i=0; i < p->program->n_tokens - 1; i++ )
+    {
+        int type = p->program->tokens[i].type;
+        const char *color = tok_colors[type];
+
+        if ( color != NULL && type != TOK_UNKNOWN ) 
+        {
+            // Offset coloring is broken currently
+            // idk why, a fix is to subtract one from the first argument
+            // program->tokens[i].offset - 1
+            // but that is not wanted.
+            if ( p->program->tokens[i].offset - 1 > 0 )
+                colorize_token( p->buffer, p->program->tokens[i].offset - 1, 
+                        p->program->tokens[i].offset + strlen(p->program->tokens[i].token),
+                        color );
+            else 
+                colorize_token( p->buffer, p->program->tokens[i].offset, 
+                        p->program->tokens[i].offset + strlen(p->program->tokens[i].token),
+                        color );
+        }
+    }
+
+    // Unlock signal after updating syntax coloring
+    // DO NOT REMOVE !! otherwise 100% CPU usage.
+    g_signal_handler_unblock(p->buffer, *p->id);
+
+    freeProgram(p->program);
+    free(p);
+    return FALSE;
+}
+
+void            on_buffer_changed( GtkWidget *w, gpointer data )
+{
+
+    gchar *source;
+    GtkTextIter start, end;
+    GtkTextBuffer *b = GTK_TEXT_BUFFER(w);
+    gtk_text_buffer_get_bounds(b, &start, &end);
+    source = gtk_text_buffer_get_text(b, &start, &end, FALSE);
+    program_t *program = malloc(sizeof(program_t));
+
+    program->source       = source;
+    program->HEAD         = 0;             
+    program->tokens       = NULL;
+    program->token_idx    = 0;
+    program->n_tokens     = 0;
+    program->sections     = NULL;
+    program->table        = NULL;
+    program->program_size = strlen(source);
+    program->globals      = NULL;
+    program->c_row        = 1;
+    program->c_col        = 1;
+    program->n_globals    = 0;
+    program->externs      = NULL;
+    program->n_externs    = 0;
+    program->macros       = NULL;
+    program->n_macros     = 0;
+    program->cur_macro_params = NULL;
+    tokenize(program);
+
+    update_pass *p = malloc(sizeof(update_pass));
+    p->buffer  = b;
+    p->program = program;
+    p->id      = data;
+
+    g_idle_add(update_text, p);
+}
+
 // Função para visualizar os tokens 
 // gerados por tokenize.
 void printTokens( program_t *program ) 
