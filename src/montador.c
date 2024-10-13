@@ -17,10 +17,13 @@ guint update_timeout_id = 0;
 gboolean update_text( gpointer data )
 {
     update_pass *p = data;
+    GtkTextIter cursor_iter;
 
     g_signal_handler_block(p->buffer, *p->id);
 
-    gtk_text_buffer_set_text(p->buffer, p->program->source, -1);
+    GtkTextMark *insert_mark = gtk_text_buffer_get_insert(p->buffer);
+    gtk_text_buffer_get_iter_at_mark(p->buffer, &cursor_iter, insert_mark);
+
     for( int i=0; i < p->program->n_tokens - 1; i++ )
     {
         int type = p->program->tokens[i].type;
@@ -43,6 +46,7 @@ gboolean update_text( gpointer data )
         }
     }
 
+    gtk_text_buffer_place_cursor(p->buffer, &cursor_iter);
     // Unlock signal after updating syntax coloring
     // DO NOT REMOVE !! otherwise 100% CPU usage.
     g_signal_handler_unblock(p->buffer, *p->id);
@@ -166,7 +170,53 @@ void generateOutput( program_t *program, FILE *output )
    }
 
    fprintf( output, "\nlocal_text_labels\n" );
+   HASH_ITER(hh, program->table->tokens, el, tmp )
+   {
+     token_t *tmp2; 
+     char    *n = el->token;
+     HASH_FIND_STR(program->externs, n, tmp2);
+     el->pos = find_all_identifier_pos( program, el );
+
+     if ( tmp2 == NULL && el->data_l == false )
+     {
+         if ( el->pos.used > 0 )
+             fprintf( output, "\t%s ", el->token );
+         for ( int i=0; i < el->pos.used; i++ ) 
+         {
+             if ( el->pos.array != NULL )
+                fprintf( output, "%d ", el->pos.array[i] );
+         }
+         if ( el->pos.used > 0 )
+             fprintf( output, "\n" );
+     }
+
+     fflush(stdout);
+   }
     
+   fprintf( output, "\nlocal_data_labels\n" );
+   HASH_ITER(hh, program->table->tokens, el, tmp )
+   {
+     token_t *tmp2; 
+     char    *n = el->token;
+     HASH_FIND_STR(program->externs, n, tmp2);
+     el->pos = find_all_identifier_pos( program, el );
+
+     if ( tmp2 == NULL && el->data_l == true )
+     {
+         if ( el->pos.used > 0 )
+             fprintf( output, "\t%s ", el->token );
+         for ( int i=0; i < el->pos.used; i++ ) 
+         {
+             if ( el->pos.array != NULL )
+                fprintf( output, "%d ", el->pos.array[i] );
+         }
+         if ( el->pos.used > 0 )
+             fprintf( output, "\n" );
+     }
+
+     fflush(stdout);
+   }
+
 }
 
 // Função que recebe dois caminhos de arquivo 
@@ -1390,6 +1440,7 @@ int resolveIdentifiers( program_t *program )
             case TOK_BRNEG:
             case TOK_BRZERO:
             case TOK_BRPOS:
+            case TOK_BR:
             case TOK_CALL:
             case TOK_DIVIDE:
             case TOK_MULT:

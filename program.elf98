@@ -4,14 +4,15 @@ section .text
 51 30 6 767 78 266 51 30 
 7 767 51 2 7 0 3 767 
 79 0 7 767 51 6 79 0 
-2 767 67 282 20 767 11 
+2 767 7 767 67 286 20 767 
+11 
 section .data
 0 
 section .rodata
 
 global
 	main 256
-	end 282
+	end 286
 
 extern
 	SHIFTL 17 
@@ -19,3 +20,8 @@ extern
 	FACTORIAL 23 
 
 local_text_labels
+	UPDATE_MAX_8245486993943867437_1_bigger 5 
+	end 29 
+
+local_data_labels
+	max 3 9 15 19 25 27 31 

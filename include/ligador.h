@@ -27,6 +27,14 @@ typedef struct extern_t
     UT_hash_handle hh;
 } extern_t;
 
+typedef struct local_t
+{
+    char* name;
+    Vector ps;
+    bool   data_l;
+    UT_hash_handle hh;
+} local_t;
+
 typedef struct modulo
 {
     int id;
@@ -37,6 +45,8 @@ typedef struct modulo
     int       num_gls;
     extern_t  *exts;
     int       num_exts;
+    local_t   *locals;
+    int       num_locals;
     UT_hash_handle hh;
 } modulo;
 

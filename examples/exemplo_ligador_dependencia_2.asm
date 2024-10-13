@@ -14,6 +14,7 @@ internal:
 
         STORE PARTIAL
         LOAD  TEMP1
+        SUB   1
         BRPOS internal
         LOAD  PARTIAL
         RET

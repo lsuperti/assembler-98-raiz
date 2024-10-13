@@ -10,7 +10,6 @@ section .text
 SHIFTL:
     STORE   TEMP3
     LOAD    SHIFT_TIMES
-    SUB     1
     STORE   TEMP4
     shiftl_loop:
     LOAD    TEMP3

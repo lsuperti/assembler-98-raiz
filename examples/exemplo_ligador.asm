@@ -27,9 +27,10 @@ section .text
         LOAD  6
         CALL  FACTORIAL
         ADD   max
+        STORE max
         BR    end
-
-        end:
+    
+    end:
         PUT  max
         STOP
 section .data

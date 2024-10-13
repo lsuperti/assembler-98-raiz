@@ -115,8 +115,60 @@ void process_extern(char *section, extern_t **exts, int *num_exts) {
         }
 
         (*num_exts)++;
-    } else {
-        fprintf(stderr, "Formato de linha inválido\n");
+    }
+
+}
+
+void process_local(char *section, local_t **exts, int *num_exts
+        , bool data_l ) {
+
+    char *current = strdup(section);
+    char *key;
+    char *next_space;
+
+    next_space = strchr(current, ' ');
+    if (next_space == NULL) {
+        next_space = strchr(current, '\t');
+    }
+
+    if (next_space == NULL) {
+        next_space = current + strlen(current);
+    }
+
+    if (*next_space != '\0') {
+        *next_space = '\0';
+        key = strdup(current);
+
+        *exts = realloc(*exts, (*num_exts + 1) * sizeof(local_t));
+        if (*exts == NULL) {
+            fprintf(stderr, "Erro ao realocar memória\n");
+            exit(1);
+        }
+
+        (*exts)[*num_exts].name = key;
+
+        initVector(&(*exts)[*num_exts].ps, 10);
+
+        current = next_space + 1;
+
+        word_t value;
+        while ( (next_space = strchr(current, ' ')) != NULL ) {
+
+            *next_space = '\0';
+
+            if (strlen(current) > 0 && sscanf(current, "%hu", &value) == 1) {
+                insert(&(*exts)[*num_exts].ps, value);
+            }
+
+            current = next_space + 1;
+        }
+
+        if (strlen(current) > 0 && sscanf(current, "%hu", &value) == 1) {
+            insert(&(*exts)[*num_exts].ps, value);
+        }
+        
+        (*exts)[*num_exts].data_l = data_l;
+        (*num_exts)++;
     }
 
 }
@@ -148,11 +200,16 @@ modulo *read_modulo( char *src )
     mod->exts = NULL;
     mod->num_exts = 0;
 
+    mod->locals = NULL;
+    mod->num_locals = 0;
+
     bool save_text = false;
     bool save_data = false;
     bool save_rodata = false;
     bool save_global = false;
     bool save_extern = false;
+    bool save_data_locals = false;
+    bool save_text_locals = false;
 
     char *src_copy = strdup(src);
     if (src_copy == NULL) {
@@ -170,6 +227,8 @@ modulo *read_modulo( char *src )
             save_rodata = false;
             save_global = false;
             save_extern = false;
+            save_data_locals = false;
+            save_text_locals = false;
         } else if (strstr(section, "section .data") != NULL) {
             save_data = true;
 
@@ -177,6 +236,8 @@ modulo *read_modulo( char *src )
             save_rodata = false;
             save_global = false;
             save_extern = false;
+            save_data_locals = false;
+            save_text_locals = false;
         } else if (strstr(section, "section .rodata") != NULL) {
             save_rodata = true;
 
@@ -184,6 +245,8 @@ modulo *read_modulo( char *src )
             save_data = false;
             save_global = false;
             save_extern = false;
+            save_data_locals = false;
+            save_text_locals = false;
         } else if (strstr(section, "global") != NULL) {
             save_global = true;
 
@@ -191,6 +254,8 @@ modulo *read_modulo( char *src )
             save_text = false;
             save_data = false;
             save_extern = false;
+            save_data_locals = false;
+            save_text_locals = false;
         } else if (strstr(section, "extern") != NULL) {
             save_extern = true;
 
@@ -198,6 +263,26 @@ modulo *read_modulo( char *src )
             save_text = false;
             save_data = false;
             save_global = false;
+            save_data_locals = false;
+            save_text_locals = false;
+        } else if (strstr(section, "local_data_labels") != NULL ) {
+            save_data_locals = true;
+
+            save_text = false;
+            save_data = false;
+            save_rodata = false;
+            save_global = false;
+            save_extern = false;
+            save_text_locals = false;
+        } else if (strstr(section, "local_text_labels") != NULL ) {
+            save_text_locals = true;
+
+            save_text = false;
+            save_data = false;
+            save_rodata = false;
+            save_global = false;
+            save_extern = false;
+            save_data_locals = false;
         } else {
 
             if (save_text) {
@@ -210,6 +295,10 @@ modulo *read_modulo( char *src )
                 process_global(section, &mod->gls, &mod->num_gls);
             } else if (save_extern) {
                 process_extern(section, &mod->exts, &mod->num_exts);
+            } else if (save_data_locals) {
+                process_local(section,  &mod->locals, &mod->num_locals, true);
+            } else if (save_text_locals) {
+                process_local(section,  &mod->locals, &mod->num_locals, false);
             }
 
         }
@@ -255,6 +344,30 @@ void print_modulo(modulo *mod) {
         }
     }
     printf("\n");
+
+    printf(".local_text: ");
+    for (size_t i = 0; i < mod->num_locals; i++) {
+        if ( mod->locals[i].data_l == true )
+        {
+            printf("\n%s", mod->locals[i].name);
+            for (size_t j = 0; j < mod->locals[i].ps.used; j++) {
+                printf(" %i", mod->locals[i].ps.array[j]);
+            }
+        }
+    }
+    printf("\n");
+
+    printf(".local_data: ");
+    for (size_t i = 0; i < mod->num_locals; i++) {
+        if ( mod->locals[i].data_l == false )
+        {
+            printf("\n%s", mod->locals[i].name);
+            for (size_t j = 0; j < mod->locals[i].ps.used; j++) {
+                printf(" %i", mod->locals[i].ps.array[j]);
+            }
+        }
+    }
+    printf("\n");
 }
 
 Vector find_all_identifier_pos( program_t *p, token_t *tok )
@@ -274,6 +387,7 @@ Vector find_all_identifier_pos( program_t *p, token_t *tok )
                 case TOK_SUB:
                 case TOK_BRNEG:
                 case TOK_BRZERO:
+                case TOK_BR:
                 case TOK_BRPOS:
                 case TOK_CALL:
                 case TOK_DIVIDE:
@@ -428,6 +542,22 @@ int first_pass( paths *p, modulo *mds, tlb_g *gs, int *t_idx )
                 }
             }
 
+            for( size_t i=0; i < m->num_locals; i++ )
+            {
+                for( size_t j=0; j < m->locals[i].ps.used; j++ ) 
+                {
+                    word_t addr = m->locals[i].ps.array[j];
+                    if ( m->locals[i].data_l == true )
+                    {
+                        m->dot_text.array[addr] += s_data_size; 
+                    }
+                    else if ( m->locals[i].data_l == false )
+                    {
+                        m->dot_text.array[addr] += s_text_size; 
+                    }
+                }
+            }
+
             m->id = ++idx;
             HASH_ADD_INT(mds, id, m); 
 
@@ -497,8 +627,6 @@ int second_pass( modulo *mds, tlb_g *gs, int idx )
     initVector(&glb->dot_data,   10); 
     initVector(&glb->dot_rodata, 10); 
 
-    fprintf(stdout, "\n\nsecond pass:\n");
-    fflush(stdout);
     for ( size_t k=0; k < HASH_COUNT(mds); k++ )
     {
         
@@ -516,6 +644,7 @@ int second_pass( modulo *mds, tlb_g *gs, int idx )
                    el->dot_text.array[addr] = rpl->value;
            }
        }
+
        concatenate( &glb->dot_text,   &el->dot_text ); 
        concatenate( &glb->dot_data,   &el->dot_data ); 
        concatenate( &glb->dot_rodata, &el->dot_rodata); 
@@ -526,9 +655,6 @@ int second_pass( modulo *mds, tlb_g *gs, int idx )
         return -1;
     print_after(glb, f);
     fclose(f);
-
-    fprintf(stdout, "finish second pass");
-    fflush(stdout);
 
     return EXIT_SUCCESS;
 }

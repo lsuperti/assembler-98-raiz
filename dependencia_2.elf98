@@ -3,7 +3,7 @@
 section .text
 7 767 7 768 3 767 63 1 
 7 767 14 768 7 768 3 767 
-77 260 3 768 16 
+63 1 77 260 3 768 16 
 section .data
 0 0 
 section .rodata
@@ -14,3 +14,8 @@ global
 extern
 
 local_text_labels
+	internal 19 
+
+local_data_labels
+	TEMP1 1 5 9 15 
+	PARTIAL 3 11 13 21 
