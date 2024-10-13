@@ -1,0 +1,16 @@
+7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+
+section .text
+7 767 7 768 3 767 63 1 
+7 767 14 768 7 768 3 767 
+77 260 3 768 16 
+section .data
+0 0 
+section .rodata
+
+global
+	FACTORIAL 256
+
+extern
+
+local_text_labels

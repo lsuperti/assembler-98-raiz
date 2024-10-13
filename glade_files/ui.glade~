@@ -707,6 +707,7 @@
                     <property name="can-focus">False</property>
                     <property name="label" translatable="yes">Processador de Macros</property>
                     <property name="use-underline">True</property>
+                    <signal name="activate" handler="on_sMacros_activate" object="consoleAssembledFiles" swapped="no"/>
                   </object>
                 </child>
                 <child>

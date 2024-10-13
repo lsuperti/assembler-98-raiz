@@ -6,13 +6,15 @@
 #include "program.h"
 #include "helper.h"
 
+#define OUTPUT_ID 100
+
 typedef struct global
 {
     char*  name;
     word_t value;
     bool   data_l;
     UT_hash_handle hh;
-}global;
+} global;
 
 typedef struct tlb_g {
     global *gls;
@@ -23,7 +25,7 @@ typedef struct extern_t
     char* name;
     Vector ps;
     UT_hash_handle hh;
-}extern_t;
+} extern_t;
 
 typedef struct modulo
 {
@@ -32,7 +34,9 @@ typedef struct modulo
     Vector    dot_data;
     Vector    dot_rodata;
     global    *gls;
+    int       num_gls;
     extern_t  *exts;
+    int       num_exts;
     UT_hash_handle hh;
 } modulo;
 
@@ -45,6 +49,7 @@ typedef struct paths
 
 Vector find_all_identifier_pos( program_t *p, token_t *tok );
 modulo *read_modulo( char *src );
+void print_modulo( modulo *mod );
 void on_addmod_activate( GtkMenuItem *m, gpointer data );
 void on_removemod_activate( GtkMenuItem *m, gpointer data );
 void on_link_activate( GtkMenuItem *m, gpointer data ); 

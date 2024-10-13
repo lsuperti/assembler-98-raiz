@@ -58,6 +58,8 @@ enum t_types {
     T_TYPES_SIZE
 };
 
+extern const char * const tok_colors[];
+
 /* 
  * Valor = 0 se for uma keyword como section.
  * LOAD 20   -> LOAD_IMMEDIATE 20
@@ -163,5 +165,6 @@ typedef struct _program_t{
 token_t*        getNextToken( program_t *program );
 program_t*      createProgram( FILE *input );
 void            freeProgram( program_t *program );
+void            tokenize( program_t *program );
 
 #endif //MONTADOR_TYPES_H

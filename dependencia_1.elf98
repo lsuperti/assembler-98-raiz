@@ -15,6 +15,7 @@ section .rodata
 global
 	SHIFTL 256
 	SHIFTR 281
+	SHIFT_TIMES& 769
 
 extern
 

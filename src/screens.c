@@ -68,14 +68,12 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
     FILE *o = fopen( current_binary, "w" );
     generateOutput( program, o );
     fclose(o);
-    resetIdentifiers_Macros(program);
-    freeProgram(program);
 
     GtkWidget *console_assembled_files =
         GTK_WIDGET(gtk_builder_get_object(user_data_t->builder,
                    "consoleAssembledFiles"));
 
     on_sMontador_activate(NULL, GTK_TEXT_VIEW(console_assembled_files));
-    g_free(source);
+    freeProgram(program);
 }
 

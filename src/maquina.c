@@ -53,6 +53,9 @@ const char * const tok_colors[] = {
     [TOK_LOCAL_IDENTIFIER]= "blue",
     [TOK_NEWLINE]         = NULL,
     [TOK_PARAM_DELIMITER] = "orange",
+    [TOK_EOF]             = NULL,
+    [TOK_BLANK]           = "white",
+    [TOK_UNKNOWN]         = NULL
 
 };
 
@@ -133,19 +136,19 @@ void update_inst_pc(GtkBuilder *builder, int inst) {
     snprintf(sp_str, 10, "%d", stack_pointer);
 
     char *write_sp =
-        ( char * ) malloc ( strlen("SP : ") + strlen(sp_str) );
+        ( char * ) malloc ( strlen("SP : ") + strlen(sp_str) + 1 );
     
     strcpy( write_sp, "SP : " );
     strcat( write_sp, sp_str  );
 
     char *write_ri =
-        ( char * ) malloc ( strlen("RI : ") + strlen(ri_str) );
+        ( char * ) malloc ( strlen("RI : ") + strlen(ri_str) + 1 );
 
     strcpy( write_ri, "RI : " );
     strcat( write_ri, ri_str  );
 
     char *write_pc =
-        ( char * ) malloc ( strlen("PC : ") + strlen(pc_str) );
+        ( char * ) malloc ( strlen("PC : ") + strlen(pc_str) + 1 );
 
     strcpy( write_pc , "PC : " );
     strcat( write_pc , pc_str );
@@ -1569,7 +1572,7 @@ void execute_current_instruction(void* data) {
         append_text_to_text_view( textview2, "\nMemory limit reached. \n" );
     }
 
-    char prefix[] = "ACCUM : ";
+    char prefix[109] = "ACCUM : ";
     char acm_str[100];
     snprintf(acm_str, 100, "%d", accumulator); 
     gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(data, 
@@ -1616,18 +1619,6 @@ void step(GtkWidget *widget, gpointer data) {
     update_memory_tree(user_data_t);
 }
 
-void colorize_token(GtkTextBuffer *buffer,
-        int token_start, int token_end, const char *color) {
-    GtkTextIter start_iter, end_iter;
-
-    gtk_text_buffer_get_iter_at_offset(buffer, &start_iter, token_start);
-    gtk_text_buffer_get_iter_at_offset(buffer, &end_iter, token_end);
-
-    GtkTextTag *tag =
-        gtk_text_buffer_create_tag(buffer, NULL, "foreground", color, NULL);
-
-    gtk_text_buffer_apply_tag(buffer, tag, &start_iter, &end_iter);
-}
 
 void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     GtkWidget *text_view = GTK_WIDGET(gtk_builder_get_object(builder, "console2"));
@@ -1686,7 +1677,6 @@ void open_file(GtkButton *button, gpointer user_data) {
 
     read_and_insert_file_content(builder, filename);
 
-    g_free(filename);
 }
 
 void run(GtkWidget *widget, gpointer data) {

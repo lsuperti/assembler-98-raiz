@@ -5,10 +5,23 @@
 
 void resetIdentifiers_Macros( program_t *p ) 
 {
-    HASH_CLEAR(hh, p->table->tokens ); 
-    HASH_CLEAR(hh, p->macros );
-    p->n_macros     = 0;
-    p->table->num_s = 0;
+    if ( p != NULL )
+    {
+        if ( p->table != NULL )
+        {
+            HASH_CLEAR(hh, p->table->tokens ); 
+            p->table->num_s  = 0;
+            p->table->tokens = NULL;
+            p->table         = NULL;
+        }
+        HASH_CLEAR(hh, p->macros );
+        HASH_CLEAR(hh, p->globals);
+        HASH_CLEAR(hh, p->externs);
+        p->n_globals     = 0;
+        p->n_externs     = 0;
+        p->n_macros      = 0;
+        p->macros        = NULL;
+    }
 }
 
 error_rv printMacros( program_t *p, FILE *f ) 
@@ -53,6 +66,8 @@ void tokens_out( program_t *p, FILE *f )
         {
             fprintf( f, "%s ", p->tokens[i].token );
             fflush(f);
+            if ( ( i + 1 ) % 2 == 0 ) 
+                fprintf(f, "\n");
         }
     }
 }
@@ -350,23 +365,29 @@ error_rv expandMode(
         token_t t = (* tokens)[ i + tok_idx ];
         unsigned long h = hash( (unsigned char *) m->name );
         char *orf;
-        char *h_prefix = malloc( sizeof(h) );
+        char *h_prefix = malloc( 21 );
         sprintf( h_prefix, "%lu", h);
+        size_t len = strlen(t.token);
 
         if ( t.type == TOK_LOCAL_LABEL )
         {
-            orf = malloc( strlen(t.token) + 1 );
-            int len = strlen(t.token);
-            for ( int i=2; i < len; i++ )
-                orf[i - 2] = t.token[i];
-            orf[ len - 2 ] = '\0';
+            if ( len >= 2 )
+            {
+                orf = malloc( strlen(t.token) + 1 );
+                for ( int i=2; i < len; i++ )
+                    orf[i - 2] = t.token[i];
+                orf[ len - 2 ] = '\0';
+            }else {
+                orf = malloc(1); 
+                orf[0] = '\0';  
+            }
 
             char   *called_str = malloc( calculateDigits( m->called ) + 1 );
             sprintf( called_str, "%lu", m->called );
 
             char *lb_name = malloc( strlen(m->name) + 
                             strlen(h_prefix) + strlen(called_str)
-                            + strlen(t.token) + 15 );
+                            + strlen(orf) + 8 );
 
             strcpy( lb_name, m->name );
             strcat( lb_name, "_" );
@@ -392,7 +413,7 @@ error_rv expandMode(
 
             char *lb_name = malloc( strlen(m->name) + 
                             strlen(h_prefix) + strlen(called_str)
-                            + strlen(t.token) + 15 );
+                            + strlen(orf) + 8 );
 
             strcpy( lb_name, m->name );
             strcat( lb_name, "_" );
@@ -470,6 +491,9 @@ int compute_nargs( program_t *p )
     ++idx;
     token_t tok = *peek_token_idx(p, &idx);
     int params = 0;
+
+    if ( p->cur_macro_params != NULL )
+        free(p->cur_macro_params);
 
     if ( (p->cur_macro_params = malloc( sizeof(token_t) * cap )) == NULL )
          return _ENOMEM;
