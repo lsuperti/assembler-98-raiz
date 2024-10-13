@@ -23,8 +23,12 @@ void cleanup()
 
 int main (int argc, char *argv[]) {
 
+    /*
+    * inicializacao do GTK, carga do layout do arquivo glade e css
+    * criacao de variaveis para manipular treeview da memoria da maquina hipotetica
+    */
     gtk_init(&argc, &argv);
-
+    
     GtkBuilder *builder = gtk_builder_new_from_file("../glade_files/ui.glade");
     p_builder = builder;
     GtkCssProvider *provider = gtk_css_provider_new();
@@ -34,7 +38,7 @@ int main (int argc, char *argv[]) {
         GTK_WIDGET(gtk_builder_get_object(builder, "memory_tree"));
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
-    GtkListStore *store;
+    GtkListStore *store; //modelo de dados tabular
     GtkTreeIter iter;
 
 
@@ -47,6 +51,10 @@ int main (int argc, char *argv[]) {
 
     GMainContext *main_thread = g_main_context_new();
     // ------------------------------------------ //
+    /*
+    * configura treeview, cria tabela com colunas de posicao de memoria e de valor
+    * preenche a memoria, seta o modelo na GUI e registra sinal para callback
+    */
 
     setup_tree_view(memory_tree, renderer, column);
 
@@ -65,6 +73,12 @@ int main (int argc, char *argv[]) {
     gtk_builder_add_callback_symbols(builder, 
                                     "onDestroy", G_CALLBACK(onDestroy),
                                     NULL);
+
+    /*
+    * estrutura para compartilhar a exibicao da memoria da maquina hipotetica
+    * callbacks para botões e conexão com sinais declarados no glade com as funcoes do codigo
+    * botoes de acao em todas as janelas: run, step, reset, files, assemble
+    */
 
     user_data_t data = { .store = store, .builder = builder,
                         .treeview = GTK_TREE_VIEW(memory_tree) };
@@ -85,17 +99,22 @@ int main (int argc, char *argv[]) {
             ,"clicked", G_CALLBACK(assemble_and_update_file_gui), &data);
     
     gtk_builder_connect_signals(builder, NULL);
-    // -- // 
-    
-     gtk_style_context_add_provider_for_screen(screen,
+
+    // aplicando estilo css
+    gtk_style_context_add_provider_for_screen(screen,
             GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
+    // atualiza interface para mostrar instrucao atual
     ri = memory[program_counter];
     update_inst_pc(builder, memory[program_counter]);
 
     GtkWidget *load = GTK_WIDGET(gtk_builder_get_object(builder, "load"));
     g_signal_connect(load, "activate", G_CALLBACK(on_load_activate), &data);
     g_signal_connect(load, "activate", G_CALLBACK(reset), &data);
+    /*
+    * cria conteiner baseado no glade, cria pilha de widgets, 
+    * seta transicao e tempo ao alternar janelas, adiciona pilha ao conteiner
+    */
 
     GtkWidget *container_window = GTK_WIDGET(gtk_builder_get_object(builder,
             "CONTAINER_WINDOW"));
@@ -105,6 +124,11 @@ int main (int argc, char *argv[]) {
             GTK_STACK_TRANSITION_TYPE_CROSSFADE);
     gtk_stack_set_transition_duration(stack, 100);
     gtk_container_add(GTK_CONTAINER(container_window), GTK_WIDGET(stack));
+
+    /*
+    * recupera os widgets do glade: pagina inicial, terminal, GUI, file_gui
+    * empilha os widgets, associa a um titulo
+    */
 
     GtkWidget *start_window_fixed =
         GTK_WIDGET(gtk_builder_get_object(builder, "WINDOW_FIXED_START"));
@@ -124,6 +148,11 @@ int main (int argc, char *argv[]) {
     gtk_stack_add_titled(stack, window_fixed_mop3,
             "WINDOW_FIXED_MOP3", "FILE_GUI");
 
+    /*
+    * Botoes de navegacao na gui do software: Terminal, GUI, File, Back (para cada janela)
+    * Conexao dos botoes do arquivo glade com as callbacks para detectar evento clicked
+    * Conexao com evento de fechamento da janela
+    */
     GtkWidget *console_button =
         GTK_WIDGET(gtk_builder_get_object(builder, "Console"));
     g_signal_connect(console_button, "clicked", G_CALLBACK(change_to_console), stack); 
@@ -167,6 +196,8 @@ int main (int argc, char *argv[]) {
                 "changed", G_CALLBACK(on_buffer_changed), &changed_handler_id);
 
     g_signal_connect(container_window, "destroy", G_CALLBACK(cleanup), NULL);
+
+    // Torna visivel a interface e entra no loop da aplicacao GTK para processar os eventos
     gtk_widget_show_all(container_window);
     gtk_main();
 
