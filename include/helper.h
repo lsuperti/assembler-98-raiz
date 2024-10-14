@@ -15,6 +15,8 @@
 #define FILE_TOO_LARGE 2
 #define FILE_READ_ERROR 3
 
+void update_line_numbers(GtkTextBuffer *buffer, GtkTextView *line_number_view); 
+void sync_scroll(GtkAdjustment *adjustment, GtkAdjustment *synced_adjustment); 
 char * c_read_file(const char * f_name, int * err, size_t * f_size);
 void append_text_to_text_view(GtkTextView *text_view, const char *text);
 word_t show_number_input_dialog(GtkWidget *widget, gpointer window);

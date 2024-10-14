@@ -37,6 +37,9 @@ void on_load_activate ( GtkMenuItem *m )
     }
 
     gtk_widget_destroy(GTK_WIDGET(dialog));
+    GtkTextView *c =
+        GTK_TEXT_VIEW(gtk_builder_get_object( p_builder, "consoleErros" ));
+    append_text_to_text_view(c, "Loaded...\n");
     
 }
 

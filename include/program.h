@@ -5,6 +5,7 @@
 #include "global.h"
 #include <string.h>
 #include <stdbool.h>
+#include "helper.h"
 #include <stdio.h>
 #include <inttypes.h>
 #include <assert.h>

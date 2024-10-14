@@ -287,6 +287,7 @@ void reset(GtkWidget *widget, gpointer data) {
     program_counter = 256;
     update_inst_pc(user_data_t->builder, memory[program_counter]);
     update_memory_tree(user_data_t);
+    running = false;
 }
 
 /**
@@ -1602,6 +1603,34 @@ void execute_current_instruction(void* data) {
 
 }
 
+void select_row_in_tree_view(GtkTreeView *tree_view, int row_number) {
+    GtkTreeSelection *selection;
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    GtkTreePath *path;
+
+    // Get the tree view's selection
+    selection = gtk_tree_view_get_selection(tree_view);
+
+    // Get the tree view's model
+    model = gtk_tree_view_get_model(tree_view);
+
+    // Get an iterator for the row you want to select (e.g., row_number)
+    if (gtk_tree_model_iter_nth_child(model, &iter, NULL, row_number)) {
+        // Select the row
+        gtk_tree_selection_select_iter(selection, &iter);
+
+        // Get the tree path for the selected row
+        path = gtk_tree_model_get_path(model, &iter);
+
+        // Scroll the tree view to the selected row
+        gtk_tree_view_scroll_to_cell(tree_view, path, NULL, TRUE, 0.5, 0.0);
+
+        // Free the path after use
+        gtk_tree_path_free(path);
+    }
+}
+
 /**
  * Esta funcao atualiza a memoria da maquina hipotetica na interface grafica do software.
  * A funcao impede que a posicao de rolagem seja alterada ao limpar e preencher novamente a tabela.
@@ -1636,7 +1665,7 @@ void update_memory_tree(void* data) {
         gtk_tree_path_free(path);
     }
 
-    set_scroll_position(sw, vscroll, hscroll);
+    select_row_in_tree_view(treeview, program_counter);
 }
 
 /**
@@ -1671,7 +1700,7 @@ void read_and_insert_file_content(GtkBuilder *builder, const char *filename) {
     }
 
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_view));
-    program_t *program = createProgram(file); 
+    program_t *program = createProgram(file, filename); 
     fclose(file);
     tokenize(program);
 
@@ -1725,6 +1754,43 @@ void open_file(GtkButton *button, gpointer user_data) {
 
 }
 
+gboolean on_runupdate(gpointer data) {
+    user_data_t *ud = (user_data_t *)data;
+    GtkTextView *textview = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder, "console"));
+    GtkTextView *textview2 = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder, "console1"));
+    GtkAdjustment *speed_adjs = GTK_ADJUSTMENT(gtk_builder_get_object(ud->builder, "speed_adjustment"));
+
+    gdouble speed = gtk_adjustment_get_value(speed_adjs);
+    gdouble MAX_SPEED = gtk_adjustment_get_upper(speed_adjs);
+
+    int inst;
+    if ( running )
+    {
+        if (program_counter < MEMORY_SIZE) {
+            inst = memory[program_counter];
+            // Call your step function to execute the instruction
+            step(NULL, ud); 
+        } else {
+            // Handle segmentation fault
+            append_text_to_text_view(textview,
+                    "SEGFAULT: PC outside of memory range");
+            append_text_to_text_view(textview2,
+                    "SEGFAULT: PC outside of memory range");
+            running = false; // Stop running when SEGFAULT occurs
+            return FALSE;    // Stop the timeout loop
+        }
+
+        if (inst != STOP) {
+            // Schedule the next call after the specified delay
+            g_timeout_add( MAX_SPEED - speed, on_runupdate, ud);
+        } else {
+            running = false; // Stop running when STOP instruction is reached
+        }
+
+    }
+    return FALSE; // Return FALSE to avoid repeating the timeout automatically
+}
+
 /**
  * Esta funcao realiza a execucao do codigo armazenado no vetor memory.
  * Apos o codigo fonte passar pelo processo de montagem, chamar RUN permite rodar 
@@ -1732,26 +1798,10 @@ void open_file(GtkButton *button, gpointer user_data) {
  * program_counter definido anteriormente.
  */
 void run(GtkWidget *widget, gpointer data) {
-
     running = true;
-    user_data_t *ud = data;
-    GtkTextView *textview = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder,
-                "console"));
-    GtkTextView *textview2 = GTK_TEXT_VIEW(gtk_builder_get_object(ud->builder,
-                "console1"));
-    int inst;
-    do {
-        if ( program_counter < MEMORY_SIZE ) {
-            inst = memory[ program_counter ];
-            step( (void *)0, ud);
-        } else { 
-           append_text_to_text_view(textview,
-                   "SEGFAULT: PC outside of memory range"); 
-           append_text_to_text_view(textview2,
-                   "SEGFAULT: PC outside of memory range"); 
-           break;
-        }
-    }while ( inst != STOP && ( mop != MOP_NOT_DEFINED ) && running );
+    user_data_t *ud = (user_data_t *)data;
 
+    // Start the update process by calling on_runupdate()
+    on_runupdate(ud);
 }
 

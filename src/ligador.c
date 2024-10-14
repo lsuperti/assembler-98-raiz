@@ -562,7 +562,6 @@ int first_pass( paths *p, modulo *mds, tlb_g *gs, int *t_idx )
             HASH_ADD_INT(mds, id, m); 
 
             *t_idx = idx;
-            print_modulo(m);
 
         } 
 
@@ -598,6 +597,7 @@ void print_after( modulo *mod, FILE *f )
     fprintf(f, "section .text\n");
     for (size_t i = 0; i < mod->dot_text.used; i++) {
         fprintf(f, "%u ", mod->dot_text.array[i]);
+        if ( ( i + 1 ) % 8 == 0 ) { fprintf( f, "\n" ); }
     }
     fprintf(f, "\n");
 
@@ -703,7 +703,6 @@ void on_link_activate( GtkMenuItem *m, gpointer data )
 
         f_m->id   = idx;
         HASH_ADD_INT(mds, id, f_m);
-        print_modulo(f_m);
     }
 
     // Depois da primeira passagem todos os simbolos
@@ -715,6 +714,15 @@ void on_link_activate( GtkMenuItem *m, gpointer data )
     rv = second_pass(mds, gs, idx);
     if (rv)
       return;
+
+    if ( g_list_length(p->file_paths) > 0 )
+    {
+        GtkTextView *c =
+            GTK_TEXT_VIEW(gtk_builder_get_object( p_builder, "consoleErros" ));
+        append_text_to_text_view(c, "Linked...\n");
+    }
+    g_list_free(p->file_paths);
+
 }
 
 void on_addmod_activate( GtkMenuItem *m, gpointer data )
@@ -760,3 +768,10 @@ void on_removemod_activate( GtkMenuItem *m, gpointer data )
         }
     }
 }
+
+void on_clear_clicked ( void* m, GtkTextView *t ) 
+{
+    GtkTextBuffer *b = gtk_text_view_get_buffer(t);
+    gtk_text_buffer_set_text(b, "", -1);
+}
+

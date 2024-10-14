@@ -543,6 +543,8 @@ void process_macros( program_t *program )
     token_t tok;
     MACRO_T *m;
     size_t  rv;
+    bool has_expanded = false;
+
     while ( program->token_idx < program->n_tokens )
     {
         tok = program->tokens[program->token_idx];
@@ -558,6 +560,7 @@ void process_macros( program_t *program )
                 {
                     if ( n == m->n_params )
                     {
+                        has_expanded = true;
                         ++m->called;
                         rv = expandMode(&(program->tokens), &(program->n_tokens),
                                     program->token_idx, m,
@@ -579,6 +582,13 @@ void process_macros( program_t *program )
     FILE *f;
     if ( (f = fopen(current_macro_out, "w")) == NULL )
         return;
+
+    if ( has_expanded )
+    {
+        GtkTextView *c =
+            GTK_TEXT_VIEW(gtk_builder_get_object( p_builder, "consoleErros" ));
+        append_text_to_text_view(c, "Macros expanded...\n");
+    }
 
     tokens_out(program, f);
     fclose(f);

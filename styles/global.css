@@ -1,25 +1,48 @@
 
-/* add style to every button widget */
-/* button {
-    background: black; 
+ button {
+    background: gray; 
     min-width: 50px;
     min-height: 25px;
     color: white;
-    padding: 10px;
+    padding: 5px;
     border: none;
     border-radius: 4px;
-} */
+    margin: 5px;
+} 
 
 button:hover {
     background-color: #45a049;
 }
 
 .buffer {
-    border: 1px solid lightgreen;
+    border: 1px solid black;
+    background-color: lightgray;
+    margin: 5px;
+}
+
+.M-GRID{
+    margin: 10px;
+    padding: 5px;
+    background-color: white;
 }
 
 .CMV {
-    border: 1px solid lightgreen;
+    border: 1px solid black;
+    background-color: lightgray;
+    padding: 10px;
+    margin: 5px;
+}
+
+.CMV-BOX {
+    margin: 5px;
+    background-color: white;
+    border: 1px solid black;
+}
+
+.REGISTERS{
+    border: 1px solid black;
+    background-color: lightgray;
+    padding: 5px;
 }
 
 /* box {
@@ -30,23 +53,56 @@ spinbutton {
     padding: 10px;
 }
 
+.register-frame {
+    background-color: whitesmoke;
+}
+
+.memory-frame {
+    background-color: whitesmoke;
+}
+
 .reset:hover {
    background-color: red; 
 }
 
-/* .memory_scroll {
-    border: 1px solid lightgreen;
+ .memory_scroll {
+    border: 1px solid black;
+    padding: 5px;
 }
-*/
+
+.windowm-fixed {
+    background-color: #dddddd;
+    border: 1px solid blue;
+}
+
+.stack-switcher:checked {
+    background-color: green;
+    color: white; /* Optional: change text color to contrast the green */
+    border-radius: 5px; /* Optional: Add some styling to the border */
+}
 
 /*
 .cell {
     color: lime;
 } */
 
+.line-nums-css {
+    background-color: whitesmoke;
+    opacity: 0.7;
+}
+
+.box-errors{
+    background-color: lightgray;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.box-errors-right{
+    margin: 5px;
+}
 
 #address_column, #value_column {
-    background-color: lightgreen;
+    background-color: lightgray;
     color: black;
     border-radius: 0px;
 }

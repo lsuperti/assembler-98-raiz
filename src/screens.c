@@ -1,26 +1,6 @@
 
 #include "screens.h"
 
-void change_to_console(GtkWidget *widget, GtkStack *stack) {
-    gtk_stack_set_visible_child_name(stack, "WINDOW_FIXED_MOP0" );
-    mop = MOP0;
-}
-
-void change_to_gui(GtkWidget *widget, GtkStack *stack){
-    gtk_stack_set_visible_child_name(stack, "WINDOW_FIXED_MOP2" );
-    mop = MOP2;
-}
-
-void change_to_main(GtkWidget *widget, GtkStack *stack){
-    gtk_stack_set_visible_child_name(stack, "WINDOW_FIXED_START" );
-    mop = MOP_NOT_DEFINED;
-}
-
-void change_to_file_gui(GtkWidget *widget, GtkStack *stack){
-    gtk_stack_set_visible_child_name(stack, "WINDOW_FIXED_MOP3" );
-    mop = MOP3;
-}
-
 /**
  * Esta funcao analisa o texto editado no console2 (arquivo glade) da janela File,
  * cria um novo programa (struct program_t)...
@@ -54,6 +34,7 @@ void assemble_and_update_file_gui(GtkWidget *widget, gpointer data)
     gtk_text_buffer_get_bounds(c_buff, &start, &end);
     source = gtk_text_buffer_get_text(c_buff, &start, &end, FALSE);
 
+    program->name         = g_path_get_basename(current_program);
     program->source       = source;
     program->HEAD         = 0;             
     program->tokens       = NULL;

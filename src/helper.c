@@ -11,6 +11,32 @@
  * http://www.cse.yorku.ca/~oz/hash.html
 */
 
+void sync_scroll(GtkAdjustment *adjustment, GtkAdjustment *synced_adjustment) {
+    gtk_adjustment_set_value(synced_adjustment, gtk_adjustment_get_value(adjustment));
+}
+
+void update_line_numbers(GtkTextBuffer *buffer, GtkTextView *line_number_view) {
+    GtkTextIter iter;
+    gint line_count;
+    gchar *line_numbers = NULL;
+    GString *line_string = g_string_new("");
+
+    // Get the total number of lines in the buffer
+    line_count = gtk_text_buffer_get_line_count(buffer);
+
+    // Create a string for the line numbers
+    for (gint i = 1; i <= line_count; i++) {
+        g_string_append_printf(line_string, "%d\n", i);
+    }
+
+    // Set the line number string to the line number view buffer
+    GtkTextBuffer *line_buffer = gtk_text_view_get_buffer(line_number_view);
+    gtk_text_buffer_set_text(line_buffer, line_string->str, -1);
+
+    // Free the allocated memory
+    g_string_free(line_string, TRUE);
+}
+
 unsigned long
 hash(unsigned char *str)
 {
@@ -43,7 +69,7 @@ void on_sMacros_activate( GtkMenuItem *m, GtkTextView *s )
         return;
 
     program_t *p;
-    if ( (p = createProgram(file)) == NULL )
+    if ( (p = createProgram(file, current_macro_out)) == NULL )
         return;
     fclose(file);
 

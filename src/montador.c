@@ -66,6 +66,7 @@ void            on_buffer_changed( GtkWidget *w, gpointer data )
     source = gtk_text_buffer_get_text(b, &start, &end, FALSE);
     program_t *program = malloc(sizeof(program_t));
 
+    program->name         = NULL;
     program->source       = source;
     program->HEAD         = 0;             
     program->tokens       = NULL;
@@ -224,7 +225,7 @@ void generateOutput( program_t *program, FILE *output )
 program_t *assembleProgram( char *file_path, char *output_path ) 
 {
    FILE *i = fopen( file_path, "rb" ); 
-   program_t *program = createProgram(i);
+   program_t *program = createProgram(i, file_path );
    fclose(i);
    tokenize(program);
    parse(program);
@@ -242,7 +243,7 @@ program_t *assembleProgram( char *file_path, char *output_path )
  * @param file arquivo contendo codigo fonte do pc hipotetico
  * @return program (struct program_t) pronto para traducao
  */
-program_t* createProgram( FILE *file )
+program_t* createProgram( FILE *file, char *path )
 { 
     assert( file != NULL );
     program_t *program =
@@ -262,6 +263,8 @@ program_t* createProgram( FILE *file )
       fclose(file),free(buffer),fputs("Entire read fails",stderr),exit(1);
 
     buffer[lSize] = '\0';
+    
+    program->name             = g_path_get_basename(path);
     program->source           = buffer;
     program->HEAD             = 0;             
     program->tokens           = NULL;
@@ -1601,6 +1604,14 @@ void parse( program_t *program )
 
     program->n_globals = HASH_COUNT( program->globals );
     program->n_externs = HASH_COUNT( program->externs );
+    
+    char *n = malloc( strlen(program->name) + 17 );
+    snprintf(n, strlen(program->name) + 17, "%s assembled ...\n", program->name );
+
+    GtkTextView *c =
+        GTK_TEXT_VIEW(gtk_builder_get_object( p_builder, "consoleErros" ));
+    append_text_to_text_view(c, n);
+    free(n);
 
 }
 

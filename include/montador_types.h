@@ -148,6 +148,7 @@ typedef struct _program_t{
     size_t          program_size;
     int             c_row;
     int             c_col;
+    char           *name;
   // vvvv Resolução dos identificadores
     symbol_table_t *table;
   // vvvv Processador de macros 
@@ -162,7 +163,7 @@ typedef struct _program_t{
 } program_t;
 
 token_t*        getNextToken( program_t *program );
-program_t*      createProgram( FILE *input );
+program_t*      createProgram( FILE *input, char *name );
 void            freeProgram( program_t *program );
 void            tokenize( program_t *program );
 
