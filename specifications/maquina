@@ -1,0 +1,44 @@
+1. 
+    No arquivo architecture.h a memória é definida com tamanho de 1024       -
+    palavras de 16 bits, resultando em 16 kB de memória, o que corresponde à -
+    exigência da descrição.                                                  -
+
+2. 
+    No arquivo architecture.c, a maioria dos registradores foi inicializada  -
+    conforme necessário, com exceção do SP, que é declarado em stack.h.      -
+    Todos os registradores correspondem às descrição, incluindo o tamanho    -
+    diferenciado de MOP em relação aos outros.                               -
+
+3 e 4. 
+    Existe uma enum mapeando as instruções, as quais são repartidas por seus -
+    modos de endereçamento possíveis. Os opcodes descritos sempre são        -
+    atribuídos ao endereçamento do tipo direto.                              -
+    O conjunto de instruções implementadas correponde ao conjunto descrito,  -
+    por exceção de PUT, que foi inclusa como a instrução write da desrição,  -
+    cumprindo com todas os modos de enderaçamento. O que difere da instrução -
+    nomeada como write no código, que interpreta cada byte dos operandos     -
+    presentes na memória como um caractere.                                  -
+
+5.
+    As funções de manipulação da pilha, que seguem o padrão para essa        -
+    estrutura, e o registrador Stack Pointer estão implementados em stack.h, -
+    onde foi definido que a pilha começa na posição 255.                     -
+
+6. 
+    (0) Foi implemntado como uma saída no console;                           - 
+    (1) Pode ser testada a aprtir do botão RUN na máquina;                   -    
+    (2) Pode ser testda a partir do botão STEP da máquina.                   -
+
+    A execução contínua se dá, basicamente, pela interação de três funções:  -
+    run, que ao definir "running" como true e chamar on_runupdate inicia a   -
+    execução. Já que on_runupdate, por sua vez, chama step, que executa a    -
+    instrução atual, e faz a próxima chamada dentro da velocidade            -
+    estabelecida.                                                            -
+
+7.
+    A interface gráfica GTK é usada para interagir com o usuário.            -
+    A instrução READ, tanto com endereçamento direto quanto indireto,        -
+    lê os dados de entrada. E a instrução PUT, opera a saída de dados.       -
+    
+Além disso, foi definido o tratamento para entrada de instruções inválidas   -
+(desconhecidas) e a excedência do limite de memória.                         -
