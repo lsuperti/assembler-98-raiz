@@ -569,6 +569,7 @@ int first_pass( paths *p, modulo *mds, tlb_g *gs, int *t_idx )
         s_text_size += m->dot_text.used;
 
     }
+    g_list_first(p->file_paths);
 
     return EXIT_SUCCESS;
 }
@@ -721,7 +722,6 @@ void on_link_activate( GtkMenuItem *m, gpointer data )
             GTK_TEXT_VIEW(gtk_builder_get_object( p_builder, "consoleErros" ));
         append_text_to_text_view(c, "Linked...\n");
     }
-    g_list_free(p->file_paths);
 
 }
 

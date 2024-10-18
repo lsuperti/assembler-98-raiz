@@ -18,13 +18,14 @@ global end
 
 section .text
     main:
-        UPDATE_MAX max 30
-        LOAD 2
-        STORE SHIFT_TIMES
+        READ  value
+        READ  f_times
+        READ  SHIFT_TIMES
+        UPDATE_MAX max value 
         LOAD  max     
         CALL  SHIFTL    
         STORE max
-        LOAD  6
+        LOAD  f_times 
         CALL  FACTORIAL
         ADD   max
         STORE max
@@ -34,5 +35,7 @@ section .text
         PUT  max
         STOP
 section .data
-    max: .space
+    max:     .space
+    value:   .space
+    f_times: .space
 

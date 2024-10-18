@@ -1,27 +1,29 @@
 7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
 
 section .text
-51 30 6 767 78 266 51 30 
-7 767 51 2 7 0 3 767 
-79 0 7 767 51 6 79 0 
-2 767 7 767 67 286 20 767 
-11 
+12 768 12 769 12 0 3 768 
+6 767 78 272 3 768 7 767 
+3 767 79 0 7 767 3 769 
+79 0 2 767 7 767 67 288 
+20 767 11 
 section .data
-0 
+0 0 0 
 section .rodata
 
 global
 	main 256
-	end 286
+	end 288
 
 extern
-	SHIFTL 17 
-	SHIFT_TIMES 13 
-	FACTORIAL 23 
+	SHIFTL 19 
+	SHIFT_TIMES 5 
+	FACTORIAL 25 
 
 local_text_labels
-	UPDATE_MAX_8245486993943867437_1_bigger 5 
-	end 29 
+	UPDATE_MAX_8245486993943867437_1_bigger 11 
+	end 31 
 
 local_data_labels
-	max 3 9 15 19 25 27 31 
+	max 9 15 17 21 27 29 33 
+	value 1 7 13 
+	f_times 3 23 
