@@ -1,0 +1,16 @@
+1. 
+    No arquivo ligador.h foi definido todas structs e funções necessárias       -
+    para execução dessa etapa.                                                  -     
+
+2.
+    A partir da interface "File", pode-se carregar um link para o ligador o     -
+    qual executará a primeira e segunda passagem do ligador.                    -
+
+3.
+    A primeira passagem faz a leitura do módulo, o qual popula os globais,      -
+    externos, locais, dados e código porém sem fazer a atualização dos          -
+    endereços.
+
+4.
+    Segunda passagem tem a responsabilidade de atualizar os endereços, fazendo  -
+    assim a união dos segmentos.                                                -
