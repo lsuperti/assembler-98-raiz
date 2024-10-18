@@ -8,9 +8,16 @@
 
 3.
     A primeira passagem faz a leitura do módulo, o qual popula os globais,      -
-    externos, locais, dados e código porém sem fazer a atualização dos          -
-    endereços.
+    externos, locais, dados e código gerando assim uma tabela de todos os       - 
+    símbolos globais ( global ) e soma com a determinada distância relativa.    -
+    Somando o tamanho dos dados até o modulo presente se data_l = true ou       -
+    somando o tamanho do código até o presente se data_l = false.               -
 
 4.
-    Segunda passagem tem a responsabilidade de atualizar os endereços, fazendo  -
-    assim a união dos segmentos.                                                -
+    Na segunda passagem do processo de ligação, o ligador ajusta os endereços   -
+    das referências externas e une os segmentos de código e dados de diferentes
+    módulos em um único bloco consolidado. A função percorre cada módulo,       -
+    substitui as referências externas pelos endereços corretos usando uma       -
+    tabela de símbolos globais e, em seguida, concatena os segmentos de código, -
+    dados e dados somente leitura. Por fim, o bloco consolidado é gravado em um -
+    arquivo de saída, pronto para ser executado pelo interpretador.             -
