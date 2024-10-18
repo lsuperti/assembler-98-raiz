@@ -17,7 +17,7 @@
 
     O codigo montado é mostrado a direita do source na tela de arquivo  -
     e também é gerado o arquivo .OBJ                                    -
-    Ao encontrar um erro, o montador cessa o seu processamento indicando o erro. ao processar sem erros um código fonte, o montador exibe no terminal os tokens processados.
+    Ao encontrar um erro, o montador cessa o seu processamento indicando o erro. Ao processar sem erros um código fonte, o montador exibe no terminal os tokens processados.
 
 3.3
 
@@ -98,10 +98,12 @@ local_data_labels
 
 3.4
 -Caso ocorra, o Montador é capaz de indicar uma série de erros para prevenir a inserção de dados estranhos na máquina.
+-O Montador apontará erros como: operando não definido, operando redefinido, instrução com operandos inválidos, valores fora do limite, erro de sintaxe.
 
 3.5
 -Existe uma GUI disponível ao usuário que executa o software. Esse interface gráfica fornece as ferramentas para lidar com a máquina, o que inclui o Montador.
 -O usuário pode navegar em 3 janelas: Montador, Terminal e Máquina.
--Na janela Máquina, o usuário conta com a ferramenta de importação do código-fonte. Ao selecionar um arquivo, o software exibe todo o código daquele arquivo na caixa de texto da esquerda. É possível fazer alterações no código e, uma vez satisfeito com o resultado, o usuário pode clicar em Assemble para realizar a montagem.
+-Na janela Montador, o usuário conta com a ferramenta de importação do código-fonte. Ao selecionar um arquivo, o software exibe todo o código daquele arquivo na caixa de texto da esquerda. É possível fazer alterações no código e, uma vez satisfeito com o resultado, o usuário pode clicar em Assemble para realizar a montagem.
 -Na caixa de texto à direita, o usuário poderá ver o resultado da montagem. O código-objeto é exibido para conferência.
--Para carregar o programa resultante na memória da máquina hipotética, o usuário clica em File > Load.
+-Para carregar o programa resultante na memória da máquina hipotética, o usuário clica em File > Load > program.elf98
+-O usuário poderá clicar na janela Máquina para executar o programa montado e carregado e checar os valores atualizados de memória e registradores.
