@@ -1588,6 +1588,10 @@ void parse( program_t *program )
                 rv = parseEXTERN(program, tok);
             break;
 
+            case TOK_COPY:
+                rv = parseCopy(program, tok);
+            break;
+
             default:
             break;
 
