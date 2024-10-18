@@ -1,0 +1,39 @@
+1.
+    No arquivo macro_processor.h, todas as estruturas e funções necessárias     -
+    para o processador de macros são definidas. São apresentados os protótipos  -
+    de funções para adicionar, substituir e encontrar macros, além de           -
+    processar, expandir e imprimir macros.                                      -
+
+2.
+    A função process_macros trata do processo geral de processamento de macros, -
+    que inclui o reconhecimento e a expansão das macros. Uma macro é expandida  -
+    quando identificada no código-fonte.                                        -
+
+3.
+    No fluxo inteiro do tratamento de macros, a função defineMode identifica e  -
+    tokeniza uma nova macro. Quaisquer macros locais também são identificadas   -
+    nesta etapa.                                                                -
+
+4.
+    A função expandMode é responsável por substituir a chamada da macro pelo    -
+    seu respectivo conteúdo, substituindo os parâmetros formais pelos valores   -
+    reais passados na chamada da macro.                                         -
+
+5.
+    A reposição dos identificadores locais é feita pela utilização de um        -
+    identificador exclusivo, que é a combinação do nome da macro, um valor hash -
+    e a contagem de chamadas da macro.                                          -
+
+6.
+    Para gerenciar possíveis erros de memória durante a execução, as funções    -
+    incluem tratamento de erros e alocação dinâmica de memória.                 -
+
+7.
+    Além disso, definiram-se diversas funções auxiliares que ajudam a gerenciar -
+    tokens, manipular strings e tratar dos possíveis casos de endereçamento.    -
+
+8.
+    A sintaxe utilizada foi diferente da especificação original. Optou-se por   -
+    utilizar %macro para iniciar a definição de uma macro e %endmacro para      -
+    finalizar. Os argumentos da macro são tomados imediatamente após o nome da  -
+    macro, que vem após o %macro.                                               -
